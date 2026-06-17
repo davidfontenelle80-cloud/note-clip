@@ -1,5 +1,5 @@
 /**
- * app.js — QuickNotes PWA
+ * app.js — Note Clip PWA
  * All app logic: state, routing, CRUD, modals, calendar, reminders.
  * Follows KHub boilerplate conventions.
  */
@@ -914,7 +914,7 @@
         </div>
 
         <div style="text-align:center;padding:var(--space-lg) 0;color:var(--color-text-dim);font-size:var(--text-xs)">
-          QuickNotes v${KHub.Config.version}
+          Note Clip v${KHub.Config.version}
         </div>
       </div>
     `;
@@ -1587,7 +1587,7 @@
 
   function fireReminder(note) {
     if (Notification?.permission === 'granted') {
-      new Notification('QuickNotes', {
+      new Notification('Note Clip', {
         body: note.title,
         icon: './icons/icon-192.png',
         tag: note.id,
@@ -1652,11 +1652,11 @@
       return true;
     }
     document.body.innerHTML = `
-      <div style="padding:40px;max-width:600px;margin:0 auto;font-family:system-ui;color:#f7f8fb;background:#050607;min-height:100vh">
-        <a href="${location.pathname}" style="color:#58c18f;font-size:14px;text-decoration:none">← Open QuickNotes</a>
+      <div style="padding:40px;max-width:600px;margin:0 auto;font-family:system-ui;color:#F7F4EC;background:#1C1A14;min-height:100vh">
+        <a href="${location.pathname}" style="color:#EDD97A;font-size:14px;text-decoration:none">← Open Note Clip</a>
         <h1 style="margin:24px 0 8px;font-size:1.5rem">${esc(item.title)}</h1>
-        <div style="color:#a0a8bd;font-size:13px;margin-bottom:24px">Shared on ${new Date(item.createdAt).toLocaleDateString()}</div>
-        <div style="white-space:pre-wrap;line-height:1.7;background:#111318;padding:20px;border-radius:16px">${esc(item.content)}</div>
+        <div style="color:#B8B299;font-size:13px;margin-bottom:24px">Shared on ${new Date(item.createdAt).toLocaleDateString()}</div>
+        <div style="white-space:pre-wrap;line-height:1.7;background:#24211A;padding:20px;border-radius:16px;border:1px solid rgba(237,217,122,.13)">${esc(item.content)}</div>
       </div>`;
     return true;
   }

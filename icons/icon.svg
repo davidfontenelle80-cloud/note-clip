@@ -1,21 +1,70 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Background -->
-  <rect width="512" height="512" rx="100" fill="#111318"/>
-  <!-- Note page -->
-  <rect x="128" y="96" width="256" height="310" rx="20" fill="#1a1d27" stroke="#58c18f" stroke-width="4"/>
-  <!-- Lines on note -->
-  <rect x="160" y="160" width="192" height="12" rx="6" fill="#58c18f" opacity="0.7"/>
-  <rect x="160" y="200" width="160" height="12" rx="6" fill="#a0a8bd" opacity="0.5"/>
-  <rect x="160" y="240" width="176" height="12" rx="6" fill="#a0a8bd" opacity="0.5"/>
-  <rect x="160" y="280" width="120" height="12" rx="6" fill="#a0a8bd" opacity="0.35"/>
-  <!-- Check circle (completed item) -->
-  <circle cx="160" cy="344" r="14" fill="#58c18f"/>
-  <polyline points="153,344 158,350 168,338" stroke="#06120e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <rect x="184" y="337" width="80" height="12" rx="6" fill="#a0a8bd" opacity="0.4"/>
-  <!-- Pencil accent -->
-  <g transform="translate(320,300) rotate(-35)">
-    <rect x="-12" y="-52" width="24" height="72" rx="4" fill="#f5aa2e"/>
-    <polygon points="-12,20 12,20 0,42" fill="#58c18f"/>
-    <rect x="-12" y="-52" width="24" height="14" rx="4" fill="#768198"/>
+  <defs>
+    <!-- Rounded square background gradient — warm cream to pale yellow -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDF0"/>
+      <stop offset="100%" stop-color="#F5EAC0"/>
+    </linearGradient>
+    <!-- Sticky note gradient — warm yellow -->
+    <linearGradient id="note" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5E570"/>
+      <stop offset="100%" stop-color="#DFC345"/>
+    </linearGradient>
+    <!-- Sticky note fold -->
+    <linearGradient id="fold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C9A830"/>
+      <stop offset="100%" stop-color="#B8960A"/>
+    </linearGradient>
+    <!-- Paperclip gradient — silver chrome -->
+    <linearGradient id="clip" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8E8E8"/>
+      <stop offset="40%" stop-color="#C8C8C8"/>
+      <stop offset="100%" stop-color="#A0A0A0"/>
+    </linearGradient>
+    <!-- Drop shadow filter -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#C0A030" flood-opacity="0.35"/>
+    </filter>
+    <filter id="clipshadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="#808080" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+
+  <!-- Subtle inner border for depth -->
+  <rect x="2" y="2" width="508" height="508" rx="111" ry="111" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="3"/>
+
+  <!-- Sticky note body -->
+  <g filter="url(#shadow)">
+    <path d="M100 130 L412 130 L412 410 L350 410 L300 460 L100 460 Z" rx="12" fill="url(#note)"/>
+  </g>
+
+  <!-- Sticky note fold corner (bottom-right dog-ear) -->
+  <path d="M350 410 L412 410 L300 460 Z" fill="url(#fold)" opacity="0.9"/>
+  <path d="M350 410 L350 460 L300 460 Z" fill="#EDD97A" opacity="0.6"/>
+
+  <!-- Note lines on sticky -->
+  <rect x="138" y="198" width="160" height="10" rx="5" fill="#C9A830" opacity="0.55"/>
+  <rect x="138" y="232" width="200" height="10" rx="5" fill="#C9A830" opacity="0.45"/>
+  <rect x="138" y="266" width="176" height="10" rx="5" fill="#C9A830" opacity="0.45"/>
+  <rect x="138" y="300" width="140" height="10" rx="5" fill="#C9A830" opacity="0.35"/>
+
+  <!-- Paperclip — positioned at top-right, overlapping the note corner -->
+  <g transform="translate(288, 56)" filter="url(#clipshadow)">
+    <!-- Outer loop of paperclip -->
+    <path d="M60 30 C60 13 47 0 30 0 C13 0 0 13 0 30 L0 130 C0 143 11 154 24 154 C37 154 48 143 48 130 L48 42 C48 34 42 28 34 28 C26 28 20 34 20 42 L20 120"
+          fill="none"
+          stroke="url(#clip)"
+          stroke-width="14"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+    <!-- Highlight on paperclip -->
+    <path d="M60 30 C60 13 47 0 30 0 C13 0 0 13 0 30 L0 80"
+          fill="none"
+          stroke="rgba(255,255,255,0.55)"
+          stroke-width="5"
+          stroke-linecap="round"/>
   </g>
 </svg>

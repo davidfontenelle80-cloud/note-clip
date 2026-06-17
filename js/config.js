@@ -1,5 +1,5 @@
 /**
- * config.js — QuickNotes / KHub pattern
+ * config.js — Note Clip / KHub pattern
  * Establishes window.KHub namespace, feature flags, and conditional logging.
  */
 (function () {
@@ -23,16 +23,16 @@
   };
 
   window.KHub.Config = {
-    appName:    'QuickNotes',
+    appName:    'Note Clip',
     version:    '1.0.0',
-    repo:       'davidfontenelle80-cloud/quick-notes',
+    repo:       'davidfontenelle80-cloud/note-clip',
     isDev,
     isProd:     !isDev,
     features: {
       auth:     false,
       firebase: false,
     },
-    log:  (...a) => { if (isDev) console.log('[QuickNotes]', ...a); },
-    warn: (...a) => { if (isDev) console.warn('[QuickNotes]', ...a); },
+    log:  (...a) => { if (isDev) console.log('[Note Clip]', ...a); },
+    warn: (...a) => { if (isDev) console.warn('[Note Clip]', ...a); },
   };
 })();

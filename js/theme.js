@@ -1,13 +1,13 @@
 /**
- * theme.js — QuickNotes / KHub pattern
+ * theme.js — Note Clip / KHub pattern
  * Supports: 'dark' | 'light' | 'system'
  * Stored in localStorage under 'qn_theme'.
  */
 (function () {
   'use strict';
 
-  const DARK_META  = '#050607';
-  const LIGHT_META = '#eef1f5';
+  const DARK_META  = '#1C1A14';
+  const LIGHT_META = '#F7F4EC';
   const KEY        = 'qn_theme';
 
   let _pref = localStorage.getItem(KEY) || 'system';

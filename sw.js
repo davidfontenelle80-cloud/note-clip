@@ -1,10 +1,10 @@
 /**
- * sw.js — QuickNotes PWA
+ * sw.js — Note Clip PWA
  * Network-first for app shell. Offline fallback from cache.
  * BUMP CACHE_VERSION on every deploy that changes HTML, CSS, JS, or manifest.
  */
 
-const CACHE_VERSION = 'quicknotes-v1';
+const CACHE_VERSION = 'noteclip-v1';
 
 const PRECACHE_URLS = [
   './',

@@ -1,4 +1,4 @@
-# serve.ps1 — Simple static file server for QuickNotes dev
+# serve.ps1 — Simple static file server for Note Clip dev
 # Usage: powershell -ExecutionPolicy Bypass -File serve.ps1
 param([int]$Port = 8080)
 
@@ -6,7 +6,7 @@ $root = $PSScriptRoot
 $listener = [System.Net.HttpListener]::new()
 $listener.Prefixes.Add("http://localhost:$Port/")
 $listener.Start()
-Write-Host "QuickNotes dev server running at http://localhost:$Port/"
+Write-Host "Note Clip dev server running at http://localhost:$Port/"
 
 $mimeTypes = @{
   '.html' = 'text/html; charset=utf-8'

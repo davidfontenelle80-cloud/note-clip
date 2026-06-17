@@ -1,5 +1,5 @@
 /**
- * i18n.js — QuickNotes bilingual support (English / Spanish)
+ * i18n.js — Note Clip bilingual support (English / Spanish)
  * Pattern: KHub.I18n.t('key'), data-i18n="key" on elements.
  */
 (function () {
@@ -8,7 +8,7 @@
   const STRINGS = {
     en: {
       // App
-      'app.name': 'QuickNotes',
+      'app.name': 'Note Clip',
 
       // Tabs
       'tab.dashboard':     'Dashboard',
@@ -232,7 +232,7 @@
     },
 
     es: {
-      'app.name': 'QuickNotes',
+      'app.name': 'Note Clip',
 
       'tab.dashboard':     'Panel',
       'tab.categories':    'Categorías',

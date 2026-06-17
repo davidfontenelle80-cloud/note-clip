@@ -1,43 +1,45 @@
 /**
- * dark-mode.css — QuickNotes / KHub token fallbacks
- * Default is dark. Light lives in [data-theme="light"].
+ * dark-mode.css — Note Clip
+ * Default is dark (deep warm charcoal). Light tokens in [data-theme="light"].
  */
 :root,
 html[data-theme="dark"],
 [data-theme="dark"] {
   color-scheme: dark;
-  --color-primary:       #58c18f;
-  --color-primary-dark:  #78d6a8;
-  --color-accent:        #58c18f;
-  --color-bg:            #050607;
-  --color-surface:       #111318;
-  --color-border:        rgba(143,151,184,.18);
-  --color-text:          #f7f8fb;
-  --color-text-muted:    #a0a8bd;
-  --color-text-inverse:  #06120e;
-  --color-success:       #58c18f;
-  --color-warning:       #f5aa2e;
-  --color-error:         #ff5d5d;
-  --color-info:          #7aa2ff;
-  --shadow-sm:           0 1px 3px rgba(0,0,0,.45);
-  --shadow-md:           0 10px 28px rgba(0,0,0,.48);
+  --color-primary:       #EDD97A;
+  --color-primary-dark:  #F0E080;
+  --color-accent:        #EDD97A;
+  --color-bg:            #1C1A14;
+  --color-surface:       #24211A;
+  --color-border:        rgba(237,217,122,0.13);
+  --color-text:          #F7F4EC;
+  --color-text-muted:    #B8B299;
+  --color-text-inverse:  #2C2A1E;
+  --color-on-primary:    #2C2A1E;
+  --color-success:       #6BAE7B;
+  --color-warning:       #D4813A;
+  --color-error:         #C84B3A;
+  --color-info:          #4A90B8;
+  --shadow-sm:           0 1px 3px rgba(0,0,0,.50), 0 1px 6px rgba(0,0,0,.35);
+  --shadow-md:           0 8px 28px rgba(0,0,0,.55), 0 2px 8px rgba(0,0,0,.40);
 }
 html[data-theme="light"],
 [data-theme="light"] {
   color-scheme: light;
-  --color-primary:       #58c18f;
-  --color-primary-dark:  #2f9d68;
-  --color-accent:        #f5aa2e;
-  --color-bg:            #eef1f5;
-  --color-surface:       #ffffff;
-  --color-border:        rgba(16,24,40,.12);
-  --color-text:          #0f172a;
-  --color-text-muted:    #64748b;
-  --color-text-inverse:  #f7f8fb;
-  --color-success:       #12a06a;
-  --color-warning:       #c47f12;
-  --color-error:         #d92d3f;
-  --color-info:          #2f6fed;
-  --shadow-sm:           0 1px 2px rgba(15,23,42,.04), 0 2px 8px rgba(15,23,42,.03);
-  --shadow-md:           0 12px 32px rgba(15,23,42,.10);
+  --color-primary:       #D4B840;
+  --color-primary-dark:  #C4A828;
+  --color-accent:        #EDD97A;
+  --color-bg:            #F7F4EC;
+  --color-surface:       #FFFDF0;
+  --color-border:        rgba(44,42,30,0.11);
+  --color-text:          #2C2A1E;
+  --color-text-muted:    #7A7565;
+  --color-text-inverse:  #FFFDF0;
+  --color-on-primary:    #2C2A1E;
+  --color-success:       #3D8A50;
+  --color-warning:       #B86A20;
+  --color-error:         #A83020;
+  --color-info:          #2A6E9A;
+  --shadow-sm:           0 1px 3px rgba(44,42,30,.10), 0 2px 10px rgba(44,42,30,.08);
+  --shadow-md:           0 4px 16px rgba(44,42,30,.10), 0 12px 36px rgba(44,42,30,.14);
 }

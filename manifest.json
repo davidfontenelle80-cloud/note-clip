@@ -1,11 +1,11 @@
 {
-  "name": "QuickNotes",
-  "short_name": "QuickNotes",
-  "description": "Quick notes, task lists, reminders, and shared notes — your personal hub.",
+  "name": "Note Clip",
+  "short_name": "NoteClip",
+  "description": "Quick notes, task lists, reminders, and shared notes — your warm personal hub.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#050607",
-  "theme_color": "#050607",
+  "background_color": "#1C1A14",
+  "theme_color": "#1C1A14",
   "orientation": "portrait-primary",
   "categories": ["productivity", "utilities"],
   "icons": [
