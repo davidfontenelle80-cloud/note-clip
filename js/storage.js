@@ -11,14 +11,14 @@
   const NOTE_COLORS = ['yellow','lavender','sky','mint','coral','peach'];
 
   const DEFAULT_CATEGORIES = [
-    { id: 'cat_work',    name: 'Work',       icon: '💼', color: '#BDD5EA' },
-    { id: 'cat_medical', name: 'Medical',     icon: '🩺', color: '#C5E2C5' },
-    { id: 'cat_personal',name: 'Personal',    icon: '👤', color: '#D4C5E2' },
-    { id: 'cat_home',    name: 'Home',        icon: '🏠', color: '#F7D9B0' },
-    { id: 'cat_docs',    name: 'Documents',   icon: '📄', color: '#F7F0B6' },
-    { id: 'cat_followup',name: 'Follow-Up',   icon: '🔔', color: '#F2C4B0' },
-    { id: 'cat_orders',  name: 'Orders',      icon: '📦', color: '#BDD5EA' },
-    { id: 'cat_ideas',   name: 'Ideas',       icon: '💡', color: '#F7F0B6' },
+    { id: 'cat_work',    name: 'Work',       icon: 'ic_cat_work',      color: '#BDD5EA' },
+    { id: 'cat_medical', name: 'Medical',     icon: 'ic_cat_medical',   color: '#C5E2C5' },
+    { id: 'cat_personal',name: 'Personal',    icon: 'ic_cat_personal',  color: '#D4C5E2' },
+    { id: 'cat_home',    name: 'Home',        icon: 'ic_cat_home',      color: '#F7D9B0' },
+    { id: 'cat_docs',    name: 'Documents',   icon: 'ic_cat_documents', color: '#F7F0B6' },
+    { id: 'cat_followup',name: 'Follow-Up',   icon: 'ic_cat_followup',  color: '#F2C4B0' },
+    { id: 'cat_orders',  name: 'Orders',      icon: 'ic_cat_orders',    color: '#BDD5EA' },
+    { id: 'cat_ideas',   name: 'Ideas',       icon: 'ic_cat_ideas',     color: '#F7F0B6' },
   ];
 
   const DEFAULT_STATE = {
@@ -279,4 +279,14 @@
   }
 
   App.Storage = {
-    generateId, getState, getNotes, getLists, setSt
+    generateId, getState, getNotes, getLists, setState, updateSettings,
+    addNote, updateNote, deleteNote,
+    addCategory, updateCategory, deleteCategory,
+    addList, updateList, deleteList, addListItem, toggleListItem, deleteListItem, resetList,
+    addDraft, deleteDraft,
+    addShared, deleteShared,
+    exportJSON,
+    NOTE_COLORS,
+  };
+
+})(window.App = window.App || {});

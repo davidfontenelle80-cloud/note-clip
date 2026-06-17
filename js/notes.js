@@ -15,6 +15,15 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  // Render icon: PNG img if ic_ filename, else emoji/text fallback
+  function _iconHtml(icon, cls) {
+    if (!icon) return '';
+    if (String(icon).startsWith('ic_')) {
+      return `<img src="./icons/${icon}.png" class="${cls || 'cat-icon-img'}" alt="" loading="lazy">`;
+    }
+    return _esc(icon);
+  }
+
   // ── Status Tabs ───────────────────────────────────────────────────
   function buildStatusTabs() {
     const statuses = ['active','awaiting','followup','hold','toread','completed','archived'];
@@ -40,7 +49,7 @@
       const count = state.notes.filter(n => n.categoryId === cat.id).length;
       return `<div class="category-card" onclick="App.Notes._viewCat('${cat.id}')">
         <div class="category-card-top">
-          <div class="category-icon-wrap">${_esc(cat.icon)}</div>
+          <div class="category-icon-wrap">${_iconHtml(cat.icon)}</div>
           <div style="display:flex;gap:4px;flex-shrink:0">
             <button class="card-delete-btn"
               onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">✏️</button>
@@ -78,7 +87,7 @@
       <div class="note-card-footer">
         <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
           ${note.priority !== 'medium' ? `<span class="priority-badge ${pClass}">${App.I18n.t('priority_'+note.priority)}</span>` : ''}
-          ${cat ? `<span class="chip">${cat.icon} ${_esc(cat.name)}</span>` : ''}
+          ${cat ? `<span class="chip">${_iconHtml(cat.icon,'chip-icon-img')} ${_esc(cat.name)}</span>` : ''}
         </div>
         <div style="display:flex;gap:4px;align-items:center">
           <span class="note-card-date">${date}</span>
@@ -196,7 +205,7 @@
     }).join('');
 
     const catOptions = state.categories.map(c =>
-      `<option value="${c.id}"${n.categoryId===c.id?' selected':''}>${c.icon} ${_esc(c.name)}</option>`
+      `<option value="${c.id}"${n.categoryId===c.id?' selected':''}>${_esc(c.name)}</option>`
     ).join('');
 
     const priorityOpts = ['urgent','high','medium','low'].map(p =>
@@ -537,4 +546,26 @@
     render();
     // Auto-clear after 10s so normal browsing resumes
     setTimeout(() => {
-      i
+      if (_dateFilter === dateStr) {
+        _dateFilter = null;
+        render();
+      }
+    }, 10000);
+  }
+
+  // Patch render to respect _dateFilter — store original render ref
+  const _renderOriginal = render;
+  // NOTE: _dateFilter is applied inside the render pipeline
+  // We hook into the notes retrieval section by patching the note list source
+  // This is the minimal, non-invasive approach — just re-read _dateFilter in render.
+
+  App.Notes = {
+    render, onFab, filterByDate,
+    _setView, _viewCat, _setStatus,
+    _editNote, _deleteNote, _completeNote, _archiveNote,
+    _openNoteModal, _closeModal, _saveNote, _pickColor,
+    _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
+    _openAppleMaps, _openGoogleMaps, _copyAddress,
+  };
+
+})(window.App = window.App || {});
