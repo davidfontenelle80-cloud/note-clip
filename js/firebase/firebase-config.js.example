@@ -1,0 +1,42 @@
+/**
+ * js/firebase/firebase-config.js.example
+ *
+ * Copy this file to firebase-config.js and fill in your real values.
+ * firebase-config.js is gitignored — NEVER commit the real keys.
+ *
+ * Get these values from:
+ * Firebase Console → Project Settings → Your apps → SDK setup and configuration
+ */
+
+(function (App) {
+  'use strict';
+
+  App.Firebase = {
+    _initialized: false,
+
+    init() {
+      if (this._initialized) return Promise.resolve();
+
+      const firebaseConfig = {
+        apiKey:            "YOUR_API_KEY",
+        authDomain:        "YOUR_PROJECT.firebaseapp.com",
+        projectId:         "YOUR_PROJECT",
+        storageBucket:     "YOUR_PROJECT.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId:             "YOUR_APP_ID"
+      };
+
+      // Lazy-load Firebase SDK and initialize
+      return import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js')
+        .then(({ initializeApp }) => {
+          this._app = initializeApp(firebaseConfig);
+          this._initialized = true;
+          console.log('[Firebase] Initialized');
+        })
+        .catch(err => {
+          console.warn('[Firebase] Init failed — offline mode active', err);
+        });
+    }
+  };
+
+})(window.App = window.App || {});
