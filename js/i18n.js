@@ -129,6 +129,18 @@
       no_drafts:         'No drafts yet',
       no_reminders:      'No upcoming reminders',
       tap_plus:          'Tap + to create one',
+      // Dashboard Stage 2
+      dash_today_tasks:  "Today's Tasks",
+      dash_no_tasks_today: 'No tasks due today',
+      dash_upcoming:     'Upcoming',
+      dash_nothing_upcoming: 'Nothing coming up',
+      // Shared Stage 2
+      shared_nothing_yet: 'Nothing shared yet',
+      shared_subtitle:   'Share your notes and lists',
+      shared_pick_label: 'Choose a note or list to share',
+      shared_choose:     'choose one',
+      // Note title fallback
+      note_untitled:     'Untitled',
     },
     es: {
       tab_dashboard:     'Inicio',
@@ -244,6 +256,15 @@
       no_drafts:         'Sin borradores aún',
       no_reminders:      'Sin recordatorios próximos',
       tap_plus:          'Toca + para crear una',
+      dash_today_tasks:  'Tareas de hoy',
+      dash_no_tasks_today: 'Sin tareas para hoy',
+      dash_upcoming:     'Próximamente',
+      dash_nothing_upcoming: 'Nada próximo',
+      shared_nothing_yet: 'Nada compartido aún',
+      shared_subtitle:   'Comparte tus notas y listas',
+      shared_pick_label: 'Elige una nota o lista para compartir',
+      shared_choose:     'elige uno',
+      note_untitled:     'Sin título',
     }
   };
 

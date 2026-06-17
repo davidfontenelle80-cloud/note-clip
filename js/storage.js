@@ -87,6 +87,10 @@
     return getState();
   }
 
+  // ── Convenience getters ──────────────────────────────────────────
+  function getNotes() { return JSON.parse(JSON.stringify(_state.notes)); }
+  function getLists() { return JSON.parse(JSON.stringify(_state.lists)); }
+
   // ── Note helpers ─────────────────────────────────────────────────
   function nextColor() {
     // Cycle through note colors based on count
@@ -275,14 +279,4 @@
   }
 
   App.Storage = {
-    generateId, getState, setState, updateSettings,
-    addNote, updateNote, deleteNote,
-    addCategory, updateCategory, deleteCategory,
-    addList, updateList, deleteList, addListItem, toggleListItem, deleteListItem, resetList,
-    addDraft, deleteDraft,
-    addShared, deleteShared,
-    exportJSON,
-    NOTE_COLORS,
-  };
-
-})(window.App = window.App || {});
+    generateId, getState, getNotes, getLists, setSt

@@ -24,6 +24,8 @@
   --color-text-muted:     #7A7066;
   --color-text-dim:       #A89E94;
   --color-on-primary:     #1A1208;
+  --color-text-2:         rgba(45,40,32,.65);
+  --color-text-3:         rgba(45,40,32,.45);
 
   /* Status */
   --color-success:        #4E9A6A;
@@ -32,13 +34,21 @@
   --color-info:           #4A78C8;
 
   /* Soft washes */
+  --color-success-soft:   rgba(78,154,106,.15); /* fallback Safari < 16.2 */
   --color-success-soft:   color-mix(in srgb, var(--color-success) 15%, transparent);
+  --color-warning-soft:   rgba(200,138,48,.15); /* fallback Safari < 16.2 */
   --color-warning-soft:   color-mix(in srgb, var(--color-warning) 15%, transparent);
+  --color-error-soft:     rgba(200,80,80,.15); /* fallback Safari < 16.2 */
   --color-error-soft:     color-mix(in srgb, var(--color-error)   15%, transparent);
+  --color-info-soft:      rgba(74,120,200,.15); /* fallback Safari < 16.2 */
   --color-info-soft:      color-mix(in srgb, var(--color-info)    15%, transparent);
+  --border-success-soft:  rgba(78,154,106,.40); /* fallback Safari < 16.2 */
   --border-success-soft:  color-mix(in srgb, var(--color-success) 40%, transparent);
+  --border-warning-soft:  rgba(200,138,48,.40); /* fallback Safari < 16.2 */
   --border-warning-soft:  color-mix(in srgb, var(--color-warning) 40%, transparent);
+  --border-error-soft:    rgba(200,80,80,.40); /* fallback Safari < 16.2 */
   --border-error-soft:    color-mix(in srgb, var(--color-error)   40%, transparent);
+  --border-info-soft:     rgba(74,120,200,.40); /* fallback Safari < 16.2 */
   --border-info-soft:     color-mix(in srgb, var(--color-info)    40%, transparent);
 
   /* Note card pastels */
@@ -51,9 +61,9 @@
 
   /* 3D Shadow system — layered for depth */
   --shadow-sm:           0 1px 2px rgba(0,0,0,.04);
-  --shadow-card:         0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
-  --shadow-card-hover:   0 2px 4px rgba(0,0,0,.06), 0 8px 20px rgba(0,0,0,.12), 0 16px 32px rgba(0,0,0,.08);
-  --shadow-card-press:   0 1px 2px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.08);
+  --shadow-card:         0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(160,130,80,.10), 0 8px 24px rgba(160,130,80,.08);
+  --shadow-card-hover:   0 2px 4px rgba(0,0,0,.06), 0 8px 20px rgba(160,130,80,.14), 0 16px 32px rgba(160,130,80,.10);
+  --shadow-card-press:   0 1px 2px rgba(0,0,0,.06), 0 2px 6px rgba(160,130,80,.10);
   --shadow-btn:          0 2px 6px rgba(0,0,0,.10), 0 4px 12px rgba(0,0,0,.07);
   --shadow-fab:          0 4px 8px rgba(0,0,0,.14), 0 12px 28px rgba(0,0,0,.20), 0 20px 40px rgba(0,0,0,.10);
   --shadow-fab-press:    0 2px 4px rgba(0,0,0,.14), 0 4px 8px rgba(0,0,0,.10);
@@ -109,6 +119,8 @@
   --note-peach:    #7A5A30;
   --shadow-card:   0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
   --shadow-inset:  inset 0 1px 0 rgba(255,255,255,.12), inset 1px 0 0 rgba(255,255,255,.06);
+  --color-text-2:  rgba(240,236,228,.75);
+  --color-text-3:  rgba(240,236,228,.45);
 }
 
 /* ── Reset + Base ────────────────────────────────────────────────── */
@@ -217,6 +229,7 @@ input, textarea, select {
 }
 .nav-tab.active {
   color: var(--color-primary-dark);
+  background: rgba(200,169,110,.12); /* fallback Safari < 16.2 */
   background: color-mix(in srgb, var(--color-primary) 12%, transparent);
 }
 .nav-tab:active { transform: scale(0.95); }
@@ -347,6 +360,7 @@ input, textarea, select {
   box-shadow: var(--shadow-card), var(--shadow-inset);
   padding: var(--space-md);
   background: var(--card-bg, var(--note-yellow));
+  background-image: linear-gradient(180deg, rgba(255,255,255,.15) 0%, rgba(0,0,0,.03) 100%);
   transition: box-shadow var(--transition), transform var(--transition-spring);
   cursor: pointer;
   break-inside: avoid;
@@ -382,7 +396,7 @@ input, textarea, select {
 }
 .note-card-body {
   font-size: var(--text-sm);
-  color: rgba(0,0,0,0.65);
+  color: var(--color-text-2);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -394,7 +408,7 @@ input, textarea, select {
   gap: var(--space-sm);
   margin-top: var(--space-sm);
 }
-.note-card-date { font-size: var(--text-xs); color: rgba(0,0,0,0.5); }
+.note-card-date { font-size: var(--text-xs); color: var(--color-text-3); }
 .note-card-actions {
   display: flex;
   gap: 4px;
@@ -549,6 +563,7 @@ input, textarea, select {
 .form-input:focus, .form-textarea:focus, .form-select:focus {
   outline: none;
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(200,169,110,.20), var(--shadow-inset); /* fallback Safari < 16.2 */
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent), var(--shadow-inset);
 }
 .form-textarea {
@@ -653,6 +668,7 @@ input, textarea, select {
 .cal-day:hover { background: var(--color-surface-2); }
 .cal-day:active { transform: scale(0.88); }
 .cal-day.today {
+  background: rgba(200,169,110,.20); /* fallback Safari < 16.2 */
   background: color-mix(in srgb, var(--color-primary) 20%, transparent);
   color: var(--color-primary-dark);
   font-weight: 700;
@@ -714,7 +730,7 @@ input, textarea, select {
   padding: 0;
 }
 .focus-input:focus { outline: none; }
-.focus-input::placeholder { color: rgba(0,0,0,0.35); }
+.focus-input::placeholder { color: var(--color-text-3); }
 
 /* ── Reminder Item ───────────────────────────────────────────────── */
 .reminder-item {
@@ -1086,3 +1102,65 @@ input, textarea, select {
 .text-muted { color: var(--color-text-muted); }
 .text-sm { font-size: var(--text-sm); }
 .w-full { width: 100%; }
+
+/* ── Task Chips (Dashboard Today's Tasks) ────────────────────────── */
+.task-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--color-surface); margin-bottom: 6px;
+  box-shadow: 0 1px 4px rgba(160,130,80,.08), inset 0 1px 0 rgba(255,255,255,.6);
+  cursor: pointer; transition: transform 120ms, box-shadow 120ms;
+}
+.task-chip:active { transform: scale(.98); }
+.task-chip-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.task-chip-title { flex: 1; font-size: .875rem; font-weight: 500; color: var(--color-text); }
+.task-chip-time { font-size: .75rem; color: var(--color-text-3); }
+.empty-state-sm { font-size: .85rem; color: var(--color-text-3); padding: 8px 0; }
+
+/* ── Reminder Rows (Dashboard Upcoming) ──────────────────────────── */
+.reminder-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--color-border); }
+.reminder-row:last-child { border-bottom:none; }
+.reminder-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.reminder-title { flex:1; font-size:.875rem; color:var(--color-text); }
+.reminder-date { font-size:.75rem; color:var(--color-text-3); white-space:nowrap; }
+
+/* ── Dash Section ─────────────────────────────────────────────────── */
+.dash-section { margin-bottom: var(--space-lg); }
+.dash-section-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-sm);
+}
+
+/* ── Calendar Month/Year Pickers ─────────────────────────────────── */
+.picker-overlay { position:absolute; inset:0; background:rgba(0,0,0,.3); display:flex; align-items:center; justify-content:center; border-radius:inherit; z-index:10; }
+.picker-panel { background:var(--color-surface); border-radius:16px; padding:16px; box-shadow:var(--shadow-card); }
+.picker-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.picker-btn { padding:8px 4px; border-radius:8px; border:none; background:var(--color-surface-2); color:var(--color-text); font-size:.8rem; cursor:pointer; }
+.picker-btn.picker-active { background:var(--color-primary); color:#fff; font-weight:600; }
+#dash-calendar { position:relative; }
+
+/* ── Shared Tab ───────────────────────────────────────────────────── */
+.shared-header { margin-bottom: 12px; }
+.shared-subtitle { font-size: .85rem; color: var(--color-text-3); margin-top: 2px; }
+.shared-card { padding: 10px 12px; margin-bottom: 8px; }
+.shared-card-actions { display: flex; gap: 6px; margin-top: 8px; }
+.shared-card-actions button { flex: 1; padding: 6px; font-size: .75rem; }
+.share-form { background: var(--color-surface); border-radius: 14px; padding: 14px; margin-top: 8px; box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,.6); }
+
+/* ── Icon Wrap ────────────────────────────────────────────────────── */
+.icon-wrap {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.7);
+  background: var(--color-surface-2);
+}
+
+/* ── SVG Nav Icons ────────────────────────────────────────────────── */
+.nav-tab .nav-icon { display:flex; align-items:center; justify-content:center; }
+.nav-tab .nav-icon svg { width:22px; height:22px; display:block; }
+.nav-tab.active .nav-icon svg { filter: drop-shadow(0 1px 2px rgba(160,130,80,.3)); }

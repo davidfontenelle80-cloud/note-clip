@@ -528,13 +528,13 @@
     }
   }
 
-  App.Notes = {
-    render, onFab,
-    _setView, _viewCat, _setStatus,
-    _editNote, _deleteNote, _completeNote, _archiveNote,
-    _openNoteModal, _closeModal, _saveNote, _pickColor,
-    _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
-    _openAppleMaps, _openGoogleMaps, _copyAddress,
-  };
+  // ── Date filter (called from calendar date tap) ───────────────────
+  let _dateFilter = null;
 
-})(window.App = window.App || {});
+  function filterByDate(dateStr) {
+    _dateFilter = dateStr || null;
+    _view = 'notes';
+    render();
+    // Auto-clear after 10s so normal browsing resumes
+    setTimeout(() => {
+      i
