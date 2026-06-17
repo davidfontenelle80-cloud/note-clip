@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="#111318"/>
+  <!-- Note page -->
+  <rect x="128" y="96" width="256" height="310" rx="20" fill="#1a1d27" stroke="#58c18f" stroke-width="4"/>
+  <!-- Lines on note -->
+  <rect x="160" y="160" width="192" height="12" rx="6" fill="#58c18f" opacity="0.7"/>
+  <rect x="160" y="200" width="160" height="12" rx="6" fill="#a0a8bd" opacity="0.5"/>
+  <rect x="160" y="240" width="176" height="12" rx="6" fill="#a0a8bd" opacity="0.5"/>
+  <rect x="160" y="280" width="120" height="12" rx="6" fill="#a0a8bd" opacity="0.35"/>
+  <!-- Check circle (completed item) -->
+  <circle cx="160" cy="344" r="14" fill="#58c18f"/>
+  <polyline points="153,344 158,350 168,338" stroke="#06120e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <rect x="184" y="337" width="80" height="12" rx="6" fill="#a0a8bd" opacity="0.4"/>
+  <!-- Pencil accent -->
+  <g transform="translate(320,300) rotate(-35)">
+    <rect x="-12" y="-52" width="24" height="72" rx="4" fill="#f5aa2e"/>
+    <polygon points="-12,20 12,20 0,42" fill="#58c18f"/>
+    <rect x="-12" y="-52" width="24" height="14" rx="4" fill="#768198"/>
+  </g>
+</svg>

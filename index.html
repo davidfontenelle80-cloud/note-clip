@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="QuickNotes — quick notes, task lists, reminders, shared notes, and messages." />
+  <meta name="theme-color" content="#050607" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="QuickNotes" />
+
+  <title>QuickNotes</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="./manifest.json" />
+
+  <!-- Icons -->
+  <link rel="icon" type="image/svg+xml" href="./icons/icon.svg" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152.png" />
+
+  <!-- Stylesheets — load order mirrors KHub boilerplate -->
+  <link rel="stylesheet" href="./css/dark-mode.css" />
+  <link rel="stylesheet" href="./css/main.css" />
+  <link rel="stylesheet" href="./css/components.css" />
+  <link rel="stylesheet" href="./css/responsive.css" />
+  <link rel="stylesheet" href="./css/app.css" />
+</head>
+<body>
+
+  <!-- Skip navigation (accessibility) -->
+  <a class="skip-link" href="#app-main">Skip to content</a>
+
+  <!-- App update banner (shown when new SW is waiting) -->
+  <div id="update-notice" class="update-notice" hidden aria-live="polite">
+    <span>New version available</span>
+    <button id="update-reload">Update</button>
+  </div>
+
+  <!-- App header -->
+  <header class="app-header" role="banner">
+    <span class="app-title" aria-label="QuickNotes">✏️ QuickNotes</span>
+    <div class="header-controls">
+      <button id="lang-toggle" class="icon-btn" aria-label="Toggle language">EN</button>
+      <button id="theme-toggle" class="icon-btn" aria-label="Toggle theme" title="Toggle light/dark">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <circle cx="9" cy="9" r="4" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.22 3.22l1.42 1.42M13.36 13.36l1.42 1.42M3.22 14.78l1.42-1.42M13.36 4.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main content area -->
+  <main id="app-main" class="app-main" role="main">
+
+    <!-- Tab: Dashboard -->
+    <section id="tab-dashboard" class="tab-panel active" role="tabpanel" aria-label="Dashboard">
+      <div id="dashboard-content"></div>
+    </section>
+
+    <!-- Tab: Categories -->
+    <section id="tab-categories" class="tab-panel" role="tabpanel" aria-label="Categories">
+      <div id="categories-content"></div>
+    </section>
+
+    <!-- Tab: Lists -->
+    <section id="tab-lists" class="tab-panel" role="tabpanel" aria-label="Lists">
+      <div id="lists-content"></div>
+    </section>
+
+    <!-- Tab: Shared -->
+    <section id="tab-shared" class="tab-panel" role="tabpanel" aria-label="Shared">
+      <div id="shared-content"></div>
+    </section>
+
+    <!-- Tab: Communication -->
+    <section id="tab-communication" class="tab-panel" role="tabpanel" aria-label="Communication">
+      <div id="comm-content"></div>
+    </section>
+
+    <!-- Tab: Settings -->
+    <section id="tab-settings" class="tab-panel" role="tabpanel" aria-label="Settings">
+      <div id="settings-content"></div>
+    </section>
+
+  </main>
+
+  <!-- Floating Action Button -->
+  <button id="fab-quick-note" class="quick-note-fab" aria-label="Quick Note">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+      <path d="M14 6v16M6 14h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav" role="tablist" aria-label="Main navigation">
+
+    <button class="nav-item active" data-tab="dashboard" role="tab" aria-selected="true" aria-controls="tab-dashboard">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path d="M3 8.5L11 2l8 6.5V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M8 20v-8h6v8" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      </svg>
+      <span data-i18n="tab.dashboard">Dashboard</span>
+    </button>
+
+    <button class="nav-item" data-tab="categories" role="tab" aria-selected="false" aria-controls="tab-categories">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path d="M9.5 3H4a1 1 0 0 0-1 1v5.5a1 1 0 0 0 1 1h5.5a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM18 3h-5.5a1 1 0 0 0-1 1v5.5a1 1 0 0 0 1 1H18a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM9.5 12.5H4a1 1 0 0 0-1 1V19a1 1 0 0 0 1 1h5.5a1 1 0 0 0 1-1v-5.5a1 1 0 0 0-1-1zM18 12.5h-5.5a1 1 0 0 0-1 1V19a1 1 0 0 0 1 1H18a1 1 0 0 0 1-1v-5.5a1 1 0 0 0-1-1z" stroke="currentColor" stroke-width="1.8"/>
+      </svg>
+      <span data-i18n="tab.categories">Categories</span>
+    </button>
+
+    <button class="nav-item" data-tab="lists" role="tab" aria-selected="false" aria-controls="tab-lists">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path d="M9 5h10M9 11h10M9 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="4" cy="5" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="4" cy="11" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="4" cy="17" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      <span data-i18n="tab.lists">Lists</span>
+    </button>
+
+    <button class="nav-item" data-tab="shared" role="tab" aria-selected="false" aria-controls="tab-shared">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <circle cx="5" cy="11" r="3" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="17" cy="4" r="3" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="17" cy="18" r="3" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M8 9.5l6-4M8 12.5l6 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span data-i18n="tab.shared">Shared</span>
+    </button>
+
+    <button class="nav-item" data-tab="communication" role="tab" aria-selected="false" aria-controls="tab-communication">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <path d="M3 4h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H6l-4 3V5a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      </svg>
+      <span data-i18n="tab.communication">Messages</span>
+    </button>
+
+    <button class="nav-item" data-tab="settings" role="tab" aria-selected="false" aria-controls="tab-settings">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+        <circle cx="11" cy="11" r="3" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M11 2v2M11 18v2M2 11h2M18 11h2M4.22 4.22l1.42 1.42M16.36 16.36l1.42 1.42M4.22 17.78l1.42-1.42M16.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span data-i18n="tab.settings">Settings</span>
+    </button>
+
+  </nav>
+
+  <!-- Scripts — strict load order (KHub boilerplate pattern) -->
+  <script src="./js/config.js"></script>
+  <script src="./js/i18n.js"></script>
+  <script src="./js/theme.js"></script>
+  <script src="./js/app.js"></script>
+
+</body>
+</html>

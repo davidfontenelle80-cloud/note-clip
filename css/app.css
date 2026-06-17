@@ -1,0 +1,182 @@
+/**
+ * app.css — QuickNotes
+ * Screen-specific layouts: dashboard, categories, lists, shared, communication, settings.
+ */
+
+/* ── Dashboard ───────────────────────────────────────────────── */
+.greeting-section {
+  display: flex; align-items: center; gap: 12px;
+  padding: var(--space-md) 0 var(--space-sm);
+}
+.greeting-icon { font-size: 32px; flex-shrink: 0; }
+.greeting-text h2 { font-size: var(--text-xl); font-weight: 800; line-height: 1.2; }
+.greeting-text p  { font-size: var(--text-sm); color: var(--color-text-muted); }
+
+.quick-note-card {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-primary) 14%, var(--color-surface)) 0%,
+    var(--color-surface) 100%);
+  border: 1.5px solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+  border-radius: var(--radius-xl); padding: var(--space-lg) var(--space-md);
+  display: flex; align-items: center; gap: var(--space-md);
+  cursor: pointer; margin-bottom: var(--space-md);
+  transition: border-color var(--transition);
+}
+.quick-note-card:active { border-color: var(--color-primary); }
+.quick-note-card-icon {
+  width: 52px; height: 52px; border-radius: var(--radius-lg); flex-shrink: 0;
+  background: var(--color-primary); color: var(--color-on-primary);
+  display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.quick-note-card-text h3 { font-size: var(--text-lg); font-weight: 800; }
+.quick-note-card-text p  { font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* ── Today tasks ─────────────────────────────────────────────── */
+.today-section { margin-bottom: var(--space-md); }
+.overdue-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-full); background: var(--color-error-soft); color: var(--color-error); font-size: var(--text-xs); font-weight: 700; margin-left: 6px; }
+.due-label { font-size: var(--text-xs); color: var(--color-text-dim); }
+.due-label.overdue { color: var(--color-error); font-weight: 700; }
+.due-label.today   { color: var(--color-warning); font-weight: 700; }
+
+/* ── Category detail view ────────────────────────────────────── */
+.cat-detail-header {
+  display: flex; align-items: center; gap: 12px; padding: var(--space-sm) 0 var(--space-md);
+}
+.cat-detail-icon {
+  width: 44px; height: 44px; border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+  background: var(--color-surface-2); border: 1px solid var(--color-border);
+}
+.cat-detail-name { font-size: var(--text-xl); font-weight: 800; }
+.cat-detail-count { font-size: var(--text-sm); color: var(--color-text-muted); }
+
+/* ── Category grid ───────────────────────────────────────────── */
+.cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: var(--space-md); }
+.cat-card {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); padding: var(--space-md);
+  display: flex; flex-direction: column; gap: 8px; cursor: pointer;
+  transition: border-color var(--transition);
+}
+.cat-card:active { border-color: var(--color-primary); }
+.cat-card-top { display: flex; align-items: center; justify-content: space-between; }
+.cat-card-icon { font-size: 26px; }
+.cat-card-count { font-size: var(--text-xs); font-weight: 700; color: var(--color-text-dim); }
+.cat-card-name { font-size: var(--text-base); font-weight: 700; }
+.cat-card-sub  { font-size: var(--text-xs); color: var(--color-text-muted); }
+.cat-add-card {
+  border: 2px dashed var(--color-border); background: transparent;
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  gap: 6px; color: var(--color-text-dim); min-height: 90px; cursor: pointer;
+  border-radius: var(--radius-lg); font-size: var(--text-sm); font-weight: 700;
+}
+.cat-add-card:active { border-color: var(--color-primary); color: var(--color-primary); }
+
+/* ── List grid ───────────────────────────────────────────────── */
+.list-card {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); padding: var(--space-md); margin-bottom: 10px;
+  cursor: pointer; display: flex; align-items: center; gap: var(--space-md);
+}
+.list-card:active { border-color: var(--color-primary); }
+.list-card-icon {
+  width: 42px; height: 42px; border-radius: var(--radius-md); flex-shrink: 0;
+  background: var(--color-surface-2); border: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+.list-card-body { flex: 1; min-width: 0; }
+.list-card-name { font-weight: 700; font-size: var(--text-base); }
+.list-card-meta { font-size: var(--text-xs); color: var(--color-text-muted); }
+.list-type-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 700; background: var(--color-surface-2); color: var(--color-text-dim); }
+
+/* ── List detail ─────────────────────────────────────────────── */
+.list-detail-header {
+  display: flex; align-items: center; gap: 12px; padding: var(--space-sm) 0 var(--space-md);
+}
+.list-add-row {
+  display: flex; gap: 8px; padding: var(--space-sm) 0 var(--space-md);
+}
+.list-add-row input { flex: 1; }
+.completed-section { margin-top: var(--space-md); }
+.completed-section-title {
+  font-size: var(--text-xs); font-weight: 700; color: var(--color-text-dim);
+  text-transform: uppercase; letter-spacing: .07em; margin-bottom: 8px;
+  padding-top: var(--space-sm); border-top: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* ── Shared tab ──────────────────────────────────────────────── */
+.shared-card {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); padding: var(--space-md); margin-bottom: 10px;
+}
+.shared-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.shared-card-title { font-weight: 700; }
+.shared-card-meta { font-size: var(--text-xs); color: var(--color-text-muted); }
+.perm-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: var(--radius-full); font-size: var(--text-xs); font-weight: 700; background: var(--color-info-soft); color: var(--color-info); border: 1px solid var(--border-info-soft); }
+
+/* ── Communication tab ───────────────────────────────────────── */
+.comm-format-row { display: flex; gap: 8px; margin-bottom: var(--space-md); flex-wrap: wrap; }
+.format-btn {
+  padding: 8px 14px; border-radius: var(--radius-full); border: 2px solid var(--color-border);
+  background: var(--color-surface-2); font-size: var(--text-sm); font-weight: 700;
+  color: var(--color-text-muted); transition: all var(--transition);
+}
+.format-btn.active { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-success-soft); }
+.msg-output {
+  background: var(--color-surface-2); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); padding: var(--space-md);
+  font-size: var(--text-sm); line-height: 1.6; white-space: pre-wrap;
+  min-height: 80px; word-break: break-word;
+}
+
+/* ── Settings ────────────────────────────────────────────────── */
+.settings-section {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); padding: 0 var(--space-md); margin-bottom: var(--space-md);
+}
+.settings-section-title {
+  font-size: var(--text-xs); font-weight: 700; color: var(--color-text-dim);
+  text-transform: uppercase; letter-spacing: .07em; padding: var(--space-md) 0 0;
+}
+
+/* ── Appointment card ────────────────────────────────────────── */
+.appt-card {
+  background: var(--color-info-soft); border: 1px solid var(--border-info-soft);
+  border-radius: var(--radius-md); padding: var(--space-sm) var(--space-md); margin-bottom: 8px;
+}
+.appt-name { font-weight: 700; font-size: var(--text-sm); color: var(--color-info); }
+.appt-time { font-size: var(--text-xs); color: var(--color-text-muted); }
+
+/* ── Icon picker ─────────────────────────────────────────────── */
+.icon-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+.icon-opt {
+  width: 40px; height: 40px; border-radius: var(--radius-md);
+  border: 2px solid transparent; background: var(--color-surface-2);
+  font-size: 20px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: border-color var(--transition);
+}
+.icon-opt:active, .icon-opt.selected { border-color: var(--color-primary); background: var(--color-success-soft); }
+
+/* ── Reminder type selector ──────────────────────────────────── */
+.reminder-opts { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: var(--space-sm); }
+.reminder-opt {
+  padding: 6px 12px; border-radius: var(--radius-full); border: 2px solid var(--color-border);
+  background: var(--color-surface-2); font-size: var(--text-xs); font-weight: 700;
+  color: var(--color-text-muted); cursor: pointer; transition: all var(--transition);
+}
+.reminder-opt.selected { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-success-soft); }
+
+/* ── Priority selector ───────────────────────────────────────── */
+.priority-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.prio-btn {
+  flex: 1; min-width: 60px; padding: 8px 6px; border-radius: var(--radius-md);
+  border: 2px solid var(--color-border); background: var(--color-surface-2);
+  font-size: var(--text-xs); font-weight: 700; color: var(--color-text-muted);
+  text-align: center; cursor: pointer; transition: all var(--transition);
+}
+.prio-btn.selected.p-critical { border-color: var(--color-error); color: var(--color-error); background: var(--color-error-soft); }
+.prio-btn.selected.p-high     { border-color: var(--color-warning); color: var(--color-warning); background: var(--color-warning-soft); }
+.prio-btn.selected.p-medium   { border-color: var(--color-info); color: var(--color-info); background: var(--color-info-soft); }
+.prio-btn.selected.p-low      { border-color: var(--color-success); color: var(--color-success); background: var(--color-success-soft); }
+.prio-btn.selected.p-optional { border-color: var(--color-text-dim); color: var(--color-text); background: var(--color-surface-3); }

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!-- Open this file in a browser, then click "Download All Icons" to generate PNG icons for the PWA manifest. -->
+<html><head><meta charset="UTF-8"><title>Generate Icons</title>
+<style>body{font-family:system-ui;max-width:600px;margin:40px auto;padding:0 20px;background:#050607;color:#f7f8fb} h2{margin-bottom:16px} button{padding:12px 24px;background:#58c18f;color:#06120e;border:none;border-radius:12px;font-weight:700;cursor:pointer;font-size:16px} p{color:#a0a8bd;margin-top:12px;font-size:14px} #status{margin-top:16px;color:#58c18f;font-size:14px}</style>
+</head><body>
+<h2>✏️ QuickNotes — Icon Generator</h2>
+<p>Generates all PWA icon sizes from the app's SVG. Click the button, then save each downloaded PNG into the <code>icons/</code> folder.</p>
+<button onclick="generateAll()">Download All Icons</button>
+<div id="status"></div>
+<canvas id="c" style="display:none"></canvas>
+<script>
+const SIZES = [72, 96, 128, 144, 152, 192, 384, 512];
+const SVG_URL = './icons/icon.svg';
+
+async function generateAll() {
+  const status = document.getElementById('status');
+  status.textContent = 'Generating…';
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.src = SVG_URL + '?' + Date.now();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  let done = 0;
+
+  for (const size of SIZES) {
+    c.width = c.height = size;
+    ctx.clearRect(0, 0, size, size);
+    ctx.drawImage(img, 0, 0, size, size);
+    await new Promise(res => {
+      c.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'icon-' + size + '.png';
+        a.click();
+        done++;
+        status.textContent = 'Downloaded ' + done + '/' + SIZES.length + ' icons…';
+        setTimeout(res, 300);
+      }, 'image/png');
+    });
+  }
+  status.textContent = '✅ Done! Move the downloaded PNGs to your icons/ folder.';
+}
+</script>
+</body></html>

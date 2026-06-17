@@ -1,0 +1,28 @@
+/**
+ * responsive.css — QuickNotes
+ * Mobile-first. Breakpoints widen the layout on larger screens.
+ */
+@media (min-width: 480px) {
+  .app-main { padding: 0 20px 100px; }
+  .quick-note-fab { right: 24px; bottom: 90px; }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --bottom-nav-height: 68px;
+  }
+  .app-main    { max-width: 680px; margin: 0 auto; padding: 0 24px 96px; }
+  .bottom-nav  { max-width: 680px; left: 50%; transform: translateX(-50%); border-radius: 20px 20px 0 0; }
+  .cal-grid    { font-size: 0.95rem; }
+}
+
+@media (min-width: 1024px) {
+  .app-main { max-width: 780px; }
+  .bottom-nav { max-width: 780px; }
+}
+
+/* Safe area insets for iPhone notch / home bar */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .bottom-nav  { padding-bottom: env(safe-area-inset-bottom); }
+  .app-main    { padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px); }
+}
