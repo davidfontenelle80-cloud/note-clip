@@ -1,7 +1,8 @@
-.env
-.env.*
-node_modules/
 .DS_Store
 Thumbs.db
-*.log
-.claude/
+desktop.ini
+*.swp
+*.xlsx
+*_SPEC.md
+_deploy.bat
+node_modules/

@@ -1,72 +1,70 @@
 /**
  * sw.js — Note Clip PWA
- * Network-first for app shell. Offline fallback from cache.
- * BUMP CACHE_VERSION on every deploy that changes HTML, CSS, JS, or manifest.
+ * Cache-first service worker. Bump CACHE_VERSION on every deploy.
  */
 
-const CACHE_VERSION = 'noteclip-v1';
+const CACHE_VERSION = 'note-clip-v1';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
-  './manifest.json',
-  './css/dark-mode.css',
-  './css/main.css',
-  './css/components.css',
-  './css/responsive.css',
-  './css/app.css',
-  './js/config.js',
+  './css/styles.css',
   './js/i18n.js',
-  './js/theme.js',
-  './js/app.js',
-  './icons/icon.svg',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  './js/storage.js',
+  './js/dashboard.js',
+  './js/notes.js',
+  './js/lists.js',
+  './js/shared.js',
+  './js/communication.js',
+  './js/settings.js',
+  './js/firebase/firebase-config.js',
+  './app.js',
+  './manifest.json',
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then(cache => cache.addAll(PRECACHE_URLS.map(u => new Request(u, { cache: 'reload' }))))
+      .then(cache => cache.addAll(PRECACHE_URLS))
       .then(() => self.skipWaiting())
-      .catch(err => console.warn('[QN SW] Install partial failure (icons may be missing):', err))
   );
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))))
+      .then(keys => Promise.all(
+        keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))
+      ))
       .then(() => self.clients.claim())
       .then(() => {
-        self.clients.matchAll({ type: 'window' }).then(clients =>
-          clients.forEach(c => c.postMessage({ type: 'RELOAD_READY' }))
-        );
+        self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
+          clients.forEach(client => client.postMessage({ type: 'RELOAD_READY' }));
+        });
       })
   );
 });
 
 self.addEventListener('fetch', event => {
+  // Skip non-GET and cross-origin requests
   if (event.request.method !== 'GET') return;
-  const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
-
-  const isShell = PRECACHE_URLS.some(p => new URL(p, self.location.href).pathname === url.pathname);
-  if (!isShell) return;
+  if (!event.request.url.startsWith(self.location.origin)) return;
 
   event.respondWith(
-    fetch(event.request)
-      .then(resp => {
-        if (resp && resp.status === 200 && resp.type === 'basic') {
-          const clone = resp.clone();
-          caches.open(CACHE_VERSION).then(c => c.put(event.request, clone));
-        }
-        return resp;
-      })
-      .catch(() => caches.match(event.request))
+    caches.match(event.request)
+      .then(cached => cached || fetch(event.request)
+        .then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_VERSION).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
+      )
   );
 });
 
+// Handle SKIP_WAITING message from app
 self.addEventListener('message', event => {
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
