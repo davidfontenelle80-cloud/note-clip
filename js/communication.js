@@ -89,10 +89,10 @@
         </div>
         <div style="display:flex;gap:var(--space-sm)">
           <button class="btn btn-secondary" onclick="App.Communication._generate('en')" style="flex:1">
-            Generate EN
+            Generate (EN)
           </button>
           <button class="btn btn-secondary" onclick="App.Communication._generate('es')" style="flex:1">
-            Generar ES
+            Generar (ES)
           </button>
         </div>
         <div id="draft-output" class="draft-output hidden"></div>

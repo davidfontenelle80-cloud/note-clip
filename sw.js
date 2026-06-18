@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v19';
+const CACHE_VERSION = 'note-clip-v20';
 
 const PRECACHE_URLS = [
   './',

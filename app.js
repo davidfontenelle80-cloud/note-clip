@@ -53,6 +53,7 @@
 
   // ── Toast ────────────────────────────────────────────────────────
   let _toastTimer;
+  let _lastFocus = null;
   function showToast(msg, type = '') {
     let toast = document.getElementById('app-toast');
     if (!toast) {
@@ -68,6 +69,37 @@
     toast.classList.add('visible');
     clearTimeout(_toastTimer);
     _toastTimer = setTimeout(() => toast.classList.remove('visible'), 2600);
+  }
+
+  function enhanceModal(modalOrId) {
+    const modal = typeof modalOrId === 'string' ? document.getElementById(modalOrId) : modalOrId;
+    if (!modal || modal.dataset.a11yReady) return;
+    _lastFocus = document.activeElement;
+    modal.dataset.a11yReady = 'true';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.addEventListener('keydown', e => {
+      if (e.key !== 'Tab') return;
+      const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+  }
+
+  function restoreFocus() {
+    const target = _lastFocus;
+    _lastFocus = null;
+    if (target && document.contains(target) && typeof target.focus === 'function') {
+      setTimeout(() => target.focus(), 0);
+    }
   }
 
   // ── Theme ────────────────────────────────────────────────────────
@@ -117,6 +149,7 @@
       // Escape closes any open modal
       if (e.key === 'Escape') {
         document.querySelector('.modal-backdrop')?.remove();
+        restoreFocus();
       }
     });
   }
@@ -171,7 +204,7 @@
   }
 
   // Expose globals
-  Object.assign(App, { showTab, refreshCurrentTab, showToast, applyTheme, onFab });
+  Object.assign(App, { showTab, refreshCurrentTab, showToast, applyTheme, onFab, enhanceModal, restoreFocus });
 
   document.addEventListener('DOMContentLoaded', init);
 

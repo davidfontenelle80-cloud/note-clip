@@ -68,7 +68,8 @@
         ds === _selectedDate ? 'selected' : '',
         noteDates.has(ds)   ? 'has-note' : '',
       ].filter(Boolean).join(' ');
-      cells += `<div class="${cls}" data-date="${ds}" onclick="App.Dashboard._selectDate('${ds}')">${d}</div>`;
+      cells += `<button type="button" class="${cls}" data-date="${ds}" aria-label="${ds}"
+        onclick="App.Dashboard._selectDate('${ds}')">${d}</button>`;
     }
 
     const total = Math.ceil((firstDay + daysInMonth) / 7) * 7;
@@ -114,6 +115,8 @@
       App.showToast(App.I18n.t('toast_notes_on_date', {count: dayNotes.length, date: ds}), 'info');
       App.showTab('notes');
       if (App.Notes && App.Notes.filterByDate) App.Notes.filterByDate(ds);
+    } else {
+      App.showToast(App.I18n.t('toast_no_notes_on_date'), 'info');
     }
   }
 
@@ -246,13 +249,18 @@
       return;
     }
     el.innerHTML = notes.map(n => `
-      <div class="task-chip" onclick="App.showTab('notes')">
+      <button type="button" class="task-chip" onclick="App.Dashboard._openTask('${n.id}')">
         <span class="task-chip-dot" style="background:var(--note-${n.color||'yellow'})"></span>
         <span class="task-chip-title">${_esc(n.title || App.I18n.t('no_notes'))}</span>
         ${n.priority ? `<span class="priority-badge priority-${n.priority}">${App.I18n.t('priority_'+n.priority)}</span>` : ''}
         ${n.dueTime  ? `<span class="task-chip-time">${n.dueTime}</span>` : ''}
-      </div>
+      </button>
     `).join('');
+  }
+
+  function _openTask(id) {
+    App.showTab('notes');
+    setTimeout(() => App.Notes?._editNote?.(id), 0);
   }
 
   // ── Upcoming Reminders ────────────────────────────────────────────
@@ -364,6 +372,7 @@
     _showQuickNoteCategory, _assignQuickCat, _dismissCatPicker,
     _prevMonth, _nextMonth, _selectDate,
     _openMonthPicker, _openYearPicker,
+    _openTask,
   };
 
 })(window.App = window.App || {});

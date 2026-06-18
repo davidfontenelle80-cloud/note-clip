@@ -94,7 +94,7 @@
       </section>
 
       <!-- Share Something -->
-      <section class="dash-section">
+      <section class="dash-section" id="share-workflow">
         <h3 class="dash-section-title">${t('shared_share_something')}</h3>
         <div class="share-form">
           <div class="form-group" style="margin-bottom:10px">
@@ -105,14 +105,14 @@
               ${listOptions ? `<optgroup label="Lists">${listOptions}</optgroup>` : ''}
             </select>
           </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-primary" style="flex:1" onclick="App.Shared._createShare('copy')">
+          <div style="display:flex;gap:8px;flex-direction:column">
+            <button class="btn btn-primary w-full" onclick="App.Shared._createShare('copy')">
               ${t('share_copy')}
             </button>
-            <button class="btn btn-secondary" style="flex:1" onclick="App.Shared._createShare('whatsapp')">
+            <button class="btn btn-secondary w-full" onclick="App.Shared._createShare('whatsapp')">
               WhatsApp
             </button>
-            <button class="btn btn-secondary" style="flex:1" onclick="App.Shared._createShare('email')">
+            <button class="btn btn-secondary w-full" onclick="App.Shared._createShare('email')">
               ${t('share_email')}
             </button>
           </div>
@@ -140,20 +140,27 @@
       content = list.items.map(i => `${i.checked ? '[x]' : '[ ]'} ${i.text}`).join('\n');
     }
 
-    App.Storage.addShared({ title, content, type });
-
-    const text = encodeURIComponent(`${title}\n\n${content}`);
+    const rawText = `${title}\n\n${content}`;
+    const text = encodeURIComponent(rawText);
     if (via === 'whatsapp') {
+      App.Storage.addShared({ title, content, type });
       window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
+      App.showToast(App.I18n.t('toast_shared_added'), 'success');
+      render();
     } else if (via === 'email') {
+      App.Storage.addShared({ title, content, type });
       window.open(`mailto:?subject=${encodeURIComponent(title)}&body=${text}`, '_blank', 'noopener');
+      App.showToast(App.I18n.t('toast_shared_added'), 'success');
+      render();
     } else {
-      navigator.clipboard.writeText(`${title}\n\n${content}`)
-        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'));
+      _copyText(rawText)
+        .then(() => {
+          App.Storage.addShared({ title, content, type });
+          App.showToast(App.I18n.t('toast_copied'), 'success');
+          render();
+        })
+        .catch(() => App.showToast(App.I18n.t('toast_copy_failed'), 'error'));
     }
-
-    App.showToast(App.I18n.t('toast_shared_added'), 'success');
-    render();
   }
 
   function _delete(id) {
@@ -167,10 +174,44 @@
     const state = App.Storage.getState();
     const item  = state.sharedItems.find(s => s.id === id);
     if (!item) return;
-    navigator.clipboard.writeText(`${item.title}\n\n${item.content}`)
-      .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'));
+    _copyText(`${item.title}\n\n${item.content}`)
+      .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'))
+      .catch(() => App.showToast(App.I18n.t('toast_copy_failed'), 'error'));
   }
 
-  App.Shared = { render, _createShare, _delete, _copy };
+  function _copyText(text) {
+    if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+    return new Promise((resolve, reject) => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy') ? resolve() : reject(new Error('copy failed'));
+      } catch (err) {
+        reject(err);
+      } finally {
+        ta.remove();
+      }
+    });
+  }
+
+  function onFab() {
+    const workflow = document.getElementById('share-workflow');
+    const select = document.getElementById('share-select');
+    if (!workflow || !select) {
+      render();
+      setTimeout(onFab, 0);
+      return;
+    }
+    workflow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    select.focus();
+    App.showToast(App.I18n.t('toast_share_ready'), 'info');
+  }
+
+  App.Shared = { render, onFab, _createShare, _delete, _copy };
 
 })(window.App = window.App || {});

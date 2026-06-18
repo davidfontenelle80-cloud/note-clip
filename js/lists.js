@@ -5,6 +5,9 @@
 (function (App) {
   'use strict';
 
+  let _pendingDelete = null;
+  let _undoTimer = null;
+
   function _esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
@@ -166,8 +169,7 @@
   }
 
   function _deleteItem(listId, itemId) {
-    App.Storage.deleteListItem(listId, itemId);
-    render();
+    _deleteItemWithUndo(listId, itemId);
   }
 
   function _editItem(listId, itemId) {
@@ -175,13 +177,7 @@
     const list  = state.lists.find(l => l.id === listId);
     const item  = list && list.items.find(i => i.id === itemId);
     if (!item) return;
-    const t = App.I18n.t.bind(App.I18n);
-    const newText = prompt(t('list_edit_item') + ':', item.text);
-    if (newText === null) return;           // user cancelled
-    const trimmed = newText.trim();
-    if (!trimmed) return;                   // empty — ignore
-    App.Storage.updateListItem(listId, itemId, trimmed);
-    render();
+    _editItemModal(listId, item);
   }
 
   function _addItem(listId) {
@@ -250,6 +246,7 @@
         </div>
       </div>`;
     document.body.insertAdjacentHTML('beforeend', html);
+    App.enhanceModal?.('list-modal');
     document.getElementById('list-name').focus();
   }
 
@@ -284,6 +281,121 @@
 
   function _closeModal() {
     document.getElementById('list-modal') && document.getElementById('list-modal').remove();
+    App.restoreFocus?.();
+  }
+
+  function _openItemModal(listId, item) {
+    const t = App.I18n.t.bind(App.I18n);
+    const html = `
+      <div id="list-item-modal" class="modal-backdrop" onclick="if(event.target===this)App.Lists._closeItemModal()">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <div class="modal-title">${t('list_edit_item')}</div>
+          <div class="form-group">
+            <label class="form-label" for="list-item-text">${t('list_edit_item')}</label>
+            <input id="list-item-text" class="form-input" value="${_esc(item.text)}"
+              onkeydown="if(event.key==='Enter')App.Lists._saveItemEdit('${listId}','${item.id}')">
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="App.Lists._closeItemModal()">${t('cancel')}</button>
+            <button class="btn btn-primary" onclick="App.Lists._saveItemEdit('${listId}','${item.id}')">${t('save')}</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    App.enhanceModal?.('list-item-modal');
+    const input = document.getElementById('list-item-text');
+    input?.focus();
+    input?.select();
+  }
+
+  function _showUndo() {
+    const t = App.I18n.t.bind(App.I18n);
+    document.getElementById('list-undo-toast')?.remove();
+    clearTimeout(_undoTimer);
+    const html = `<div id="list-undo-toast" class="undo-toast" role="status">
+      <span>${t('toast_item_deleted')}</span>
+      <button type="button" onclick="App.Lists._undoDeleteItem()">${t('undo')}</button>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    _undoTimer = setTimeout(() => {
+      document.getElementById('list-undo-toast')?.remove();
+      _pendingDelete = null;
+    }, 5000);
+  }
+
+  function _buildItemRow(listId, item, opts) {
+    opts = opts || {};
+    const checkable = opts.checkable !== false;
+    const restoreMode = !!opts.restoreMode;
+    const checkCls = item.checked ? ' checked' : '';
+    const textCls = item.checked ? ' checked' : '';
+
+    const checkEl = checkable
+      ? `<button type="button" class="list-item-check${checkCls}"
+           aria-label="${item.checked ? 'Mark item incomplete' : 'Mark item complete'}"
+           onclick="App.Lists._toggleItem('${listId}','${item.id}')">
+           ${item.checked ? '&#10003;' : ''}</button>`
+      : `<span class="list-item-check" aria-hidden="true" style="opacity:0.3;cursor:default"></span>`;
+
+    const restoreBtn = restoreMode
+      ? `<button class="card-delete-btn" title="Restore" aria-label="Restore item"
+           onclick="App.Lists._toggleItem('${listId}','${item.id}')">&#8630;</button>`
+      : '';
+
+    return `<div class="list-item">
+      ${checkEl}
+      <span class="list-item-text${textCls}">${_esc(item.text)}</span>
+      ${restoreBtn}
+      <button class="card-delete-btn" title="Edit" aria-label="Edit item"
+        onclick="App.Lists._editItem('${listId}','${item.id}')">&#9998;</button>
+      <button class="card-delete-btn" title="Delete" aria-label="Delete item"
+        onclick="App.Lists._deleteItem('${listId}','${item.id}')">&times;</button>
+    </div>`;
+  }
+
+  function _deleteItemWithUndo(listId, itemId) {
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === listId);
+    const index = list ? list.items.findIndex(i => i.id === itemId) : -1;
+    const item = index >= 0 ? list.items[index] : null;
+    if (!item) return;
+    App.Storage.deleteListItem(listId, itemId);
+    _pendingDelete = { listId, item, index };
+    render();
+    _showUndo();
+  }
+
+  function _editItemModal(listId, item) {
+    if (item) _openItemModal(listId, item);
+  }
+
+  function _saveItemEdit(listId, itemId) {
+    const trimmed = document.getElementById('list-item-text')?.value.trim() || '';
+    if (!trimmed) return;
+    App.Storage.updateListItem(listId, itemId, trimmed);
+    _closeItemModal();
+    render();
+  }
+
+  function _closeItemModal() {
+    document.getElementById('list-item-modal')?.remove();
+    App.restoreFocus?.();
+  }
+
+  function _undoDeleteItem() {
+    if (!_pendingDelete) return;
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === _pendingDelete.listId);
+    if (list) {
+      const insertAt = Math.min(Math.max(_pendingDelete.index, 0), list.items.length);
+      list.items.splice(insertAt, 0, _pendingDelete.item);
+      App.Storage.setState(state);
+    }
+    _pendingDelete = null;
+    clearTimeout(_undoTimer);
+    document.getElementById('list-undo-toast')?.remove();
+    render();
   }
 
   function onFab() { _openModal(null); }
@@ -292,6 +404,7 @@
     render, onFab,
     _toggleItem, _deleteItem, _editItem, _addItem, _reset, _copyList,
     _openModal, _editList, _saveList, _deleteList, _closeModal,
+    _saveItemEdit, _closeItemModal, _undoDeleteItem,
   };
 
 })(window.App = window.App || {});

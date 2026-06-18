@@ -67,7 +67,9 @@
     }
     const cards = state.categories.map(cat => {
       const count = state.notes.filter(n => n.categoryId === cat.id).length;
-      return `<div class="category-card" onclick="App.Notes._viewCat('${cat.id}')">
+      return `<div class="category-card" role="button" tabindex="0"
+        onclick="App.Notes._viewCat('${cat.id}')"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();App.Notes._viewCat('${cat.id}')}">
         <div class="category-card-top">
           <div class="category-icon-wrap">${_iconHtml(cat.icon)}</div>
           <div style="display:flex;gap:4px;flex-shrink:0">
@@ -98,7 +100,9 @@
       low:'priority-low', optional:'priority-low'
     }[note.priority] || 'priority-medium';
 
-    return `<div class="note-card" data-color="${_esc(note.color || 'yellow')}" onclick="App.Notes._editNote('${note.id}')">
+    return `<div class="note-card" data-color="${_esc(note.color || 'yellow')}" role="button" tabindex="0"
+      onclick="App.Notes._editNote('${note.id}')"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();App.Notes._editNote('${note.id}')}">
       <div class="note-card-header">
         <div class="note-card-title">${_esc(title)}</div>
         <button class="card-delete-btn"
@@ -311,13 +315,13 @@
               <select id="note-priority" class="form-select">${priorityOpts}</select>
             </div>
             <div class="form-group">
-              <label class="form-label">Status</label>
+              <label class="form-label">${App.I18n.t('note_status')}</label>
               <select id="note-status" class="form-select">${statusOpts}</select>
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Category</label>
+            <label class="form-label">${App.I18n.t('note_category')}</label>
             <select id="note-cat" class="form-select">
               <option value="">— none —</option>
               ${catOptions}
@@ -329,9 +333,9 @@
             <div class="color-row" id="color-row">${colorRow}</div>
           </div>
 
-          <details style="margin-bottom:var(--space-md)">
+          <details open style="margin-bottom:var(--space-md)">
             <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;padding:8px 0;color:var(--color-text-muted)">
-              Due Date &amp; Reminder
+              ${App.I18n.t('note_due_reminder')}
             </summary>
             <div style="padding-top:var(--space-sm)">
               <div class="form-row">
@@ -359,7 +363,7 @@
 
           <details style="margin-bottom:var(--space-md)">
             <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;padding:8px 0;color:var(--color-text-muted)">
-              Appointment &amp; Location
+              ${App.I18n.t('note_appt_location')}
             </summary>
             <div style="padding-top:var(--space-sm)">
               <div class="form-group">
@@ -388,7 +392,7 @@
             </div>
           </details>
 
-          <div class="modal-actions">
+          <div class="modal-actions sticky-actions">
             ${isEdit ? `
               <button class="btn btn-danger btn-sm" onclick="App.Notes._deleteNote('${n.id}',true)">
                 ${App.I18n.t('delete')}
@@ -407,6 +411,7 @@
       </div>`;
 
     document.body.insertAdjacentHTML('beforeend', html);
+    App.enhanceModal?.('note-modal');
     document.getElementById('note-title').focus();
     _selectedNoteColor = n.color || 'yellow';
   }
@@ -520,6 +525,7 @@
     document.getElementById('note-modal')?.remove();
     document.getElementById('cat-modal')?.remove();
     document.getElementById('cat-delete-modal')?.remove();
+    App.restoreFocus?.();
     _editingNoteId = null;
     _editingCatId  = null;
   }
@@ -549,6 +555,7 @@
         </div>
       </div>`;
     document.body.insertAdjacentHTML('beforeend', html);
+    App.enhanceModal?.('cat-modal');
     document.getElementById('cat-name').focus();
   }
 
@@ -598,6 +605,7 @@
           </div>
         </div>`;
       document.body.insertAdjacentHTML('beforeend', html);
+      App.enhanceModal?.('cat-delete-modal');
     } else {
       if (!confirm('Delete this category?')) return;
       App.Storage.deleteCategory(id, false);

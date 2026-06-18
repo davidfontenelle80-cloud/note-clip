@@ -448,8 +448,10 @@ input, textarea, select {
 
 /* Delete + action buttons on cards */
 .card-delete-btn {
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: var(--radius-full);
   background: var(--color-border);
   color: var(--color-text-3);
@@ -825,8 +827,10 @@ input, textarea, select {
 }
 .list-item:last-child { border-bottom: none; }
 .list-item-check {
-  width: 22px;
-  height: 22px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   border-radius: var(--radius-sm);
   border: 2px solid var(--color-border);
   background: var(--color-surface-2);
@@ -941,6 +945,14 @@ input, textarea, select {
   margin-top: var(--space-lg);
 }
 .modal-actions .btn { flex: 1; }
+.modal-actions.sticky-actions {
+  position: sticky;
+  bottom: calc(-1 * var(--space-md));
+  z-index: 2;
+  background: var(--color-surface);
+  padding: var(--space-sm) 0 0;
+  border-top: 1px solid var(--color-border);
+}
 
 /* ── Color Picker Row ────────────────────────────────────────────── */
 .color-row {
@@ -1063,6 +1075,7 @@ input, textarea, select {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-height: 44px;
   padding: 8px 14px;
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
@@ -1113,6 +1126,33 @@ input, textarea, select {
 }
 .update-notice[hidden] { display: none; }
 
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--bottom-nav-height) + 14px);
+  transform: translateX(-50%);
+  z-index: 420;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  max-width: min(92vw, 420px);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  background: var(--color-text);
+  color: var(--color-bg);
+  box-shadow: var(--shadow-fab);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.undo-toast button {
+  min-height: 36px;
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 700;
+}
+
 /* ── Utility ─────────────────────────────────────────────────────── */
 .hidden { display: none !important; }
 .sr-only {
@@ -1137,6 +1177,8 @@ input, textarea, select {
 /* ── Task Chips (Dashboard Today's Tasks) ────────────────────────── */
 .task-chip {
   display: flex; align-items: center; gap: 8px;
+  width: 100%; border: 0; color: inherit; text-align: left;
+  min-height: 44px;
   padding: 10px 12px; border-radius: 10px;
   background: var(--color-surface); margin-bottom: 6px;
   box-shadow: 0 1px 4px rgba(160,130,80,.08), inset 0 1px 0 rgba(255,255,255,.6);
@@ -1179,4 +1221,4 @@ input, textarea, select {
 .shared-subtitle { font-size: .85rem; color: var(--color-text-3); margin-top: 2px; }
 .shared-card { padding: 10px 12px; margin-bottom: 8px; }
 .shared-card-actions { display: flex; gap: 6px; margin-top: 8px; }
-.shared-card-actions button { flex: 1; padding: 6px; font-size: .75rem;
+.shared-card-actions button { flex: 1; padding: 6px; font-size: .75rem; }
