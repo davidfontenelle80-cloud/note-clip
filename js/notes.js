@@ -17,6 +17,10 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  function _profileName() {
+    return (App.Storage.getState().settings.username || '').trim();
+  }
+
   const CAT_ICON_CLASS = {
     ic_cat_work: 'work',
     ic_cat_medical: 'medical',
@@ -177,9 +181,13 @@
       </div>`;
 
     if (!notes.length) {
+      const name = _profileName();
+      const firstNoteText = !_searchQuery && name
+        ? App.I18n.t('empty_first_note_named', { name: _esc(name) })
+        : App.I18n.t('no_notes');
       return searchBar + `<div class="empty-state">
         <div class="empty-state-icon"><span class="empty-stationery empty-notes" aria-hidden="true"><span></span></span></div>
-        <div class="empty-state-text">${App.I18n.t('no_notes')}</div>
+        <div class="empty-state-text">${firstNoteText}</div>
         <div class="empty-state-sub">${_searchQuery ? 'No results — try a different search' : App.I18n.t('tap_plus')}</div>
       </div>`;
     }

@@ -12,6 +12,10 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  function _profileName() {
+    return (App.Storage.getState().settings.username || '').trim();
+  }
+
   // ── Item Row Builder ───────────────────────────────────────────────
   // opts: { checkable, restoreMode }
   // restoreMode = show restore button (↩) instead of check toggle label
@@ -146,12 +150,16 @@
     if (!el) return;
     const state = App.Storage.getState();
     const t = App.I18n.t.bind(App.I18n);
+    const name = _profileName();
+    const emptyListText = name
+      ? t('empty_first_list_named', { name: _esc(name) })
+      : t('no_lists');
 
     const content = state.lists.length
       ? state.lists.map(buildListCard).join('')
       : `<div class="empty-state">
            <div class="empty-state-icon"><span class="empty-stationery empty-list" aria-hidden="true"><span></span></span></div>
-           <div class="empty-state-text">${t('no_lists')}</div>
+           <div class="empty-state-text">${emptyListText}</div>
            <div class="empty-state-sub">${t('tap_plus')}</div>
          </div>`;
 

@@ -119,14 +119,16 @@
         <span class="section-title">${t('settings')}</span>
       </div>
 
-      <!-- Appearance -->
+      <!-- Profile -->
       <div class="settings-section">
-        <div class="settings-section-label">${t('settings_appearance')}</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label">${t('theme')}</div>
-          </div>
-          <div class="theme-toggle">${themeButtons}</div>
+        <div class="settings-section-label">${t('settings_profile')}</div>
+        <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+          <div class="settings-row-label">${t('username')}</div>
+          <input id="settings-username" class="form-input"
+            placeholder="${t('username_ph')}" value="${(s.username||'').replace(/"/g,'&quot;')}">
+          <button class="btn btn-primary btn-sm" onclick="App.Settings._saveUsername()">
+            ${t('save')}
+          </button>
         </div>
         <div class="settings-row">
           <div>
@@ -139,18 +141,11 @@
               onclick="App.Settings._setLanguage('es')">ES</button>
           </div>
         </div>
-      </div>
-
-      <!-- Profile -->
-      <div class="settings-section">
-        <div class="settings-section-label">${t('settings_profile')}</div>
-        <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
-          <div class="settings-row-label">${t('username')}</div>
-          <input id="settings-username" class="form-input"
-            placeholder="${t('username_ph')}" value="${(s.username||'').replace(/"/g,'&quot;')}">
-          <button class="btn btn-primary btn-sm" onclick="App.Settings._saveUsername()">
-            ${t('save')}
-          </button>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">${t('theme')}</div>
+          </div>
+          <div class="theme-toggle">${themeButtons}</div>
         </div>
       </div>
 

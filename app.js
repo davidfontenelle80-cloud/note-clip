@@ -199,6 +199,7 @@
 
     // Show initial tab
     showTab('dashboard');
+    App.Onboarding?.maybeShow();
 
     console.log('[NoteClip] App ready.');
   }

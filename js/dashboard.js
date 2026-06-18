@@ -15,7 +15,8 @@
   }
 
   // ── Greeting ──────────────────────────────────────────────────────
-  function getGreeting() {
+  function getGreeting(name) {
+    if (!name) return App.I18n.t('greeting_welcome');
     const h = new Date().getHours();
     if (h >= 5  && h < 12) return App.I18n.t('greeting_morning');
     if (h >= 12 && h < 17) return App.I18n.t('greeting_afternoon');
@@ -305,7 +306,8 @@
     const lang  = App.I18n.current();
     const dateStr = now.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US',
       { weekday: 'long', month: 'long', day: 'numeric' });
-    const name = state.settings.username ? `, ${_esc(state.settings.username)}` : '';
+    const name = (state.settings.username || '').trim();
+    const greeting = name ? `${getGreeting(name)}, ${_esc(name)}` : getGreeting('');
 
     if (_calYear === undefined) {
       _calYear  = now.getFullYear();
@@ -315,7 +317,7 @@
     el.innerHTML = `
       <!-- Greeting -->
       <div class="greeting-block">
-        <div class="greeting-text">${greetingIcon()} ${getGreeting()}${name}</div>
+        <div class="greeting-text">${greetingIcon()} ${greeting}</div>
         <div class="greeting-date">${dateStr}</div>
       </div>
 
