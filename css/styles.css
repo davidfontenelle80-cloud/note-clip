@@ -1196,11 +1196,13 @@ input, textarea, select {
 .empty-state-sm { font-size: .85rem; color: var(--color-text-3); padding: 8px 0; }
 
 /* ── Reminder Rows (Dashboard Upcoming) ──────────────────────────── */
-.reminder-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--color-border); }
-.reminder-row:last-child { border-bottom:none; }
-.reminder-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.reminder-title { flex:1; font-size:.875rem; color:var(--color-text); }
-.reminder-date { font-size:.75rem; color:var(--color-text-3); white-space:nowrap; }
+.reminder-row { display:flex; align-items:center; gap:10px; min-height:48px; padding:11px 12px; border:1px solid var(--color-border); border-radius:12px; background:var(--color-surface); box-shadow:0 2px 8px rgba(48,38,20,.07), inset 0 1px 0 rgba(255,255,255,.45); margin-bottom:8px; }
+.reminder-row:last-child { margin-bottom:0; }
+.reminder-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; box-shadow:0 0 0 4px color-mix(in srgb,currentColor 12%,transparent); }
+.reminder-title { flex:1; min-width:0; font-size:.95rem; font-weight:700; color:var(--color-text); }
+.reminder-date { font-size:.82rem; font-weight:700; color:var(--color-primary-strong); white-space:nowrap; }
+.dash-upcoming-section .dash-section-title { color:var(--color-text); font-weight:800; letter-spacing:.1em; }
+.dash-upcoming-section #dash-reminders-list { padding-bottom: calc(var(--bottom-nav-height) + 12px); }
 
 /* ── Dash Section ─────────────────────────────────────────────────── */
 .dash-section { margin-bottom: var(--space-lg); }

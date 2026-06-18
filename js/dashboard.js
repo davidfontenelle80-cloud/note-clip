@@ -368,7 +368,7 @@
       <div id="cal-wrap">${buildCalendar(_calYear, _calMonth)}</div>
 
       <!-- Upcoming Reminders -->
-      <section class="dash-section" id="dash-reminders" style="margin-top:var(--space-lg)">
+      <section class="dash-section dash-upcoming-section" id="dash-reminders" style="margin-top:var(--space-lg)">
         <h3 class="dash-section-title">${App.I18n.t('dash_upcoming')}</h3>
         <div id="dash-reminders-list"></div>
       </section>
