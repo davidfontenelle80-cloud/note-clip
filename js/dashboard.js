@@ -14,6 +14,17 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  function _formatTime(time) {
+    const match = String(time || '').match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return time || '';
+    const hour24 = Number(match[1]);
+    const minute = match[2];
+    if (hour24 < 0 || hour24 > 23) return time;
+    const period = hour24 >= 12 ? 'p.m.' : 'a.m.';
+    const hour12 = hour24 % 12 || 12;
+    return `${hour12}:${minute} ${period}`;
+  }
+
   // ── Greeting ──────────────────────────────────────────────────────
   function getGreeting(name) {
     if (!name) return App.I18n.t('greeting_welcome');
@@ -254,7 +265,7 @@
         <span class="task-chip-dot" style="background:var(--note-${n.color||'yellow'})"></span>
         <span class="task-chip-title">${_esc(n.title || App.I18n.t('no_notes'))}</span>
         ${n.priority ? `<span class="priority-badge priority-${n.priority}">${App.I18n.t('priority_'+n.priority)}</span>` : ''}
-        ${n.dueTime  ? `<span class="task-chip-time">${n.dueTime}</span>` : ''}
+        ${n.dueTime  ? `<span class="task-chip-time">${_formatTime(n.dueTime)}</span>` : ''}
       </button>
     `).join('');
   }
@@ -278,7 +289,8 @@
       return;
     }
     const lang = App.I18n.current();
-    el.innerHTML = notes.map(n => {
+    const displayNotes = notes.map(n => Object.assign({}, n, { dueTime: _formatTime(n.dueTime) }));
+    el.innerHTML = displayNotes.map(n => {
       const d     = new Date(n.dueDate + 'T12:00:00');
       const label = d.toLocaleDateString(lang === 'es' ? 'es-US' : 'en-US', {month:'short', day:'numeric'});
       return `<div class="reminder-row">
