@@ -17,9 +17,27 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // Render icon: PNG img if ic_ filename, else emoji/text fallback
+  const CAT_ICON_CLASS = {
+    ic_cat_work: 'work',
+    ic_cat_medical: 'medical',
+    ic_cat_personal: 'personal',
+    ic_cat_home: 'home',
+    ic_cat_documents: 'documents',
+    ic_cat_followup: 'followup',
+    ic_cat_orders: 'orders',
+    ic_cat_ideas: 'ideas',
+  };
+
+  // Render category icons as the same paper/stationery family as the nav.
   function _iconHtml(icon, cls) {
     if (!icon) return '';
+    const catClass = CAT_ICON_CLASS[String(icon)];
+    if (catClass && cls === 'chip-icon-img') {
+      return `<span class="cat-chip-stationery cat-${catClass}" aria-hidden="true"></span>`;
+    }
+    if (catClass) {
+      return `<span class="cat-stationery cat-${catClass}" aria-hidden="true"><span class="cat-mark"></span></span>`;
+    }
     if (String(icon).startsWith('ic_')) {
       return `<img src="./icons/${icon}.png" class="${cls || 'cat-icon-img'}" alt="" loading="lazy">`;
     }
