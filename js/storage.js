@@ -229,6 +229,13 @@
     save(_state);
   }
 
+  function updateListItem(listId, itemId, text) {
+    const list = _state.lists.find(l => l.id === listId);
+    if (!list) return;
+    const item = list.items.find(i => i.id === itemId);
+    if (item) { item.text = text; save(_state); }
+  }
+
   // ── Draft helpers ─────────────────────────────────────────────────
   function addDraft(data) {
     const draft = Object.assign({
@@ -282,7 +289,7 @@
     generateId, getState, getNotes, getLists, setState, updateSettings,
     addNote, updateNote, deleteNote,
     addCategory, updateCategory, deleteCategory,
-    addList, updateList, deleteList, addListItem, toggleListItem, deleteListItem, resetList,
+    addList, updateList, deleteList, addListItem, toggleListItem, deleteListItem, resetList, updateListItem,
     addDraft, deleteDraft,
     addShared, deleteShared,
     exportJSON,
