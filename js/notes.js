@@ -60,7 +60,7 @@
   function buildCategoryGrid(state) {
     if (!state.categories.length) {
       return `<div class="empty-state">
-        <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
+        <div class="empty-state-icon"><span class="empty-stationery empty-notes" aria-hidden="true"><span></span></span></div>
         <div class="empty-state-text">${App.I18n.t('categories')}</div>
         <div class="empty-state-sub">${App.I18n.t('tap_plus')}</div>
       </div>`;
@@ -173,7 +173,7 @@
 
     if (!notes.length) {
       return searchBar + `<div class="empty-state">
-        <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
+        <div class="empty-state-icon"><span class="empty-stationery empty-notes" aria-hidden="true"><span></span></span></div>
         <div class="empty-state-text">${App.I18n.t('no_notes')}</div>
         <div class="empty-state-sub">${_searchQuery ? 'No results — try a different search' : App.I18n.t('tap_plus')}</div>
       </div>`;

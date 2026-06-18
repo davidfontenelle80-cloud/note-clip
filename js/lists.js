@@ -147,7 +147,7 @@
     const content = state.lists.length
       ? state.lists.map(buildListCard).join('')
       : `<div class="empty-state">
-           <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_lists.png" class="icon-img-lg" alt=""></span></div>
+           <div class="empty-state-icon"><span class="empty-stationery empty-list" aria-hidden="true"><span></span></span></div>
            <div class="empty-state-text">${t('no_lists')}</div>
            <div class="empty-state-sub">${t('tap_plus')}</div>
          </div>`;
