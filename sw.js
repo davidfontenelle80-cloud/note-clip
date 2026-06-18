@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v15';
+const CACHE_VERSION = 'note-clip-v16';
 
 const PRECACHE_URLS = [
   './',
@@ -15,6 +15,8 @@ const PRECACHE_URLS = [
   './js/firebase/firebase-config.js',
   './app.js',
   './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
 ];
 
 self.addEventListener('install', event => {

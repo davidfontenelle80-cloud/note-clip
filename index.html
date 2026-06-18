@@ -50,6 +50,8 @@
     .nav-settings .nav-glyph:after{left:10px;bottom:-3px;width:5px;height:18px;border-radius:4px;background:linear-gradient(to bottom,var(--icon-accent),#e1c06d 70%,var(--icon-ink) 70% 100%);transform:rotate(38deg);box-shadow:0 3px 4px rgba(78,54,14,.18)}
     .stage5b-greeting-icon{width:24px;height:24px;object-fit:contain;display:inline-block;vertical-align:-5px;margin-right:8px;filter:drop-shadow(0 2px 4px rgba(160,130,80,.18))}
     [data-theme="dark"] .stage5b-greeting-icon{filter:drop-shadow(0 3px 8px rgba(0,0,0,.45))}
+    .app-title-mark{width:30px;height:30px;border-radius:9px;object-fit:cover;box-shadow:0 4px 10px rgba(95,70,28,.18);font-size:0}
+    [data-theme="dark"] .app-title-mark{box-shadow:0 5px 14px rgba(0,0,0,.38)}
     .quick-note-wrap{position:relative;isolation:isolate;overflow:visible;border:1.5px solid var(--quick-paper-edge);border-radius:22px 24px 24px 22px;background:radial-gradient(circle at 18% 21%,var(--quick-paper-grain) 0 1px,transparent 1.6px),radial-gradient(circle at 73% 38%,var(--quick-paper-grain) 0 1px,transparent 1.7px),radial-gradient(circle at 43% 74%,var(--quick-paper-grain) 0 1px,transparent 1.5px),linear-gradient(145deg,#fff7bd 0%,var(--quick-paper) 58%,var(--quick-paper-deep) 100%);background-size:25px 25px,31px 31px,37px 37px,auto;box-shadow:0 3px 4px var(--quick-paper-shadow),0 12px 24px rgba(108,80,31,.18),0 24px 38px rgba(108,80,31,.11),0 9px 0 -5px color-mix(in srgb,var(--quick-paper-deep) 72%,#8f7424),inset 1px 1px 0 rgba(255,255,255,.55),inset -1px -1px 0 rgba(119,84,21,.08);transform:rotate(-.7deg);transition:box-shadow var(--transition),transform var(--transition-spring),border-color var(--transition)}
     .quick-note-wrap:focus-within{border-color:color-mix(in srgb,var(--color-primary) 70%,var(--quick-paper-edge));box-shadow:0 0 0 3px color-mix(in srgb,var(--color-primary) 18%,transparent),0 3px 4px var(--quick-paper-shadow),0 12px 26px rgba(108,80,31,.18),inset 1px 1px 0 rgba(255,255,255,.48);transform:rotate(-.7deg) translateY(-1px)}
     .quick-note-wrap:before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(90deg,rgba(255,255,255,.2),transparent 30% 70%,rgba(112,78,19,.07)),radial-gradient(ellipse at 50% 0,rgba(255,255,255,.28),transparent 48%);mix-blend-mode:soft-light}
@@ -84,7 +86,7 @@
   <!-- App Header -->
   <header class="app-header">
     <div class="app-title">
-      <span class="app-title-icon">📌</span>
+      <img class="app-title-icon app-title-mark" src="./icons/icon-192.png" alt="">
       Note Clip
     </div>
     <div class="lang-toggle">
