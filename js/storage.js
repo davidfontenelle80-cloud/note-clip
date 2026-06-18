@@ -9,16 +9,54 @@
   const KEY = 'noteClip_v1';
 
   const NOTE_COLORS = ['yellow','lavender','sky','mint','coral','peach'];
+  const SAFE_CATEGORY_ICON_IDS = new Set([
+    'ic_cat_note','ic_cat_sticky','ic_cat_notebook','ic_cat_clipboard','ic_cat_paper_stack','ic_cat_bookmark','ic_cat_paperclip','ic_cat_folder',
+    'ic_cat_work_note','ic_cat_work_folder','ic_cat_work_clipboard','ic_cat_checklist','ic_cat_briefcase_note','ic_cat_receipt',
+    'ic_cat_home_note','ic_cat_grocery_note','ic_cat_cleaning_note','ic_cat_meal_note','ic_cat_household_list',
+    'ic_cat_health_note','ic_cat_medicine_note','ic_cat_walking_note','ic_cat_sleep_note','ic_cat_water_note',
+    'ic_cat_personal_card','ic_cat_calendar','ic_cat_reminder_bell','ic_cat_star','ic_cat_checkmark','ic_cat_goal_note',
+    'ic_cat_idea_note','ic_cat_lightbulb_note','ic_cat_pencil_note','ic_cat_sketch_note','ic_cat_bookmark_note',
+    'ic_cat_pinned_note','ic_cat_flag_note','ic_cat_reminder_note','ic_cat_clock_note','ic_cat_checklist_note',
+    'ic_cat_package_note','ic_cat_shipping_label','ic_cat_order_receipt','ic_cat_delivery_note','ic_cat_order_checklist',
+  ]);
+  const CATEGORY_ICON_ALIASES = {
+    'ic_cat_work': 'ic_cat_work_note',
+    'ic_cat_medical': 'ic_cat_health_note',
+    'ic_cat_personal': 'ic_cat_personal_card',
+    'ic_cat_home': 'ic_cat_home_note',
+    'ic_cat_documents': 'ic_cat_paper_stack',
+    'ic_cat_followup': 'ic_cat_flag_note',
+    'ic_cat_orders': 'ic_cat_shipping_label',
+    'ic_cat_ideas': 'ic_cat_idea_note',
+    '\u{1F4DD}': 'ic_cat_note',
+    '\u{1F4CC}': 'ic_cat_pinned_note',
+    '\u{1F4C1}': 'ic_cat_folder',
+    '\u{1F4CB}': 'ic_cat_clipboard',
+    '\u{2B50}': 'ic_cat_star',
+  };
+
+  function sanitizeCategoryIcon(icon) {
+    const raw = String(icon || '').trim();
+    const mapped = CATEGORY_ICON_ALIASES[raw] || raw;
+    return SAFE_CATEGORY_ICON_IDS.has(mapped) ? mapped : 'ic_cat_note';
+  }
+
+  function sanitizeCategories(categories) {
+    const source = Array.isArray(categories) ? categories : DEFAULT_CATEGORIES;
+    return source.map(cat => Object.assign({}, cat, {
+      icon: sanitizeCategoryIcon(cat && cat.icon),
+    }));
+  }
 
   const DEFAULT_CATEGORIES = [
-    { id: 'cat_work',    name: 'Work',       icon: 'ic_cat_work',      color: '#BDD5EA' },
-    { id: 'cat_medical', name: 'Medical',     icon: 'ic_cat_medical',   color: '#C5E2C5' },
-    { id: 'cat_personal',name: 'Personal',    icon: 'ic_cat_personal',  color: '#D4C5E2' },
-    { id: 'cat_home',    name: 'Home',        icon: 'ic_cat_home',      color: '#F7D9B0' },
-    { id: 'cat_docs',    name: 'Documents',   icon: 'ic_cat_documents', color: '#F7F0B6' },
-    { id: 'cat_followup',name: 'Follow-Up',   icon: 'ic_cat_followup',  color: '#F2C4B0' },
-    { id: 'cat_orders',  name: 'Orders',      icon: 'ic_cat_orders',    color: '#BDD5EA' },
-    { id: 'cat_ideas',   name: 'Ideas',       icon: 'ic_cat_ideas',     color: '#F7F0B6' },
+    { id: 'cat_work',    name: 'Work',       icon: 'ic_cat_work_note',      color: '#BDD5EA' },
+    { id: 'cat_medical', name: 'Medical',     icon: 'ic_cat_health_note',    color: '#C5E2C5' },
+    { id: 'cat_personal',name: 'Personal',    icon: 'ic_cat_personal_card',  color: '#D4C5E2' },
+    { id: 'cat_home',    name: 'Home',        icon: 'ic_cat_home_note',      color: '#F7D9B0' },
+    { id: 'cat_docs',    name: 'Documents',   icon: 'ic_cat_paper_stack',    color: '#F7F0B6' },
+    { id: 'cat_followup',name: 'Follow-Up',   icon: 'ic_cat_flag_note',      color: '#F2C4B0' },
+    { id: 'cat_orders',  name: 'Orders',      icon: 'ic_cat_shipping_label', color: '#BDD5EA' },
+    { id: 'cat_ideas',   name: 'Ideas',       icon: 'ic_cat_idea_note',      color: '#F7F0B6' },
   ];
 
   const DEFAULT_STATE = {
@@ -56,6 +94,7 @@
       // Merge any new top-level keys from DEFAULT_STATE (forward compatibility)
       const merged = Object.assign({}, DEFAULT_STATE, saved);
       merged.settings = Object.assign({}, DEFAULT_STATE.settings, saved.settings || {});
+      merged.categories = sanitizeCategories(merged.categories);
       return merged;
     } catch (e) {
       console.error('[Storage] load failed:', e);
@@ -80,6 +119,7 @@
 
   function setState(newState) {
     _state = JSON.parse(JSON.stringify(newState));
+    _state.categories = sanitizeCategories(_state.categories);
     save(_state);
   }
 
@@ -145,10 +185,11 @@
     const cat = Object.assign({
       id:   generateId(),
       name: '',
-      icon: '📝',
+      icon: 'ic_cat_note',
       color:'#F7F0B6',
     }, data);
     cat.id = cat.id || generateId();
+    cat.icon = sanitizeCategoryIcon(cat.icon);
     _state.categories.push(cat);
     save(_state);
     return cat;
@@ -157,6 +198,9 @@
   function updateCategory(id, patch) {
     const idx = _state.categories.findIndex(c => c.id === id);
     if (idx < 0) return null;
+    if (Object.prototype.hasOwnProperty.call(patch, 'icon')) {
+      patch = Object.assign({}, patch, { icon: sanitizeCategoryIcon(patch.icon) });
+    }
     _state.categories[idx] = Object.assign({}, _state.categories[idx], patch);
     save(_state);
     return _state.categories[idx];
@@ -295,6 +339,7 @@
     addDraft, deleteDraft,
     addShared, deleteShared,
     exportJSON,
+    sanitizeCategoryIcon,
     NOTE_COLORS,
   };
 

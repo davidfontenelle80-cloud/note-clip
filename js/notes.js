@@ -21,31 +21,89 @@
     return (App.Storage.getState().settings.username || '').trim();
   }
 
+  const CATEGORY_ICON_GROUPS = [
+    { key: 'notes_paper', label: { en: 'Notes / Paper', es: 'Notas / Papel' }, icons: [
+      ['ic_cat_note','Note','Nota'], ['ic_cat_sticky','Sticky note','Nota adhesiva'], ['ic_cat_notebook','Notebook','Cuaderno'], ['ic_cat_clipboard','Clipboard','Portapapeles'],
+      ['ic_cat_paper_stack','Paper stack','Papeles'], ['ic_cat_bookmark','Bookmark','Marcador'], ['ic_cat_paperclip','Paper clip','Clip'], ['ic_cat_folder','Folder','Carpeta'],
+    ] },
+    { key: 'work', label: { en: 'Work', es: 'Trabajo' }, icons: [
+      ['ic_cat_work_note','Work note','Nota de trabajo'], ['ic_cat_work_folder','Folder','Carpeta'], ['ic_cat_work_clipboard','Clipboard','Portapapeles'],
+      ['ic_cat_checklist','Checklist','Lista'], ['ic_cat_briefcase_note','Briefcase note','Nota laboral'], ['ic_cat_receipt','Receipt','Recibo'],
+    ] },
+    { key: 'home', label: { en: 'Home', es: 'Hogar' }, icons: [
+      ['ic_cat_home_note','Home note','Nota de hogar'], ['ic_cat_grocery_note','Grocery note','Nota de compras'], ['ic_cat_cleaning_note','Cleaning note','Nota de limpieza'],
+      ['ic_cat_meal_note','Meal note','Nota de comida'], ['ic_cat_household_list','Household list','Lista del hogar'],
+    ] },
+    { key: 'health', label: { en: 'Health', es: 'Salud' }, icons: [
+      ['ic_cat_health_note','Health note','Nota de salud'], ['ic_cat_medicine_note','Medicine note','Nota de medicina'], ['ic_cat_walking_note','Walking note','Nota de caminar'],
+      ['ic_cat_sleep_note','Sleep note','Nota de descanso'], ['ic_cat_water_note','Water note','Nota de agua'],
+    ] },
+    { key: 'personal', label: { en: 'Personal', es: 'Personal' }, icons: [
+      ['ic_cat_personal_card','Personal card','Tarjeta personal'], ['ic_cat_calendar','Calendar','Calendario'], ['ic_cat_reminder_bell','Reminder bell','Recordatorio'],
+      ['ic_cat_star','Star','Estrella'], ['ic_cat_checkmark','Checkmark','Marca'], ['ic_cat_goal_note','Goal note','Meta'],
+    ] },
+    { key: 'ideas', label: { en: 'Ideas', es: 'Ideas' }, icons: [
+      ['ic_cat_idea_note','Idea note','Nota de idea'], ['ic_cat_lightbulb_note','Lightbulb note','Nota de idea'], ['ic_cat_pencil_note','Pencil note','Nota de lapiz'],
+      ['ic_cat_sketch_note','Sketch note','Boceto'], ['ic_cat_bookmark_note','Bookmark note','Nota marcada'],
+    ] },
+    { key: 'followup', label: { en: 'Follow-Up', es: 'Seguimiento' }, icons: [
+      ['ic_cat_pinned_note','Pinned note','Nota fijada'], ['ic_cat_flag_note','Flag note','Nota marcada'], ['ic_cat_reminder_note','Reminder note','Nota de recordatorio'],
+      ['ic_cat_clock_note','Clock note','Nota de hora'], ['ic_cat_checklist_note','Checklist note','Nota de lista'],
+    ] },
+    { key: 'orders', label: { en: 'Orders', es: 'Pedidos' }, icons: [
+      ['ic_cat_package_note','Package note','Nota de paquete'], ['ic_cat_shipping_label','Shipping label','Etiqueta de envio'], ['ic_cat_order_receipt','Receipt','Recibo'],
+      ['ic_cat_delivery_note','Delivery note','Nota de entrega'], ['ic_cat_order_checklist','Order checklist','Lista de pedido'],
+    ] },
+  ];
+
   const CAT_ICON_CLASS = {
-    ic_cat_work: 'work',
-    ic_cat_medical: 'medical',
-    ic_cat_personal: 'personal',
-    ic_cat_home: 'home',
-    ic_cat_documents: 'documents',
-    ic_cat_followup: 'followup',
-    ic_cat_orders: 'orders',
-    ic_cat_ideas: 'ideas',
+    ic_cat_work: 'work', ic_cat_medical: 'health', ic_cat_personal: 'personal', ic_cat_home: 'home',
+    ic_cat_documents: 'stack', ic_cat_followup: 'flag', ic_cat_orders: 'shipping', ic_cat_ideas: 'idea',
+    ic_cat_note: 'note', ic_cat_sticky: 'sticky', ic_cat_notebook: 'notebook', ic_cat_clipboard: 'clipboard',
+    ic_cat_paper_stack: 'stack', ic_cat_bookmark: 'bookmark', ic_cat_paperclip: 'paperclip', ic_cat_folder: 'folder',
+    ic_cat_work_note: 'work', ic_cat_work_folder: 'folder', ic_cat_work_clipboard: 'clipboard', ic_cat_checklist: 'checklist',
+    ic_cat_briefcase_note: 'work', ic_cat_receipt: 'receipt',
+    ic_cat_home_note: 'home', ic_cat_grocery_note: 'checklist', ic_cat_cleaning_note: 'sparkle', ic_cat_meal_note: 'meal',
+    ic_cat_household_list: 'checklist',
+    ic_cat_health_note: 'health', ic_cat_medicine_note: 'medicine', ic_cat_walking_note: 'walking',
+    ic_cat_sleep_note: 'sleep', ic_cat_water_note: 'water',
+    ic_cat_personal_card: 'personal', ic_cat_calendar: 'calendar', ic_cat_reminder_bell: 'bell',
+    ic_cat_star: 'star', ic_cat_checkmark: 'checkmark', ic_cat_goal_note: 'goal',
+    ic_cat_idea_note: 'idea', ic_cat_lightbulb_note: 'idea', ic_cat_pencil_note: 'pencil',
+    ic_cat_sketch_note: 'sketch', ic_cat_bookmark_note: 'bookmark',
+    ic_cat_pinned_note: 'pinned', ic_cat_flag_note: 'flag', ic_cat_reminder_note: 'bell',
+    ic_cat_clock_note: 'clock', ic_cat_checklist_note: 'checklist',
+    ic_cat_package_note: 'package', ic_cat_shipping_label: 'shipping', ic_cat_order_receipt: 'receipt',
+    ic_cat_delivery_note: 'delivery', ic_cat_order_checklist: 'checklist',
   };
+
+  function _safeIconId(icon) {
+    return App.Storage.sanitizeCategoryIcon
+      ? App.Storage.sanitizeCategoryIcon(icon)
+      : 'ic_cat_note';
+  }
+
+  function _iconOption(id) {
+    for (const group of CATEGORY_ICON_GROUPS) {
+      const found = group.icons.find(icon => icon[0] === id);
+      if (found) return found;
+    }
+    return CATEGORY_ICON_GROUPS[0].icons[0];
+  }
+
+  function _iconLabel(id) {
+    const icon = _iconOption(id);
+    return App.I18n.current() === 'es' ? icon[2] : icon[1];
+  }
 
   // Render category icons as the same paper/stationery family as the nav.
   function _iconHtml(icon, cls) {
-    if (!icon) return '';
-    const catClass = CAT_ICON_CLASS[String(icon)];
+    const safeIcon = _safeIconId(icon);
+    const catClass = CAT_ICON_CLASS[safeIcon] || 'note';
     if (catClass && cls === 'chip-icon-img') {
       return `<span class="cat-chip-stationery cat-${catClass}" aria-hidden="true"></span>`;
     }
-    if (catClass) {
-      return `<span class="cat-stationery cat-${catClass}" aria-hidden="true"><span class="cat-mark"></span></span>`;
-    }
-    if (String(icon).startsWith('ic_')) {
-      return `<img src="./icons/${icon}.png" class="${cls || 'cat-icon-img'}" alt="" loading="lazy">`;
-    }
-    return _esc(icon);
+    return `<span class="cat-stationery cat-${catClass}" aria-hidden="true"><span class="cat-mark"></span></span>`;
   }
 
   // ── Status Tabs ───────────────────────────────────────────────────
@@ -71,7 +129,7 @@
     }
     const cards = state.categories.map(cat => {
       const count = state.notes.filter(n => n.categoryId === cat.id).length;
-      const catClass = CAT_ICON_CLASS[String(cat.icon)] || 'custom';
+      const catClass = CAT_ICON_CLASS[_safeIconId(cat.icon)] || 'note';
       return `<div class="category-card category-${catClass}" role="button" tabindex="0"
         onclick="App.Notes._viewCat('${cat.id}')"
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();App.Notes._viewCat('${cat.id}')}">
@@ -530,6 +588,55 @@
     }
   }
 
+  function _categoryIconPickerHtml(selectedIcon) {
+    const lang = App.I18n.current() === 'es' ? 'es' : 'en';
+    const safeIcon = _safeIconId(selectedIcon);
+    return `
+      <input id="cat-icon" type="hidden" value="${_esc(safeIcon)}">
+      <div class="cat-icon-selected" aria-live="polite">
+        <div id="cat-icon-preview" class="cat-icon-selected-preview">${_iconHtml(safeIcon)}</div>
+        <div>
+          <div class="cat-icon-selected-label">${App.I18n.t('cat_icon_selected')}</div>
+          <div id="cat-icon-selected-name" class="cat-icon-selected-name">${_esc(_iconLabel(safeIcon))}</div>
+        </div>
+      </div>
+      <div class="cat-icon-picker" role="radiogroup" aria-label="${App.I18n.t('cat_icon')}">
+        ${CATEGORY_ICON_GROUPS.map(group => `
+          <section class="cat-icon-group" aria-label="${_esc(group.label[lang])}">
+            <div class="cat-icon-group-title">${_esc(group.label[lang])}</div>
+            <div class="cat-icon-grid">
+              ${group.icons.map(icon => {
+                const id = icon[0];
+                const selected = id === safeIcon;
+                return `<button type="button" class="cat-icon-option${selected ? ' selected' : ''}"
+                  role="radio" aria-checked="${selected ? 'true' : 'false'}"
+                  data-icon="${_esc(id)}" onclick="App.Notes._selectCatIcon('${_esc(id)}')">
+                  ${_iconHtml(id)}
+                  <span>${_esc(lang === 'es' ? icon[2] : icon[1])}</span>
+                </button>`;
+              }).join('')}
+            </div>
+          </section>
+        `).join('')}
+      </div>`;
+  }
+
+  function _selectCatIcon(icon) {
+    const safeIcon = _safeIconId(icon);
+    const input = document.getElementById('cat-icon');
+    if (!input) return;
+    input.value = safeIcon;
+    const preview = document.getElementById('cat-icon-preview');
+    const label = document.getElementById('cat-icon-selected-name');
+    if (preview) preview.innerHTML = _iconHtml(safeIcon);
+    if (label) label.textContent = _iconLabel(safeIcon);
+    document.querySelectorAll('.cat-icon-option').forEach(btn => {
+      const selected = btn.dataset.icon === safeIcon;
+      btn.classList.toggle('selected', selected);
+      btn.setAttribute('aria-checked', selected ? 'true' : 'false');
+    });
+  }
+
   function _closeModal() {
     document.getElementById('note-modal')?.remove();
     document.getElementById('cat-modal')?.remove();
@@ -542,11 +649,12 @@
   // ── Category Modal ────────────────────────────────────────────────
   function _openCatModal(cat) {
     const isEdit = !!cat;
-    const c = cat || { name: '', icon: 'ic_cat_personal', color: '#F7F0B6' };
+    const c = cat || { name: '', icon: 'ic_cat_note', color: '#F7F0B6' };
+    const icon = _safeIconId(c.icon);
 
     const html = `
       <div id="cat-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
-        <div class="modal-sheet">
+        <div class="modal-sheet cat-modal-sheet">
           <div class="modal-handle"></div>
           <div class="modal-title">${isEdit ? App.I18n.t('edit_category') : App.I18n.t('add_category')}</div>
           <div class="form-group">
@@ -555,7 +663,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_icon')}</label>
-            <input id="cat-icon" class="form-input" placeholder="ic_cat_personal" value="${_esc(c.icon)}" maxlength="40" style="font-size:.85rem">
+            ${_categoryIconPickerHtml(icon)}
           </div>
           <div class="modal-actions">
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
@@ -578,7 +686,7 @@
 
   function _saveCat(id) {
     const name = document.getElementById('cat-name')?.value.trim() || '';
-    const icon = document.getElementById('cat-icon')?.value.trim() || 'ic_cat_personal';
+    const icon = _safeIconId(document.getElementById('cat-icon')?.value || 'ic_cat_note');
     if (!name) { App.showToast(App.I18n.t('toast_cat_name_req'), 'error'); return; }
     if (id) {
       App.Storage.updateCategory(id, { name, icon });
@@ -659,6 +767,7 @@
     _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
     _openNoteModal, _closeModal, _saveNote, _pickColor,
     _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
+    _selectCatIcon,
     _openAppleMaps, _openGoogleMaps, _copyAddress,
   };
 
