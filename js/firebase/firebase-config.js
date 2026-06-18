@@ -1,35 +1,39 @@
 /**
- * firebase-config.js — Note Clip PWA
- * Firebase initialization — lazy loaded, optional.
- * Uses shared khub-apps project (same as finance-tracker).
- * Activate by setting settings.cloudSync = true in app settings.
- *
- * SECURITY NOTE: The apiKey below is a Firebase Web API Key.
- * Firebase Web API Keys are intentionally public and client-side —
- * they identify the app to Firebase, NOT grant admin access.
- * Real security is enforced by Firestore security rules.
- * See: https://firebase.google.com/docs/projects/api-keys
- * GitHub secret alert for this file can be dismissed as "False positive".
+ * firebase-config.js - Note Clip PWA
+ * Optional Firebase initialization. This only prepares the Firebase app;
+ * auth, backup, restore, and sync flows must call App.Firebase.init().
  */
 (function (App) {
   'use strict';
 
   const firebaseConfig = {
-    apiKey:            "AIzaSyAUiVMxG1JbtpaW3KKmYSsTheMP473uTbQ",
-    authDomain:        "khub-apps.firebaseapp.com",
-    projectId:         "khub-apps",
-    storageBucket:     "khub-apps.firebasestorage.app",
-    messagingSenderId: "969605091721",
-    appId:             "1:969605091721:web:4068564af7bc0dc56c1158",
+    apiKey:            'AIzaSyAUiVMxG1JbtpaW3KKmYSsTheMP473uTbQ',
+    authDomain:        'khub-apps.firebaseapp.com',
+    projectId:         'khub-apps',
+    storageBucket:     'khub-apps.firebasestorage.app',
+    messagingSenderId: '969605091721',
+    appId:             '1:969605091721:web:4068564af7bc0dc56c1158',
   };
 
-  let _initialized = false;
+  App.Firebase = {
+    _app: null,
+    _initialized: false,
 
-  function init() {
-    if (_initialized) return;
-    if (typeof firebase === 'undefined') {
-      console.warn('[NoteClip.Firebase] Firebase SDK not loaded.');
-      return;
-    }
-    try {
-      const fbApp = firebase.apps?.length ? firebase.app() : firebase.init
+    init() {
+      if (this._initialized) return Promise.resolve(this._app);
+
+      return import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js')
+        .then(({ getApps, initializeApp }) => {
+          this._app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+          this._initialized = true;
+          console.log('[NoteClip.Firebase] Initialized.');
+          return this._app;
+        })
+        .catch(err => {
+          console.warn('[NoteClip.Firebase] Init failed; offline mode active.', err);
+          throw err;
+        });
+    },
+  };
+
+})(window.App = window.App || {});
