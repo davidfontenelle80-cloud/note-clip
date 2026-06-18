@@ -3,7 +3,7 @@
  * Cache-first service worker. Bump CACHE_VERSION on every deploy.
  */
 
-const CACHE_VERSION = 'note-clip-v6';
+const CACHE_VERSION = 'note-clip-v7';
 
 const PRECACHE_URLS = [
   './',
