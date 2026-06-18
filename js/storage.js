@@ -30,6 +30,8 @@
       defaultReminderTime: '08:00',
       defaultListBehavior: 'reusable',
       cloudSync: false,
+      lastCloudBackupAt: '',
+      lastCloudRestoreAt: '',
       todayFocus: '',
     },
     categories: DEFAULT_CATEGORIES,

@@ -5,6 +5,98 @@
 (function (App) {
   'use strict';
 
+  let _cloudInitStarted = false;
+
+  function _esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function _formatDate(value) {
+    if (!value) return App.I18n.t('cloud_never');
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleString(App.I18n.current() === 'es' ? 'es-ES' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  }
+
+  function _cloudSection(state) {
+    const t = App.I18n.t.bind(App.I18n);
+    const cloud = App.Cloud ? App.Cloud.getStatus() : null;
+    const loading = !!cloud?.loading;
+    const disabled = loading ? ' disabled' : '';
+    const signedIn = !!cloud?.user;
+    const accountText = signedIn
+      ? t('cloud_signed_in_as', { email: cloud.email })
+      : t('cloud_not_signed_in');
+    const chip = !App.Cloud
+      ? t('settings_offline')
+      : loading
+        ? t('cloud_loading')
+        : signedIn
+          ? t('cloud_available')
+          : t('settings_offline');
+    const statusSub = cloud?.error
+      ? _esc(cloud.error)
+      : (signedIn ? t('cloud_available') : t('cloud_not_signed_in'));
+    const errorHtml = cloud?.error
+      ? `<div class="settings-row-sub" style="color:var(--color-error);margin-top:var(--space-xs)">${_esc(cloud.error)}</div>`
+      : '';
+
+    const authControls = signedIn ? `
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+        <div>
+          <div class="settings-row-label">${t('cloud_account')}</div>
+          <div class="settings-row-sub">${_esc(accountText)}</div>
+          ${errorHtml}
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="App.Settings._cloudSignOut()"${disabled}>${t('cloud_sign_out')}</button>
+      </div>
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+        <div>
+          <div class="settings-row-label">${t('cloud_backup_now')}</div>
+          <div class="settings-row-sub">${t('cloud_last_backup')}: ${_formatDate(cloud.lastBackupAt)}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="App.Settings._cloudBackup()"${disabled}>${t('cloud_backup_now')}</button>
+      </div>
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+        <div>
+          <div class="settings-row-label">${t('cloud_restore')}</div>
+          <div class="settings-row-sub">${t('cloud_last_restore')}: ${_formatDate(cloud.lastRestoreAt)}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="App.Settings._cloudRestore()"${disabled}>${t('cloud_restore')}</button>
+      </div>`
+      : `
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+        <div>
+          <div class="settings-row-label">${t('cloud_account')}</div>
+          <div class="settings-row-sub">${_esc(statusSub)}</div>
+          ${errorHtml}
+        </div>
+        <input id="cloud-email" class="form-input" type="email" autocomplete="email"
+          placeholder="${t('cloud_email_ph')}" aria-label="${t('cloud_email')}">
+        <input id="cloud-password" class="form-input" type="password" autocomplete="current-password"
+          placeholder="${t('cloud_password_ph')}" aria-label="${t('cloud_password')}">
+        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" style="flex:1 1 130px" onclick="App.Settings._cloudSignIn()"${disabled}>${t('cloud_sign_in')}</button>
+          <button class="btn btn-secondary btn-sm" style="flex:1 1 130px" onclick="App.Settings._cloudCreateAccount()"${disabled}>${t('cloud_create_account')}</button>
+        </div>
+      </div>`;
+
+    return `
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">${t('cloud_sync')}</div>
+          <div class="settings-row-sub">${_esc(statusSub)}</div>
+        </div>
+        <span class="chip">${_esc(chip)}</span>
+      </div>
+      ${authControls}`;
+  }
+
   function render() {
     const el = document.getElementById('pane-settings');
     if (!el) return;
@@ -85,13 +177,7 @@
       <!-- Data -->
       <div class="settings-section">
         <div class="settings-section-label">${t('settings_data_sync')}</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label">${t('cloud_sync')}</div>
-            <div class="settings-row-sub">${t('cloud_status')}</div>
-          </div>
-          <span class="chip">${t('settings_offline')}</span>
-        </div>
+        ${_cloudSection(state)}
         <div class="settings-row">
           <div>
             <div class="settings-row-label">${t('export_backup')}</div>
@@ -114,6 +200,11 @@
         </div>
       </div>
     `;
+
+    if (App.Cloud && !_cloudInitStarted) {
+      _cloudInitStarted = true;
+      App.Cloud.init().catch(() => {}).finally(() => _refreshCloudStatus());
+    }
   }
 
   function _setTheme(theme) {
@@ -146,6 +237,61 @@
     App.Storage.updateSettings({ defaultListBehavior: val });
   }
 
-  App.Settings = { render, _setTheme, _setLanguage, _saveUsername, _saveReminder, _saveListDefault };
+  function _cloudCredentials() {
+    const email = document.getElementById('cloud-email')?.value.trim() || '';
+    const password = document.getElementById('cloud-password')?.value || '';
+    return { email, password };
+  }
+
+  function _cloudSignIn() {
+    const { email, password } = _cloudCredentials();
+    App.Cloud.signIn(email, password)
+      .then(() => App.showToast(App.I18n.t('toast_cloud_signed_in'), 'success'))
+      .catch(() => {})
+      .finally(() => render());
+  }
+
+  function _cloudCreateAccount() {
+    const { email, password } = _cloudCredentials();
+    App.Cloud.createAccount(email, password)
+      .then(() => App.showToast(App.I18n.t('toast_cloud_account_created'), 'success'))
+      .catch(() => {})
+      .finally(() => render());
+  }
+
+  function _cloudSignOut() {
+    App.Cloud.signOut()
+      .then(() => App.showToast(App.I18n.t('toast_cloud_signed_out'), 'success'))
+      .catch(() => {})
+      .finally(() => render());
+  }
+
+  function _cloudBackup() {
+    App.Cloud.backupNow()
+      .then(() => App.showToast(App.I18n.t('toast_cloud_backup'), 'success'))
+      .catch(() => {})
+      .finally(() => render());
+  }
+
+  function _cloudRestore() {
+    if (!confirm(App.I18n.t('cloud_restore_q'))) return;
+    App.Cloud.restoreFromCloud()
+      .then(() => {
+        App.showToast(App.I18n.t('toast_cloud_restore'), 'success');
+        App.refreshCurrentTab();
+      })
+      .catch(() => {})
+      .finally(() => render());
+  }
+
+  function _refreshCloudStatus() {
+    if (document.getElementById('pane-settings')?.classList.contains('active')) render();
+  }
+
+  App.Settings = {
+    render, _setTheme, _setLanguage, _saveUsername, _saveReminder, _saveListDefault,
+    _cloudSignIn, _cloudCreateAccount, _cloudSignOut, _cloudBackup, _cloudRestore,
+    _refreshCloudStatus,
+  };
 
 })(window.App = window.App || {});

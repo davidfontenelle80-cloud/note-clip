@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v21';
+const CACHE_VERSION = 'note-clip-v22';
 
 const PRECACHE_URLS = [
   './',
@@ -13,6 +13,7 @@ const PRECACHE_URLS = [
   './js/communication.js',
   './js/settings.js',
   './js/firebase/firebase-config.js',
+  './js/firebase/cloud-sync.js',
   './app.js',
   './manifest.json',
   './icons/icon-192.png',
