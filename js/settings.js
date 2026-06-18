@@ -29,7 +29,7 @@
 
       <!-- Appearance -->
       <div class="settings-section">
-        <div class="settings-section-label">Appearance</div>
+        <div class="settings-section-label">${t('settings_appearance')}</div>
         <div class="settings-row">
           <div>
             <div class="settings-row-label">${t('theme')}</div>
@@ -51,7 +51,7 @@
 
       <!-- Profile -->
       <div class="settings-section">
-        <div class="settings-section-label">Profile</div>
+        <div class="settings-section-label">${t('settings_profile')}</div>
         <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
           <div class="settings-row-label">${t('username')}</div>
           <input id="settings-username" class="form-input"
@@ -64,7 +64,7 @@
 
       <!-- Defaults -->
       <div class="settings-section">
-        <div class="settings-section-label">Defaults</div>
+        <div class="settings-section-label">${t('settings_defaults')}</div>
         <div class="settings-row">
           <div class="settings-row-label">${t('reminder_default')}</div>
           <input type="time" id="settings-reminder" class="form-input" style="width:auto"
@@ -84,33 +84,33 @@
 
       <!-- Data -->
       <div class="settings-section">
-        <div class="settings-section-label">Data & Sync</div>
+        <div class="settings-section-label">${t('settings_data_sync')}</div>
         <div class="settings-row">
           <div>
             <div class="settings-row-label">${t('cloud_sync')}</div>
             <div class="settings-row-sub">${t('cloud_status')}</div>
           </div>
-          <span class="chip">Offline</span>
+          <span class="chip">${t('settings_offline')}</span>
         </div>
         <div class="settings-row">
           <div>
             <div class="settings-row-label">${t('export_backup')}</div>
-            <div class="settings-row-sub">${noteCountStr} notes · ${listCountStr} lists</div>
+            <div class="settings-row-sub">${t('settings_count', {notes: noteCountStr, lists: listCountStr})}</div>
           </div>
-          <button class="btn btn-secondary btn-sm" onclick="App.Storage.exportJSON()">Export JSON</button>
+          <button class="btn btn-secondary btn-sm" onclick="App.Storage.exportJSON()">${t('settings_export_btn')}</button>
         </div>
       </div>
 
       <!-- About -->
       <div class="settings-section">
-        <div class="settings-section-label">About</div>
+        <div class="settings-section-label">${t('settings_about')}</div>
         <div class="settings-row">
           <div class="settings-row-label">Note Clip</div>
           <span class="text-muted text-sm">v1.0</span>
         </div>
         <div class="settings-row">
-          <div class="settings-row-label">Storage</div>
-          <span class="text-muted text-sm">Local only</span>
+          <div class="settings-row-label">${t('settings_storage')}</div>
+          <span class="text-muted text-sm">${t('settings_local_only')}</span>
         </div>
       </div>
     `;
@@ -133,7 +133,7 @@
   function _saveUsername() {
     const val = document.getElementById('settings-username')?.value.trim() || '';
     App.Storage.updateSettings({ username: val });
-    App.showToast('Saved', 'success');
+    App.showToast(App.I18n.t('toast_saved'), 'success');
   }
 
   function _saveReminder() {

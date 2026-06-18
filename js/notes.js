@@ -417,7 +417,7 @@
     const locName  = document.getElementById('note-location')?.value  || '';
     const address  = document.getElementById('note-address')?.value   || '';
 
-    if (!title && !body) { App.showToast('Add a title or content', 'error'); return; }
+    if (!title && !body) { App.showToast(App.I18n.t('toast_enter_title'), 'error'); return; }
 
     const patch = {
       title, body, priority, status, color: _selectedNoteColor,
@@ -428,10 +428,10 @@
 
     if (id) {
       App.Storage.updateNote(id, patch);
-      App.showToast('Note updated', 'success');
+      App.showToast(App.I18n.t('toast_note_updated'), 'success');
     } else {
       App.Storage.addNote(patch);
-      App.showToast('Note saved', 'success');
+      App.showToast(App.I18n.t('toast_note_saved'), 'success');
     }
     _closeModal();
     render();
@@ -451,35 +451,35 @@
     if (!confirm('Delete this note?')) return;
     App.Storage.deleteNote(id);
     if (fromModal) _closeModal();
-    App.showToast('Note deleted', 'success');
+    App.showToast(App.I18n.t('toast_note_deleted'), 'success');
     render();
   }
 
   function _completeNote(id) {
     App.Storage.updateNote(id, { completed: true, status: 'completed' });
     _closeModal();
-    App.showToast('Marked complete', 'success');
+    App.showToast(App.I18n.t('toast_note_completed'), 'success');
     render();
   }
 
   function _archiveNote(id) {
     App.Storage.updateNote(id, { archived: true });
     _closeModal();
-    App.showToast('Note archived', 'success');
+    App.showToast(App.I18n.t('toast_note_archived'), 'success');
     render();
   }
 
   function _restoreNote(id) {
     App.Storage.updateNote(id, { archived: false });
     _closeModal();
-    App.showToast('Note restored', 'success');
+    App.showToast(App.I18n.t('toast_note_restored'), 'success');
     render();
   }
 
   function _reopenNote(id) {
     App.Storage.updateNote(id, { completed: false, status: 'active' });
     _closeModal();
-    App.showToast('Note reopened', 'success');
+    App.showToast(App.I18n.t('toast_note_reopened'), 'success');
     render();
   }
 
@@ -494,7 +494,7 @@
   function _copyAddress() {
     const addr = document.getElementById('note-address')?.value || '';
     if (addr) {
-      navigator.clipboard.writeText(addr).then(() => App.showToast('Address copied','success'));
+      navigator.clipboard.writeText(addr).then(() => App.showToast(App.I18n.t('toast_address_copied'),'success'));
     }
   }
 
@@ -545,13 +545,13 @@
   function _saveCat(id) {
     const name = document.getElementById('cat-name')?.value.trim() || '';
     const icon = document.getElementById('cat-icon')?.value.trim() || 'ic_cat_personal';
-    if (!name) { App.showToast('Enter a category name', 'error'); return; }
+    if (!name) { App.showToast(App.I18n.t('toast_cat_name_req'), 'error'); return; }
     if (id) {
       App.Storage.updateCategory(id, { name, icon });
-      App.showToast('Category updated', 'success');
+      App.showToast(App.I18n.t('toast_cat_updated'), 'success');
     } else {
       App.Storage.addCategory({ name, icon });
-      App.showToast('Category added', 'success');
+      App.showToast(App.I18n.t('toast_cat_added'), 'success');
     }
     _closeModal();
     render();
@@ -583,14 +583,14 @@
     } else {
       if (!confirm('Delete this category?')) return;
       App.Storage.deleteCategory(id, false);
-      App.showToast('Category deleted', 'success');
+      App.showToast(App.I18n.t('toast_cat_deleted'), 'success');
       render();
     }
   }
 
   function _confirmDeleteCat(id, deleteNotes) {
     App.Storage.deleteCategory(id, deleteNotes);
-    App.showToast('Category deleted', 'success');
+    App.showToast(App.I18n.t('toast_cat_deleted'), 'success');
     _closeModal();
     render();
   }

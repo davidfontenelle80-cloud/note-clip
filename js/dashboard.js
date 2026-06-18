@@ -111,7 +111,7 @@
     const state = App.Storage.getState();
     const dayNotes = state.notes.filter(n => n.dueDate && n.dueDate.slice(0,10) === ds);
     if (dayNotes.length) {
-      App.showToast(`${dayNotes.length} note(s) on ${ds}`, 'info');
+      App.showToast(App.I18n.t('toast_notes_on_date', {count: dayNotes.length, date: ds}), 'info');
       App.showTab('notes');
       if (App.Notes && App.Notes.filterByDate) App.Notes.filterByDate(ds);
     }
@@ -190,7 +190,7 @@
     if (!text) return;
     const note = App.Storage.addNote({ title: text.slice(0, 60), body: text, status: 'active' });
     ta.value = '';
-    App.showToast('Note saved!', 'success');
+    App.showToast(App.I18n.t('toast_note_saved'), 'success');
     _renderTodayTasks();
     // Show category picker
     _showQuickNoteCategory(note.id);
@@ -204,7 +204,7 @@
       <div id="quick-cat-modal" class="modal-backdrop" onclick="if(event.target===this)App.Dashboard._dismissCatPicker()">
         <div class="modal-sheet" style="max-height:60vh">
           <div class="modal-handle"></div>
-          <div class="modal-title" style="font-size:var(--text-sm)">Add to a category? <span style="font-weight:400;color:var(--color-text-muted)">(optional)</span></div>
+          <div class="modal-title" style="font-size:var(--text-sm)">${App.I18n.t('quick_cat_title')} <span style="font-weight:400;color:var(--color-text-muted)">${App.I18n.t('quick_cat_optional')}</span></div>
           <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:var(--space-md)">
             ${cats.map(c => `
               <button class="btn btn-secondary" style="justify-content:flex-start;gap:8px"
@@ -215,7 +215,7 @@
                 ${_esc(c.name)}
               </button>`).join('')}
           </div>
-          <button class="btn btn-secondary w-full" onclick="App.Dashboard._dismissCatPicker()">Skip</button>
+          <button class="btn btn-secondary w-full" onclick="App.Dashboard._dismissCatPicker()">${App.I18n.t('quick_cat_skip')}</button>
         </div>
       </div>`;
     document.body.insertAdjacentHTML('beforeend', html);
@@ -224,7 +224,7 @@
   function _assignQuickCat(noteId, catId) {
     App.Storage.updateNote(noteId, { categoryId: catId });
     _dismissCatPicker();
-    App.showToast('Category assigned', 'success');
+    App.showToast(App.I18n.t('toast_cat_assigned'), 'success');
     _renderTodayTasks();
   }
 

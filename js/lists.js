@@ -212,7 +212,7 @@
       checked:   false,
       createdAt: new Date().toISOString(),
     }));
-    App.Storage.addList({ name: tpl.name + ' (copy)', type: 'reusable', items: newItems });
+    App.Storage.addList({ name: tpl.name + ' ' + App.I18n.t('list_copy_suffix'), type: 'reusable', items: newItems });
     App.showToast(App.I18n.t('list_copy'), 'success');
     render();
   }
@@ -262,13 +262,13 @@
   function _saveList(id) {
     const name = document.getElementById('list-name') && document.getElementById('list-name').value.trim();
     const type = document.getElementById('list-type') && document.getElementById('list-type').value || 'reusable';
-    if (!name) { App.showToast('Enter a list name', 'error'); return; }
+    if (!name) { App.showToast(App.I18n.t('toast_list_name_req'), 'error'); return; }
     if (id) {
       App.Storage.updateList(id, { name, type });
-      App.showToast('List updated', 'success');
+      App.showToast(App.I18n.t('toast_list_updated'), 'success');
     } else {
       App.Storage.addList({ name, type });
-      App.showToast('List created', 'success');
+      App.showToast(App.I18n.t('toast_list_created'), 'success');
     }
     _closeModal();
     render();
@@ -278,7 +278,7 @@
     if (!confirm('Delete this list and all its items?')) return;
     App.Storage.deleteList(id);
     if (fromModal) _closeModal();
-    App.showToast('List deleted', 'success');
+    App.showToast(App.I18n.t('toast_list_deleted'), 'success');
     render();
   }
 

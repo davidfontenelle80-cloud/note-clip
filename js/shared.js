@@ -123,7 +123,7 @@
 
   function _createShare(via) {
     const sel = document.getElementById('share-select');
-    if (!sel?.value) { App.showToast('Select something to share', 'error'); return; }
+    if (!sel?.value) { App.showToast(App.I18n.t('toast_share_select'), 'error'); return; }
     const [type, id] = sel.value.split(':');
     const state = App.Storage.getState();
     let title = '', content = '';
@@ -149,17 +149,17 @@
       window.open(`mailto:?subject=${encodeURIComponent(title)}&body=${text}`, '_blank', 'noopener');
     } else {
       navigator.clipboard.writeText(`${title}\n\n${content}`)
-        .then(() => App.showToast('Copied to clipboard', 'success'));
+        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'));
     }
 
-    App.showToast('Added to Shared', 'success');
+    App.showToast(App.I18n.t('toast_shared_added'), 'success');
     render();
   }
 
   function _delete(id) {
     if (!confirm('Remove from Shared?')) return;
     App.Storage.deleteShared(id);
-    App.showToast('Removed', 'success');
+    App.showToast(App.I18n.t('toast_removed'), 'success');
     render();
   }
 
@@ -168,7 +168,7 @@
     const item  = state.sharedItems.find(s => s.id === id);
     if (!item) return;
     navigator.clipboard.writeText(`${item.title}\n\n${item.content}`)
-      .then(() => App.showToast('Address copied', 'success'));
+      .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'));
   }
 
   App.Shared = { render, _createShare, _delete, _copy };
