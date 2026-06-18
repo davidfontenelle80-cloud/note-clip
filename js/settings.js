@@ -38,7 +38,7 @@
         ? t('cloud_loading')
         : signedIn
           ? t('cloud_available')
-          : t('settings_offline');
+          : t('settings_local_only');
     const statusSub = cloud?.error
       ? _esc(cloud.error)
       : (signedIn ? t('cloud_available') : t('cloud_not_signed_in'));

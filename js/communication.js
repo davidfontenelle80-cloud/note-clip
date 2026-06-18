@@ -120,8 +120,9 @@
 
   function _copyOutput() {
     if (_currentDraft.content) {
-      navigator.clipboard.writeText(_currentDraft.content)
-        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'));
+      _copyText(_currentDraft.content)
+        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'))
+        .catch(() => App.showToast(App.I18n.t('toast_copy_failed'), 'error'));
     }
   }
 
@@ -143,9 +144,30 @@
     const state = App.Storage.getState();
     const draft = state.drafts.find(d => d.id === id);
     if (draft) {
-      navigator.clipboard.writeText(draft.content)
-        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'));
+      _copyText(draft.content)
+        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'))
+        .catch(() => App.showToast(App.I18n.t('toast_copy_failed'), 'error'));
     }
+  }
+
+  function _copyText(text) {
+    if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+    return new Promise((resolve, reject) => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy') ? resolve() : reject(new Error('copy failed'));
+      } catch (err) {
+        reject(err);
+      } finally {
+        ta.remove();
+      }
+    });
   }
 
   function onFab() { document.getElementById('comm-context')?.focus(); }

@@ -112,7 +112,7 @@
     overlay.id = 'cloud-onboarding-prompt';
     overlay.className = 'modal-backdrop';
     overlay.innerHTML = `
-      <div class="modal cloud-onboard-modal" role="dialog" aria-modal="true" aria-labelledby="cloud-onboard-title">
+      <div class="modal-sheet cloud-onboard-modal" role="dialog" aria-modal="true" aria-labelledby="cloud-onboard-title">
         <div id="cloud-onboard-title" class="modal-title">${t('onboard_cloud_title')}</div>
         <p class="settings-row-sub" style="margin:0 0 var(--space-md)">${t('onboard_cloud_sub')}</p>
         <div class="modal-actions">

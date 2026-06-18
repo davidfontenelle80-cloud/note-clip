@@ -487,6 +487,7 @@
 
   function set(lang) {
     _lang = STRINGS[lang] ? lang : 'en';
+    document.documentElement.lang = _lang;
     document.documentElement.setAttribute('data-lang', _lang);
     // Update all data-i18n elements
     document.querySelectorAll('[data-i18n]').forEach(el => {
