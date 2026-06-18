@@ -145,6 +145,18 @@
 
   // ── Keyboard shortcuts ───────────────────────────────────────────
   function setupKeyboard() {
+    const updateKeyboardInset = () => {
+      const vv = window.visualViewport;
+      const inset = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+      document.documentElement.style.setProperty('--keyboard-inset', `${Math.round(inset)}px`);
+    };
+    updateKeyboardInset();
+    window.visualViewport?.addEventListener('resize', updateKeyboardInset);
+    window.visualViewport?.addEventListener('scroll', updateKeyboardInset);
+    window.addEventListener('orientationchange', () => setTimeout(updateKeyboardInset, 250));
+    document.addEventListener('focusin', () => setTimeout(updateKeyboardInset, 80));
+    document.addEventListener('focusout', () => setTimeout(updateKeyboardInset, 160));
+
     document.addEventListener('keydown', e => {
       // Escape closes any open modal
       if (e.key === 'Escape') {
