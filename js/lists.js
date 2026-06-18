@@ -181,6 +181,8 @@
 
   function onFab() { _openModal(null); }
 
-  App.Lists = { render, onFab, _toggleItem, _deleteItem, _addItem, _reset, _editList, _saveList, _deleteList, _closeModal };
+  App.Lists = { render, onFab, _toggleItem, _deleteItem, _addItem, _reset,
+    _openModal, _editList, _saveList, _deleteList, _closeModal,
+  };
 
 })(window.App = window.App || {});

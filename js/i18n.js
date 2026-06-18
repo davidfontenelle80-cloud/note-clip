@@ -56,10 +56,12 @@
       status_toread:     'To Read',
       status_completed:  'Completed',
       status_archived:   'Archived',
+      priority_critical: 'Critical',
       priority_urgent:   'Urgent',
       priority_high:     'High',
       priority_medium:   'Medium',
       priority_low:      'Low',
+      priority_optional: 'Optional',
       // Categories
       categories:        'Categories',
       add_category:      'Add Category',
@@ -193,10 +195,12 @@
       status_toread:     'Para Leer',
       status_completed:  'Completado',
       status_archived:   'Archivado',
+      priority_critical: 'Crítico',
       priority_urgent:   'Urgente',
       priority_high:     'Alta',
       priority_medium:   'Media',
       priority_low:      'Baja',
+      priority_optional: 'Opcional',
       categories:        'Categorías',
       add_category:      'Nueva Categoría',
       edit_category:     'Editar Categoría',
@@ -295,10 +299,6 @@
       } else {
         el.textContent = t(key);
       }
-    });
-    // Update lang toggle buttons
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.lang === _lang);
     });
   }
 

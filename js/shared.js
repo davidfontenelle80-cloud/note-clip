@@ -168,14 +168,9 @@
     const item  = state.sharedItems.find(s => s.id === id);
     if (!item) return;
     navigator.clipboard.writeText(`${item.title}\n\n${item.content}`)
-      .then(() => App.showToast('Copied to clipboard', 'success'));
+      .then(() => App.showToast('Address copied', 'success'));
   }
 
-  function onFab() {
-    render();
-    document.getElementById('share-select')?.focus();
-  }
-
-  App.Shared = { render, onFab, _createShare, _delete, _copy };
+  App.Shared = { render, _createShare, _delete, _copy };
 
 })(window.App = window.App || {});

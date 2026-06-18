@@ -8,6 +8,8 @@
   let _view = 'categories'; // 'categories' | 'notes' | 'note-list'
   let _filterCatId = null;
   let _filterStatus = 'active';
+  let _searchQuery = '';
+  let _dateFilter = null;
   let _editingNoteId = null;
   let _editingCatId  = null;
 
@@ -73,8 +75,9 @@
       ? new Date(note.dueDate).toLocaleDateString(App.I18n.current() === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric' })
       : new Date(note.createdAt).toLocaleDateString(App.I18n.current() === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric' });
     const pClass = {
-      urgent:'priority-urgent', high:'priority-high',
-      medium:'priority-medium', low:'priority-low'
+      critical:'priority-urgent', urgent:'priority-urgent',
+      high:'priority-high', medium:'priority-medium',
+      low:'priority-low', optional:'priority-low'
     }[note.priority] || 'priority-medium';
 
     return `<div class="note-card" data-color="${_esc(note.color || 'yellow')}" onclick="App.Notes._editNote('${note.id}')">
@@ -104,6 +107,7 @@
   function buildNotesGrid(state) {
     let notes = state.notes;
     if (_filterCatId) notes = notes.filter(n => n.categoryId === _filterCatId);
+
     // Status filter
     if (_filterStatus === 'archived') {
       notes = notes.filter(n => n.archived);
@@ -113,14 +117,50 @@
       notes = notes.filter(n => !n.archived && !n.completed && n.status === _filterStatus);
     }
 
+    // Date filter (from calendar tap)
+    if (_dateFilter) {
+      notes = notes.filter(n => n.dueDate && n.dueDate.slice(0,10) === _dateFilter);
+    }
+
+    // Search filter
+    if (_searchQuery) {
+      const q = _searchQuery.toLowerCase();
+      notes = notes.filter(n =>
+        (n.title || '').toLowerCase().includes(q) ||
+        (n.body  || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Sort: overdue → today → future (date asc) → no-date; then priority, then newest
+    const today = new Date().toISOString().slice(0, 10);
+    const _priOrder = { critical:0, urgent:0, high:1, medium:2, low:3, optional:4 };
+    notes = [...notes].sort((a, b) => {
+      const ad = a.dueDate || null, bd = b.dueDate || null;
+      const aScore = !ad ? 3 : ad < today ? 0 : ad === today ? 1 : 2;
+      const bScore = !bd ? 3 : bd < today ? 0 : bd === today ? 1 : 2;
+      if (aScore !== bScore) return aScore - bScore;
+      if (ad && bd && ad !== bd) return ad.localeCompare(bd);
+      const ap = _priOrder[a.priority] ?? 2, bp = _priOrder[b.priority] ?? 2;
+      if (ap !== bp) return ap - bp;
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
+
+    const searchBar = `
+      <div class="search-bar-wrap" style="margin-bottom:var(--space-md)">
+        <input id="notes-search" class="form-input" type="search"
+          placeholder="Search notes…"
+          value="${_esc(_searchQuery)}"
+          oninput="App.Notes._setSearch(this.value)">
+      </div>`;
+
     if (!notes.length) {
-      return `<div class="empty-state">
+      return searchBar + `<div class="empty-state">
         <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
         <div class="empty-state-text">${App.I18n.t('no_notes')}</div>
-        <div class="empty-state-sub">${App.I18n.t('tap_plus')}</div>
+        <div class="empty-state-sub">${_searchQuery ? 'No results — try a different search' : App.I18n.t('tap_plus')}</div>
       </div>`;
     }
-    return `<div class="notes-grid">${notes.map(n => buildNoteCard(n, state)).join('')}</div>`;
+    return searchBar + `<div class="notes-grid">${notes.map(n => buildNoteCard(n, state)).join('')}</div>`;
   }
 
   // ── Main Render ───────────────────────────────────────────────────
@@ -186,6 +226,15 @@
     render();
   }
 
+  function _setSearch(q) {
+    _searchQuery = q || '';
+    // Debounce: re-render on input without full page rebuild
+    const state = App.Storage.getState();
+    const gridEl = document.querySelector('.notes-grid, .empty-state');
+    const wrapEl = gridEl ? gridEl.closest('.notes-grid, .search-bar-wrap')?.parentElement : null;
+    render();
+  }
+
   // ── Note Modal ────────────────────────────────────────────────────
   function _openNoteModal(note) {
     const state = App.Storage.getState();
@@ -208,7 +257,7 @@
       `<option value="${c.id}"${n.categoryId===c.id?' selected':''}>${_esc(c.name)}</option>`
     ).join('');
 
-    const priorityOpts = ['urgent','high','medium','low'].map(p =>
+    const priorityOpts = ['critical','high','medium','low','optional'].map(p =>
       `<option value="${p}"${n.priority===p?' selected':''}>${App.I18n.t('priority_'+p)}</option>`
     ).join('');
 
@@ -326,8 +375,12 @@
               <button class="btn btn-danger btn-sm" onclick="App.Notes._deleteNote('${n.id}',true)">
                 ${App.I18n.t('delete')}
               </button>
-              ${!n.completed ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">✓</button>` : ''}
-              ${!n.archived  ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">${App.I18n.t('archive')}</button>` : ''}
+              ${n.completed
+                ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._reopenNote('${n.id}')">↩ Reopen</button>`
+                : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">✓</button>`}
+              ${n.archived
+                ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._restoreNote('${n.id}')">${App.I18n.t('restore')}</button>`
+                : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">${App.I18n.t('archive')}</button>`}
             ` : ''}
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
             <button class="btn btn-primary" onclick="App.Notes._saveNote('${isEdit ? n.id : ''}')">${App.I18n.t('save')}</button>
@@ -413,6 +466,20 @@
     App.Storage.updateNote(id, { archived: true });
     _closeModal();
     App.showToast('Note archived', 'success');
+    render();
+  }
+
+  function _restoreNote(id) {
+    App.Storage.updateNote(id, { archived: false });
+    _closeModal();
+    App.showToast('Note restored', 'success');
+    render();
+  }
+
+  function _reopenNote(id) {
+    App.Storage.updateNote(id, { completed: false, status: 'active' });
+    _closeModal();
+    App.showToast('Note reopened', 'success');
     render();
   }
 
@@ -528,7 +595,7 @@
     render();
   }
 
-  // ── FAB handler (called by app.js) ────────────────────────────────
+  // ── FAB handler (called by app.js) ─────────
   function onFab() {
     if (_view === 'categories') {
       _openCatModal(null);
@@ -538,8 +605,6 @@
   }
 
   // ── Date filter (called from calendar date tap) ───────────────────
-  let _dateFilter = null;
-
   function filterByDate(dateStr) {
     _dateFilter = dateStr || null;
     _view = 'notes';
@@ -553,16 +618,10 @@
     }, 10000);
   }
 
-  // Patch render to respect _dateFilter — store original render ref
-  const _renderOriginal = render;
-  // NOTE: _dateFilter is applied inside the render pipeline
-  // We hook into the notes retrieval section by patching the note list source
-  // This is the minimal, non-invasive approach — just re-read _dateFilter in render.
-
   App.Notes = {
     render, onFab, filterByDate,
-    _setView, _viewCat, _setStatus,
-    _editNote, _deleteNote, _completeNote, _archiveNote,
+    _setView, _viewCat, _setStatus, _setSearch,
+    _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
     _openNoteModal, _closeModal, _saveNote, _pickColor,
     _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
     _openAppleMaps, _openGoogleMaps, _copyAddress,

@@ -188,10 +188,48 @@
     if (!ta) return;
     const text = ta.value.trim();
     if (!text) return;
-    App.Storage.addNote({ title: text.slice(0, 60), body: text, status: 'active' });
+    const note = App.Storage.addNote({ title: text.slice(0, 60), body: text, status: 'active' });
     ta.value = '';
     App.showToast('Note saved!', 'success');
     _renderTodayTasks();
+    // Show category picker
+    _showQuickNoteCategory(note.id);
+  }
+
+  function _showQuickNoteCategory(noteId) {
+    const state = App.Storage.getState();
+    if (!state.categories.length) return; // No categories — skip popup
+    const cats = state.categories;
+    const html = `
+      <div id="quick-cat-modal" class="modal-backdrop" onclick="if(event.target===this)App.Dashboard._dismissCatPicker()">
+        <div class="modal-sheet" style="max-height:60vh">
+          <div class="modal-handle"></div>
+          <div class="modal-title" style="font-size:var(--text-sm)">Add to a category? <span style="font-weight:400;color:var(--color-text-muted)">(optional)</span></div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:var(--space-md)">
+            ${cats.map(c => `
+              <button class="btn btn-secondary" style="justify-content:flex-start;gap:8px"
+                onclick="App.Dashboard._assignQuickCat('${noteId}','${c.id}')">
+                ${c.icon && c.icon.startsWith('ic_')
+                  ? `<img src="./icons/${c.icon}.png" style="width:20px;height:20px" alt="">`
+                  : `<span>${c.icon||''}</span>`}
+                ${_esc(c.name)}
+              </button>`).join('')}
+          </div>
+          <button class="btn btn-secondary w-full" onclick="App.Dashboard._dismissCatPicker()">Skip</button>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  function _assignQuickCat(noteId, catId) {
+    App.Storage.updateNote(noteId, { categoryId: catId });
+    _dismissCatPicker();
+    App.showToast('Category assigned', 'success');
+    _renderTodayTasks();
+  }
+
+  function _dismissCatPicker() {
+    document.getElementById('quick-cat-modal')?.remove();
   }
 
   // ── Today's Tasks ─────────────────────────────────────────────────
@@ -321,10 +359,10 @@
 
   App.Dashboard = {
     render,
-    _prevMonth, _nextMonth, _selectDate, _refreshCalendar,
-    _openMonthPicker, _openYearPicker,
     _saveQuickNote, _saveFocus,
-    _renderTodayTasks, _renderUpcoming,
+    _showQuickNoteCategory, _assignQuickCat, _dismissCatPicker,
+    _prevMonth, _nextMonth, _selectDate,
+    _openMonthPicker, _openYearPicker,
   };
 
 })(window.App = window.App || {});
