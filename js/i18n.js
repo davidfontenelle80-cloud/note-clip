@@ -139,6 +139,10 @@
       shared_subtitle:   'Share your notes and lists',
       shared_pick_label: 'Choose a note or list to share',
       shared_choose:     'choose one',
+      shared_by_me:      'Shared by Me',
+      shared_with_me:    'Shared with Me',
+      shared_with_me_empty: 'Nothing shared with you yet',
+      shared_share_something: 'Share Something',
       // Note title fallback
       note_untitled:     'Untitled',
     },
@@ -264,6 +268,10 @@
       shared_subtitle:   'Comparte tus notas y listas',
       shared_pick_label: 'Elige una nota o lista para compartir',
       shared_choose:     'elige uno',
+      shared_by_me:      'Compartido por mí',
+      shared_with_me:    'Compartido conmigo',
+      shared_with_me_empty: 'Nada compartido contigo aún',
+      shared_share_something: 'Compartir algo',
       note_untitled:     'Sin título',
     }
   };

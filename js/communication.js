@@ -34,12 +34,11 @@
       App.I18n.current() === 'es' ? 'es-ES' : 'en-US',
       { month: 'short', day: 'numeric' }
     );
-    const icons = { message: '💬', email: '✉️', whatsapp: '📱' };
     return `<div class="share-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-sm)">
         <div style="flex:1">
           <div style="font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:4px">
-            ${icons[draft.type]||'💬'} ${t('draft_'+draft.type)} · ${date} · ${draft.language.toUpperCase()}
+            ${t('draft_'+draft.type)} · ${date} · ${draft.language.toUpperCase()}
           </div>
           <div style="font-size:var(--text-sm);white-space:pre-wrap;line-height:1.5">${_esc(draft.content.slice(0,200))}${draft.content.length>200?'…':''}</div>
         </div>
@@ -47,10 +46,10 @@
       </div>
       <div class="share-actions">
         <button class="share-btn copy" onclick="App.Communication._copyDraft('${draft.id}')">
-          📋 ${t('copy_draft')}
+          ${t('copy_draft')}
         </button>
         <a class="share-btn whatsapp" href="https://wa.me/?text=${encodeURIComponent(draft.content)}" target="_blank">
-          💬 WhatsApp
+          WhatsApp
         </a>
       </div>
     </div>`;
@@ -98,8 +97,8 @@
         </div>
         <div id="draft-output" class="draft-output hidden"></div>
         <div id="draft-actions" class="share-actions hidden">
-          <button class="share-btn copy" onclick="App.Communication._copyOutput()">📋 ${t('copy_draft')}</button>
-          <button class="share-btn" onclick="App.Communication._saveOutput()">💾 ${t('save_draft')}</button>
+          <button class="share-btn copy" onclick="App.Communication._copyOutput()">${t('copy_draft')}</button>
+          <button class="share-btn" onclick="App.Communication._saveOutput()">${t('save_draft')}</button>
         </div>
       </div>
       ${savedDrafts}`;

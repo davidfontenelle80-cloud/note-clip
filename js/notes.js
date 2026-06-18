@@ -40,7 +40,7 @@
   function buildCategoryGrid(state) {
     if (!state.categories.length) {
       return `<div class="empty-state">
-        <div class="empty-state-icon">📂</div>
+        <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
         <div class="empty-state-text">${App.I18n.t('categories')}</div>
         <div class="empty-state-sub">${App.I18n.t('tap_plus')}</div>
       </div>`;
@@ -52,7 +52,7 @@
           <div class="category-icon-wrap">${_iconHtml(cat.icon)}</div>
           <div style="display:flex;gap:4px;flex-shrink:0">
             <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">✏️</button>
+              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">✎</button>
             <button class="card-delete-btn"
               onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">×</button>
           </div>
@@ -96,7 +96,7 @@
             : ''}
         </div>
       </div>
-      ${note.address ? `<div style="font-size:var(--text-xs);color:rgba(0,0,0,.5);margin-top:4px">📍 ${_esc(note.locationName || note.address)}</div>` : ''}
+      ${note.address ? `<div style="font-size:var(--text-xs);color:rgba(0,0,0,.5);margin-top:4px">${_esc(note.locationName || note.address)}</div>` : ''}
     </div>`;
   }
 
@@ -115,7 +115,7 @@
 
     if (!notes.length) {
       return `<div class="empty-state">
-        <div class="empty-state-icon">📝</div>
+        <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
         <div class="empty-state-text">${App.I18n.t('no_notes')}</div>
         <div class="empty-state-sub">${App.I18n.t('tap_plus')}</div>
       </div>`;
@@ -218,9 +218,9 @@
 
     const mapsBlock = n.address ? `
       <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm);margin-top:var(--space-sm)">
-        <button class="share-btn" onclick="App.Notes._openAppleMaps()">🍎 ${App.I18n.t('open_maps')}</button>
-        <button class="share-btn" onclick="App.Notes._openGoogleMaps()">🗺️ ${App.I18n.t('open_gmaps')}</button>
-        <button class="share-btn copy" onclick="App.Notes._copyAddress()">📋 ${App.I18n.t('copy_address')}</button>
+        <button class="share-btn" onclick="App.Notes._openAppleMaps()">${App.I18n.t('open_maps')}</button>
+        <button class="share-btn" onclick="App.Notes._openGoogleMaps()">${App.I18n.t('open_gmaps')}</button>
+        <button class="share-btn copy" onclick="App.Notes._copyAddress()">${App.I18n.t('copy_address')}</button>
       </div>` : '';
 
     const html = `
@@ -264,7 +264,7 @@
 
           <details style="margin-bottom:var(--space-md)">
             <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;padding:8px 0;color:var(--color-text-muted)">
-              📅 Due Date &amp; Reminder
+              Due Date &amp; Reminder
             </summary>
             <div style="padding-top:var(--space-sm)">
               <div class="form-row">
@@ -292,7 +292,7 @@
 
           <details style="margin-bottom:var(--space-md)">
             <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;padding:8px 0;color:var(--color-text-muted)">
-              📍 Appointment &amp; Location
+              Appointment &amp; Location
             </summary>
             <div style="padding-top:var(--space-sm)">
               <div class="form-group">
@@ -327,7 +327,7 @@
                 ${App.I18n.t('delete')}
               </button>
               ${!n.completed ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">✓</button>` : ''}
-              ${!n.archived  ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">📦</button>` : ''}
+              ${!n.archived  ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">${App.I18n.t('archive')}</button>` : ''}
             ` : ''}
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
             <button class="btn btn-primary" onclick="App.Notes._saveNote('${isEdit ? n.id : ''}')">${App.I18n.t('save')}</button>
@@ -442,7 +442,7 @@
   // ── Category Modal ────────────────────────────────────────────────
   function _openCatModal(cat) {
     const isEdit = !!cat;
-    const c = cat || { name: '', icon: '📝', color: '#F7F0B6' };
+    const c = cat || { name: '', icon: 'ic_cat_personal', color: '#F7F0B6' };
 
     const html = `
       <div id="cat-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
@@ -455,7 +455,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_icon')}</label>
-            <input id="cat-icon" class="form-input" placeholder="📝" value="${_esc(c.icon)}" maxlength="4" style="font-size:1.5rem;text-align:center">
+            <input id="cat-icon" class="form-input" placeholder="ic_cat_personal" value="${_esc(c.icon)}" maxlength="40" style="font-size:.85rem">
           </div>
           <div class="modal-actions">
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
@@ -477,7 +477,7 @@
 
   function _saveCat(id) {
     const name = document.getElementById('cat-name')?.value.trim() || '';
-    const icon = document.getElementById('cat-icon')?.value.trim() || '📝';
+    const icon = document.getElementById('cat-icon')?.value.trim() || 'ic_cat_personal';
     if (!name) { App.showToast('Enter a category name', 'error'); return; }
     if (id) {
       App.Storage.updateCategory(id, { name, icon });

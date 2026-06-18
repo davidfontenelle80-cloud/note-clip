@@ -25,10 +25,12 @@
 
   function greetingIcon() {
     const h = new Date().getHours();
-    if (h >= 5  && h < 12) return '☀️';
-    if (h >= 12 && h < 17) return '🌤️';
-    if (h >= 17 && h < 21) return '🌆';
-    return '🌙';
+    let icon;
+    if (h >= 5  && h < 12) icon = 'ic_extra_lighthouse';
+    else if (h >= 12 && h < 17) icon = 'ic_extra_compass';
+    else if (h >= 17 && h < 21) icon = 'ic_extra_tree';
+    else icon = 'ic_extra_stars';
+    return `<span class="icon-wrap icon-wrap-sm" style="vertical-align:middle;margin-right:6px"><img src="./icons/${icon}.png" class="icon-img" alt=""></span>`;
   }
 
   // ── Calendar ──────────────────────────────────────────────────────

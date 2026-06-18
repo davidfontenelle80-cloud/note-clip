@@ -15,7 +15,7 @@
 
     const themeButtons = ['light','dark','system'].map(th =>
       `<button class="theme-btn${s.theme===th?' active':''}" onclick="App.Settings._setTheme('${th}')">
-        ${th === 'light' ? '☀️' : th === 'dark' ? '🌙' : '💻'} ${t('theme_'+th)}
+        ${t('theme_'+th)}
       </button>`
     ).join('');
 

@@ -44,7 +44,7 @@
           ${list.type === 'reusable' && checked > 0
             ? `<button class="card-delete-btn" title="Reset" onclick="App.Lists._reset('${list.id}')">↺</button>`
             : ''}
-          <button class="card-delete-btn" title="Edit" onclick="App.Lists._editList('${list.id}')">✏️</button>
+          <button class="card-delete-btn" title="Edit" onclick="App.Lists._editList('${list.id}')">✎</button>
           <button class="card-delete-btn" title="Delete" onclick="App.Lists._deleteList('${list.id}')">×</button>
         </div>
       </div>
@@ -72,7 +72,7 @@
     const content = state.lists.length
       ? state.lists.map(buildListCard).join('')
       : `<div class="empty-state">
-           <div class="empty-state-icon">📋</div>
+           <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_lists.png" class="icon-img-lg" alt=""></span></div>
            <div class="empty-state-text">${t('no_lists')}</div>
            <div class="empty-state-sub">${t('tap_plus')}</div>
          </div>`;

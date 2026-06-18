@@ -20,8 +20,8 @@
     const text = encodeURIComponent(`${item.title}\n\n${item.content}`);
     const isNote = item.type !== 'list';
     const typeBadge = isNote
-      ? `<span class="chip" style="font-size:.7rem;padding:2px 7px">📝 Note</span>`
-      : `<span class="chip" style="font-size:.7rem;padding:2px 7px">📋 List</span>`;
+      ? `<span class="chip" style="font-size:.7rem;padding:2px 7px">${t('share_note')}</span>`
+      : `<span class="chip" style="font-size:.7rem;padding:2px 7px">${t('share_list')}</span>`;
 
     return `<div class="card shared-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
@@ -41,14 +41,14 @@
       <div class="shared-card-actions">
         <a class="btn btn-sm btn-secondary share-btn whatsapp"
            href="https://wa.me/?text=${text}" target="_blank" rel="noopener">
-          💬 WhatsApp
+          WhatsApp
         </a>
         <a class="btn btn-sm btn-secondary share-btn email"
            href="mailto:?subject=${encodeURIComponent(item.title)}&body=${text}" target="_blank" rel="noopener">
-          ✉️ ${t('share_email')}
+          ${t('share_email')}
         </a>
         <button class="btn btn-sm btn-secondary share-btn copy" onclick="App.Shared._copy('${item.id}')">
-          📋 ${t('share_copy')}
+          ${t('share_copy')}
         </button>
       </div>
     </div>`;
@@ -70,16 +70,9 @@
 
     const hasShared = state.sharedItems && state.sharedItems.length > 0;
 
-    const emptyState = `
-      <div class="empty-state" style="padding:var(--space-xl) 0">
-        <div class="empty-state-icon">🔗</div>
-        <div class="empty-state-text">${t('shared_nothing_yet')}</div>
-        <div class="empty-state-sub">${t('shared_subtitle')}</div>
-      </div>`;
-
-    const sharedCards = hasShared
+    const byMeContent = hasShared
       ? state.sharedItems.map(buildSharedCard).join('')
-      : emptyState;
+      : `<p class="empty-state-sm">${t('shared_nothing_yet')}</p>`;
 
     el.innerHTML = `
       <!-- Header -->
@@ -88,33 +81,43 @@
         <p class="shared-subtitle">${t('shared_subtitle')}</p>
       </div>
 
-      <!-- Recent shared items -->
-      <div id="shared-cards-wrap">
-        ${sharedCards}
-      </div>
+      <!-- Shared by Me -->
+      <section class="dash-section">
+        <h3 class="dash-section-title">${t('shared_by_me')}</h3>
+        <div id="shared-cards-wrap">${byMeContent}</div>
+      </section>
 
-      <!-- Create share form -->
-      <div class="share-form">
-        <div class="form-group" style="margin-bottom:10px">
-          <label class="form-label" style="margin-bottom:5px">${t('shared_pick_label')}</label>
-          <select id="share-select" class="form-select">
-            <option value="">— ${t('shared_choose')} —</option>
-            ${noteOptions ? `<optgroup label="Notes">${noteOptions}</optgroup>` : ''}
-            ${listOptions ? `<optgroup label="Lists">${listOptions}</optgroup>` : ''}
-          </select>
+      <!-- Shared with Me (placeholder) -->
+      <section class="dash-section">
+        <h3 class="dash-section-title">${t('shared_with_me')}</h3>
+        <p class="empty-state-sm">${t('shared_with_me_empty')}</p>
+      </section>
+
+      <!-- Share Something -->
+      <section class="dash-section">
+        <h3 class="dash-section-title">${t('shared_share_something')}</h3>
+        <div class="share-form">
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label" style="margin-bottom:5px">${t('shared_pick_label')}</label>
+            <select id="share-select" class="form-select">
+              <option value="">— ${t('shared_choose')} —</option>
+              ${noteOptions ? `<optgroup label="Notes">${noteOptions}</optgroup>` : ''}
+              ${listOptions ? `<optgroup label="Lists">${listOptions}</optgroup>` : ''}
+            </select>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" style="flex:1" onclick="App.Shared._createShare('copy')">
+              ${t('share_copy')}
+            </button>
+            <button class="btn btn-secondary" style="flex:1" onclick="App.Shared._createShare('whatsapp')">
+              WhatsApp
+            </button>
+            <button class="btn btn-secondary" style="flex:1" onclick="App.Shared._createShare('email')">
+              ${t('share_email')}
+            </button>
+          </div>
         </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-primary" style="flex:1" onclick="App.Shared._createShare('copy')">
-            📋 ${t('share_copy')}
-          </button>
-          <button class="btn btn-secondary" style="flex:1" onclick="App.Shared._createShare('whatsapp')">
-            💬 WhatsApp
-          </button>
-          <button class="btn btn-secondary" style="flex:1" onclick="App.Shared._createShare('email')">
-            ✉️ ${t('share_email')}
-          </button>
-        </div>
-      </div>
+      </section>
     `;
   }
 
