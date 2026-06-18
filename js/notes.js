@@ -96,6 +96,22 @@
     return App.I18n.current() === 'es' ? icon[2] : icon[1];
   }
 
+  const DEFAULT_CATEGORY_LABEL_KEYS = {
+    cat_work: 'cat_default_work',
+    cat_medical: 'cat_default_medical',
+    cat_personal: 'cat_default_personal',
+    cat_home: 'cat_default_home',
+    cat_docs: 'cat_default_docs',
+    cat_followup: 'cat_default_followup',
+    cat_orders: 'cat_default_orders',
+    cat_ideas: 'cat_default_ideas',
+  };
+
+  function _categoryDisplayName(cat) {
+    const key = cat && DEFAULT_CATEGORY_LABEL_KEYS[cat.id];
+    return key ? App.I18n.t(key) : (cat?.name || '');
+  }
+
   // Render category icons as the same paper/stationery family as the nav.
   function _iconHtml(icon, cls) {
     const safeIcon = _safeIconId(icon);
@@ -142,7 +158,7 @@
               onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">×</button>
           </div>
         </div>
-        <div class="category-name">${_esc(cat.name)}</div>
+        <div class="category-name">${_esc(_categoryDisplayName(cat))}</div>
         <div class="category-count">${count} ${App.I18n.t('notes')}</div>
       </div>`;
     }).join('');
@@ -175,7 +191,7 @@
       <div class="note-card-footer">
         <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
           ${note.priority !== 'medium' ? `<span class="priority-badge ${pClass}">${App.I18n.t('priority_'+note.priority)}</span>` : ''}
-          ${cat ? `<span class="chip">${_iconHtml(cat.icon,'chip-icon-img')} ${_esc(cat.name)}</span>` : ''}
+          ${cat ? `<span class="chip">${_iconHtml(cat.icon,'chip-icon-img')} ${_esc(_categoryDisplayName(cat))}</span>` : ''}
         </div>
         <div style="display:flex;gap:4px;align-items:center">
           <span class="note-card-date">${date}</span>
@@ -259,7 +275,7 @@
     const state = App.Storage.getState();
 
     const catName = _filterCatId
-      ? (state.categories.find(c => c.id === _filterCatId)?.name || '')
+      ? _categoryDisplayName(state.categories.find(c => c.id === _filterCatId))
       : '';
 
     const viewTabs = `
@@ -343,7 +359,7 @@
     }).join('');
 
     const catOptions = state.categories.map(c =>
-      `<option value="${c.id}"${n.categoryId===c.id?' selected':''}>${_esc(c.name)}</option>`
+      `<option value="${c.id}"${n.categoryId===c.id?' selected':''}>${_esc(_categoryDisplayName(c))}</option>`
     ).join('');
 
     const priorityOpts = ['critical','high','medium','low','optional'].map(p =>
