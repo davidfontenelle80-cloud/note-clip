@@ -26,9 +26,9 @@
   function greetingIcon() {
     const h = new Date().getHours();
     let icon;
-    if (h >= 5  && h < 12) icon = 'ic_extra_lighthouse';
-    else if (h >= 12 && h < 17) icon = 'ic_extra_compass';
-    else if (h >= 17 && h < 21) icon = 'ic_extra_tree';
+    if (h >= 5  && h < 12) icon = 'ic_cat_ideas';
+    else if (h >= 12 && h < 17) icon = 'ic_cat_work';
+    else if (h >= 17 && h < 21) icon = 'ic_cat_home';
     else icon = 'ic_extra_stars';
     return `<span class="icon-wrap icon-wrap-sm" style="vertical-align:middle;margin-right:6px"><img src="./icons/${icon}.png" class="icon-img" alt=""></span>`;
   }
@@ -332,6 +332,7 @@
         <span class="section-title" data-i18n="quick_note">${App.I18n.t('quick_note')}</span>
       </div>
       <div class="quick-note-wrap" style="margin-bottom:var(--space-lg)">
+        <span class="quick-note-clip" aria-hidden="true"></span>
         <textarea id="quick-note-ta" class="quick-note-input"
           placeholder="${App.I18n.t('quick_note_ph')}" rows="3"></textarea>
         <div class="quick-note-actions">
