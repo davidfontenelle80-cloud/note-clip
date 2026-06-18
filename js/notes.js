@@ -67,7 +67,8 @@
     }
     const cards = state.categories.map(cat => {
       const count = state.notes.filter(n => n.categoryId === cat.id).length;
-      return `<div class="category-card" role="button" tabindex="0"
+      const catClass = CAT_ICON_CLASS[String(cat.icon)] || 'custom';
+      return `<div class="category-card category-${catClass}" role="button" tabindex="0"
         onclick="App.Notes._viewCat('${cat.id}')"
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();App.Notes._viewCat('${cat.id}')}">
         <div class="category-card-top">

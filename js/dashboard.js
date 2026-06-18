@@ -25,12 +25,12 @@
 
   function greetingIcon() {
     const h = new Date().getHours();
-    let icon;
-    if (h >= 5  && h < 12) icon = 'ic_cat_ideas';
-    else if (h >= 12 && h < 17) icon = 'ic_cat_work';
-    else if (h >= 17 && h < 21) icon = 'ic_cat_home';
-    else icon = 'ic_extra_stars';
-    return `<span class="icon-wrap icon-wrap-sm" style="vertical-align:middle;margin-right:6px"><img src="./icons/${icon}.png" class="icon-img" alt=""></span>`;
+    let period;
+    if (h >= 5  && h < 12) period = 'morning';
+    else if (h >= 12 && h < 17) period = 'afternoon';
+    else if (h >= 17 && h < 21) period = 'evening';
+    else period = 'night';
+    return `<span class="greeting-stationery-icon greeting-${period}" aria-hidden="true"><span></span></span>`;
   }
 
   // ── Calendar ──────────────────────────────────────────────────────
