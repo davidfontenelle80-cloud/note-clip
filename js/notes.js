@@ -8,7 +8,8 @@
   let _view = 'categories'; // 'categories' | 'notes' | 'note-list'
   let _filterCatId = null;
   let _filterStatus = 'active';
-  let _searchQuery  = '';
+  let _searchQuery = '';
+  let _dateFilter = null;
   let _editingNoteId = null;
   let _editingCatId  = null;
 
@@ -16,19 +17,13 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // ── Search Bar ───────────────────────────────────────────────────
-  function buildSearchBar() {
-    return `<div class="form-group" style="margin-bottom:var(--space-sm)">
-      <input class="form-input"
-        placeholder="${App.I18n.t('notes_search')}"
-        value="${_searchQuery.replace(/"/g,'&quot;')}"
-        oninput="App.Notes._setSearch(this.value)">
-    </div>`;
-  }
-
-  function _setSearch(q) {
-    _searchQuery = q;
-    render();
+  // Render icon: PNG img if ic_ filename, else emoji/text fallback
+  function _iconHtml(icon, cls) {
+    if (!icon) return '';
+    if (String(icon).startsWith('ic_')) {
+      return `<img src="./icons/${icon}.png" class="${cls || 'cat-icon-img'}" alt="" loading="lazy">`;
+    }
+    return _esc(icon);
   }
 
   // ── Status Tabs ───────────────────────────────────────────────────
@@ -47,7 +42,7 @@
   function buildCategoryGrid(state) {
     if (!state.categories.length) {
       return `<div class="empty-state">
-        <div class="empty-state-icon">📂</div>
+        <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
         <div class="empty-state-text">${App.I18n.t('categories')}</div>
         <div class="empty-state-sub">${App.I18n.t('tap_plus')}</div>
       </div>`;
@@ -56,10 +51,10 @@
       const count = state.notes.filter(n => n.categoryId === cat.id).length;
       return `<div class="category-card" onclick="App.Notes._viewCat('${cat.id}')">
         <div class="category-card-top">
-          <div class="category-icon-wrap">${_esc(cat.icon)}</div>
+          <div class="category-icon-wrap">${_iconHtml(cat.icon)}</div>
           <div style="display:flex;gap:4px;flex-shrink:0">
             <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">✏️</button>
+              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">✎</button>
             <button class="card-delete-btn"
               onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">×</button>
           </div>
@@ -80,8 +75,9 @@
       ? new Date(note.dueDate).toLocaleDateString(App.I18n.current() === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric' })
       : new Date(note.createdAt).toLocaleDateString(App.I18n.current() === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric' });
     const pClass = {
-      urgent:'priority-urgent', high:'priority-high',
-      medium:'priority-medium', low:'priority-low'
+      critical:'priority-urgent', urgent:'priority-urgent',
+      high:'priority-high', medium:'priority-medium',
+      low:'priority-low', optional:'priority-low'
     }[note.priority] || 'priority-medium';
 
     return `<div class="note-card" data-color="${_esc(note.color || 'yellow')}" onclick="App.Notes._editNote('${note.id}')">
@@ -94,7 +90,7 @@
       <div class="note-card-footer">
         <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
           ${note.priority !== 'medium' ? `<span class="priority-badge ${pClass}">${App.I18n.t('priority_'+note.priority)}</span>` : ''}
-          ${cat ? `<span class="chip">${cat.icon} ${_esc(cat.name)}</span>` : ''}
+          ${cat ? `<span class="chip">${_iconHtml(cat.icon,'chip-icon-img')} ${_esc(cat.name)}</span>` : ''}
         </div>
         <div style="display:flex;gap:4px;align-items:center">
           <span class="note-card-date">${date}</span>
@@ -103,7 +99,7 @@
             : ''}
         </div>
       </div>
-      ${note.address ? `<div style="font-size:var(--text-xs);color:rgba(0,0,0,.5);margin-top:4px">📍 ${_esc(note.locationName || note.address)}</div>` : ''}
+      ${note.address ? `<div style="font-size:var(--text-xs);color:rgba(0,0,0,.5);margin-top:4px">${_esc(note.locationName || note.address)}</div>` : ''}
     </div>`;
   }
 
@@ -111,6 +107,7 @@
   function buildNotesGrid(state) {
     let notes = state.notes;
     if (_filterCatId) notes = notes.filter(n => n.categoryId === _filterCatId);
+
     // Status filter
     if (_filterStatus === 'archived') {
       notes = notes.filter(n => n.archived);
@@ -119,23 +116,51 @@
     } else {
       notes = notes.filter(n => !n.archived && !n.completed && n.status === _filterStatus);
     }
+
+    // Date filter (from calendar tap)
+    if (_dateFilter) {
+      notes = notes.filter(n => n.dueDate && n.dueDate.slice(0,10) === _dateFilter);
+    }
+
     // Search filter
     if (_searchQuery) {
       const q = _searchQuery.toLowerCase();
       notes = notes.filter(n =>
-        (n.title && n.title.toLowerCase().includes(q)) ||
-        (n.body  && n.body.toLowerCase().includes(q))
+        (n.title || '').toLowerCase().includes(q) ||
+        (n.body  || '').toLowerCase().includes(q)
       );
     }
 
+    // Sort: overdue → today → future (date asc) → no-date; then priority, then newest
+    const today = new Date().toISOString().slice(0, 10);
+    const _priOrder = { critical:0, urgent:0, high:1, medium:2, low:3, optional:4 };
+    notes = [...notes].sort((a, b) => {
+      const ad = a.dueDate || null, bd = b.dueDate || null;
+      const aScore = !ad ? 3 : ad < today ? 0 : ad === today ? 1 : 2;
+      const bScore = !bd ? 3 : bd < today ? 0 : bd === today ? 1 : 2;
+      if (aScore !== bScore) return aScore - bScore;
+      if (ad && bd && ad !== bd) return ad.localeCompare(bd);
+      const ap = _priOrder[a.priority] ?? 2, bp = _priOrder[b.priority] ?? 2;
+      if (ap !== bp) return ap - bp;
+      return (b.createdAt || '').localeCompare(a.createdAt || '');
+    });
+
+    const searchBar = `
+      <div class="search-bar-wrap" style="margin-bottom:var(--space-md)">
+        <input id="notes-search" class="form-input" type="search"
+          placeholder="${App.I18n.t('notes_search')}"
+          value="${_esc(_searchQuery)}"
+          oninput="App.Notes._setSearch(this.value)">
+      </div>`;
+
     if (!notes.length) {
-      return `<div class="empty-state">
-        <div class="empty-state-icon">📝</div>
+      return searchBar + `<div class="empty-state">
+        <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
         <div class="empty-state-text">${App.I18n.t('no_notes')}</div>
-        <div class="empty-state-sub">${App.I18n.t('tap_plus')}</div>
+        <div class="empty-state-sub">${_searchQuery ? 'No results — try a different search' : App.I18n.t('tap_plus')}</div>
       </div>`;
     }
-    return `<div class="notes-grid">${notes.map(n => buildNoteCard(n, state)).join('')}</div>`;
+    return searchBar + `<div class="notes-grid">${notes.map(n => buildNoteCard(n, state)).join('')}</div>`;
   }
 
   // ── Main Render ───────────────────────────────────────────────────
@@ -160,7 +185,7 @@
     if (_view === 'categories') {
       content = buildCategoryGrid(state);
     } else if (_view === 'notes') {
-      content = buildSearchBar() + buildStatusTabs() + buildNotesGrid(state);
+      content = buildStatusTabs() + buildNotesGrid(state);
     } else if (_view === 'note-list') {
       // Notes for a specific category
       content = `
@@ -170,7 +195,6 @@
         <div class="section-header">
           <span class="section-title">${_esc(catName)}</span>
         </div>
-        ${buildSearchBar()}
         ${buildStatusTabs()}
         ${buildNotesGrid(state)}`;
     }
@@ -187,7 +211,6 @@
   // ── Navigation ────────────────────────────────────────────────────
   function _setView(v) {
     _view = v;
-    _searchQuery = '';
     if (v !== 'note-list') _filterCatId = null;
     render();
   }
@@ -200,6 +223,15 @@
 
   function _setStatus(s) {
     _filterStatus = s;
+    render();
+  }
+
+  function _setSearch(q) {
+    _searchQuery = q || '';
+    // Debounce: re-render on input without full page rebuild
+    const state = App.Storage.getState();
+    const gridEl = document.querySelector('.notes-grid, .empty-state');
+    const wrapEl = gridEl ? gridEl.closest('.notes-grid, .search-bar-wrap')?.parentElement : null;
     render();
   }
 
@@ -222,10 +254,10 @@
     }).join('');
 
     const catOptions = state.categories.map(c =>
-      `<option value="${c.id}"${n.categoryId===c.id?' selected':''}>${c.icon} ${_esc(c.name)}</option>`
+      `<option value="${c.id}"${n.categoryId===c.id?' selected':''}>${_esc(c.name)}</option>`
     ).join('');
 
-    const priorityOpts = ['urgent','high','medium','low'].map(p =>
+    const priorityOpts = ['critical','high','medium','low','optional'].map(p =>
       `<option value="${p}"${n.priority===p?' selected':''}>${App.I18n.t('priority_'+p)}</option>`
     ).join('');
 
@@ -235,9 +267,9 @@
 
     const mapsBlock = n.address ? `
       <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm);margin-top:var(--space-sm)">
-        <button class="share-btn" onclick="App.Notes._openAppleMaps()">🍎 ${App.I18n.t('open_maps')}</button>
-        <button class="share-btn" onclick="App.Notes._openGoogleMaps()">🗺️ ${App.I18n.t('open_gmaps')}</button>
-        <button class="share-btn copy" onclick="App.Notes._copyAddress()">📋 ${App.I18n.t('copy_address')}</button>
+        <button class="share-btn" onclick="App.Notes._openAppleMaps()">${App.I18n.t('open_maps')}</button>
+        <button class="share-btn" onclick="App.Notes._openGoogleMaps()">${App.I18n.t('open_gmaps')}</button>
+        <button class="share-btn copy" onclick="App.Notes._copyAddress()">${App.I18n.t('copy_address')}</button>
       </div>` : '';
 
     const html = `
@@ -281,7 +313,7 @@
 
           <details style="margin-bottom:var(--space-md)">
             <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;padding:8px 0;color:var(--color-text-muted)">
-              📅 Due Date &amp; Reminder
+              Due Date &amp; Reminder
             </summary>
             <div style="padding-top:var(--space-sm)">
               <div class="form-row">
@@ -309,7 +341,7 @@
 
           <details style="margin-bottom:var(--space-md)">
             <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;padding:8px 0;color:var(--color-text-muted)">
-              📍 Appointment &amp; Location
+              Appointment &amp; Location
             </summary>
             <div style="padding-top:var(--space-sm)">
               <div class="form-group">
@@ -343,8 +375,12 @@
               <button class="btn btn-danger btn-sm" onclick="App.Notes._deleteNote('${n.id}',true)">
                 ${App.I18n.t('delete')}
               </button>
-              ${!n.completed ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">✓</button>` : ''}
-              ${!n.archived  ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">📦</button>` : ''}
+              ${n.completed
+                ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._reopenNote('${n.id}')">↩ Reopen</button>`
+                : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">✓</button>`}
+              ${n.archived
+                ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._restoreNote('${n.id}')">${App.I18n.t('restore')}</button>`
+                : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">${App.I18n.t('archive')}</button>`}
             ` : ''}
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
             <button class="btn btn-primary" onclick="App.Notes._saveNote('${isEdit ? n.id : ''}')">${App.I18n.t('save')}</button>
@@ -381,7 +417,7 @@
     const locName  = document.getElementById('note-location')?.value  || '';
     const address  = document.getElementById('note-address')?.value   || '';
 
-    if (!title && !body) { App.showToast('Add a title or content', 'error'); return; }
+    if (!title && !body) { App.showToast(App.I18n.t('toast_enter_title'), 'error'); return; }
 
     const patch = {
       title, body, priority, status, color: _selectedNoteColor,
@@ -392,10 +428,10 @@
 
     if (id) {
       App.Storage.updateNote(id, patch);
-      App.showToast('Note updated', 'success');
+      App.showToast(App.I18n.t('toast_note_updated'), 'success');
     } else {
       App.Storage.addNote(patch);
-      App.showToast('Note saved', 'success');
+      App.showToast(App.I18n.t('toast_note_saved'), 'success');
     }
     _closeModal();
     render();
@@ -415,21 +451,35 @@
     if (!confirm('Delete this note?')) return;
     App.Storage.deleteNote(id);
     if (fromModal) _closeModal();
-    App.showToast('Note deleted', 'success');
+    App.showToast(App.I18n.t('toast_note_deleted'), 'success');
     render();
   }
 
   function _completeNote(id) {
     App.Storage.updateNote(id, { completed: true, status: 'completed' });
     _closeModal();
-    App.showToast('Marked complete', 'success');
+    App.showToast(App.I18n.t('toast_note_completed'), 'success');
     render();
   }
 
   function _archiveNote(id) {
     App.Storage.updateNote(id, { archived: true });
     _closeModal();
-    App.showToast('Note archived', 'success');
+    App.showToast(App.I18n.t('toast_note_archived'), 'success');
+    render();
+  }
+
+  function _restoreNote(id) {
+    App.Storage.updateNote(id, { archived: false });
+    _closeModal();
+    App.showToast(App.I18n.t('toast_note_restored'), 'success');
+    render();
+  }
+
+  function _reopenNote(id) {
+    App.Storage.updateNote(id, { completed: false, status: 'active' });
+    _closeModal();
+    App.showToast(App.I18n.t('toast_note_reopened'), 'success');
     render();
   }
 
@@ -444,7 +494,7 @@
   function _copyAddress() {
     const addr = document.getElementById('note-address')?.value || '';
     if (addr) {
-      navigator.clipboard.writeText(addr).then(() => App.showToast('Address copied','success'));
+      navigator.clipboard.writeText(addr).then(() => App.showToast(App.I18n.t('toast_address_copied'),'success'));
     }
   }
 
@@ -459,7 +509,7 @@
   // ── Category Modal ────────────────────────────────────────────────
   function _openCatModal(cat) {
     const isEdit = !!cat;
-    const c = cat || { name: '', icon: '📝', color: '#F7F0B6' };
+    const c = cat || { name: '', icon: 'ic_cat_personal', color: '#F7F0B6' };
 
     const html = `
       <div id="cat-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
@@ -472,7 +522,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_icon')}</label>
-            <input id="cat-icon" class="form-input" placeholder="📝" value="${_esc(c.icon)}" maxlength="4" style="font-size:1.5rem;text-align:center">
+            <input id="cat-icon" class="form-input" placeholder="ic_cat_personal" value="${_esc(c.icon)}" maxlength="40" style="font-size:.85rem">
           </div>
           <div class="modal-actions">
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
@@ -494,14 +544,14 @@
 
   function _saveCat(id) {
     const name = document.getElementById('cat-name')?.value.trim() || '';
-    const icon = document.getElementById('cat-icon')?.value.trim() || '📝';
-    if (!name) { App.showToast('Enter a category name', 'error'); return; }
+    const icon = document.getElementById('cat-icon')?.value.trim() || 'ic_cat_personal';
+    if (!name) { App.showToast(App.I18n.t('toast_cat_name_req'), 'error'); return; }
     if (id) {
       App.Storage.updateCategory(id, { name, icon });
-      App.showToast('Category updated', 'success');
+      App.showToast(App.I18n.t('toast_cat_updated'), 'success');
     } else {
       App.Storage.addCategory({ name, icon });
-      App.showToast('Category added', 'success');
+      App.showToast(App.I18n.t('toast_cat_added'), 'success');
     }
     _closeModal();
     render();
@@ -533,19 +583,19 @@
     } else {
       if (!confirm('Delete this category?')) return;
       App.Storage.deleteCategory(id, false);
-      App.showToast('Category deleted', 'success');
+      App.showToast(App.I18n.t('toast_cat_deleted'), 'success');
       render();
     }
   }
 
   function _confirmDeleteCat(id, deleteNotes) {
     App.Storage.deleteCategory(id, deleteNotes);
-    App.showToast('Category deleted', 'success');
+    App.showToast(App.I18n.t('toast_cat_deleted'), 'success');
     _closeModal();
     render();
   }
 
-  // ── FAB handler (called by app.js) ────────────────────────────────
+  // ── FAB handler (called by app.js) ─────────
   function onFab() {
     if (_view === 'categories') {
       _openCatModal(null);
@@ -554,10 +604,24 @@
     }
   }
 
+  // ── Date filter (called from calendar date tap) ───────────────────
+  function filterByDate(dateStr) {
+    _dateFilter = dateStr || null;
+    _view = 'notes';
+    render();
+    // Auto-clear after 10s so normal browsing resumes
+    setTimeout(() => {
+      if (_dateFilter === dateStr) {
+        _dateFilter = null;
+        render();
+      }
+    }, 10000);
+  }
+
   App.Notes = {
-    render, onFab,
+    render, onFab, filterByDate,
     _setView, _viewCat, _setStatus, _setSearch,
-    _editNote, _deleteNote, _completeNote, _archiveNote,
+    _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
     _openNoteModal, _closeModal, _saveNote, _pickColor,
     _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
     _openAppleMaps, _openGoogleMaps, _copyAddress,
