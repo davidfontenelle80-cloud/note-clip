@@ -541,8 +541,8 @@
     }
     _closeModal();
     render();
-    // Refresh dashboard reminders if visible
-    if (document.getElementById('reminders-wrap')) App.Dashboard.render();
+    if (document.getElementById('pane-calendar')?.classList.contains('active')) App.Calendar?.render();
+    App.Reminders?.checkDue();
   }
 
   function _editNote(id) {

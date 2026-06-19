@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v31';
+const CACHE_VERSION = 'note-clip-v32';
 
 const PRECACHE_URLS = [
   './',
@@ -7,6 +7,7 @@ const PRECACHE_URLS = [
   './js/i18n.js',
   './js/storage.js',
   './js/dashboard.js',
+  './js/calendar.js',
   './js/notes.js',
   './js/lists.js',
   './js/shared.js',
@@ -14,6 +15,7 @@ const PRECACHE_URLS = [
   './js/settings.js',
   './js/firebase/firebase-config.js',
   './js/firebase/cloud-sync.js',
+  './js/reminders.js',
   './js/onboarding.js',
   './app.js',
   './manifest.json',

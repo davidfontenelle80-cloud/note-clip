@@ -97,6 +97,55 @@
       ${authControls}`;
   }
 
+  function _toolsSection() {
+    const t = App.I18n.t.bind(App.I18n);
+    return `
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">${t('message_builder')}</div>
+          <div class="settings-row-sub">${t('message_builder_sub')}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="App.Settings._openMessageBuilder()">${t('open_message_builder')}</button>
+      </div>`;
+  }
+
+  function _reminderNotificationsSection(state) {
+    const t = App.I18n.t.bind(App.I18n);
+    const status = App.Reminders ? App.Reminders.getStatus() : { supported: false, permission: 'unavailable' };
+    const s = state.settings || {};
+    const phoneOn = s.reminderNotifications === true;
+    const popupsOn = s.reminderPopups !== false;
+    const permissionLabel = status.supported ? status.permission : t('notification_unavailable');
+    return `
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+        <div>
+          <div class="settings-row-label">${t('reminder_notifications')}</div>
+          <div class="settings-row-sub">${t('reminder_notifications_sub')}</div>
+          <div class="settings-row-sub">${t('notification_permission')}: ${_esc(permissionLabel)}</div>
+        </div>
+        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" style="flex:1 1 140px" onclick="App.Settings._toggleReminderNotifications()">
+            ${phoneOn ? t('notifications_on') : t('notifications_off')}
+          </button>
+          <button class="btn btn-secondary btn-sm" style="flex:1 1 140px" onclick="App.Settings._requestNotificationPermission()">
+            ${t('request_permission')}
+          </button>
+          <button class="btn btn-secondary btn-sm" style="flex:1 1 140px" onclick="App.Settings._sendTestNotification()">
+            ${t('send_test_notification')}
+          </button>
+        </div>
+      </div>
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">${t('reminder_popups')}</div>
+          <div class="settings-row-sub">${t('reminder_popups_sub')}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="App.Settings._toggleReminderPopups()">
+          ${popupsOn ? t('notifications_on') : t('notifications_off')}
+        </button>
+      </div>`;
+  }
+
   function render() {
     const el = document.getElementById('pane-settings');
     if (!el) return;
@@ -169,6 +218,18 @@
         </div>
       </div>
 
+      <!-- Tools -->
+      <div class="settings-section">
+        <div class="settings-section-label">${t('settings_tools')}</div>
+        ${_toolsSection()}
+      </div>
+
+      <!-- Reminders -->
+      <div class="settings-section">
+        <div class="settings-section-label">${t('reminder_notifications')}</div>
+        ${_reminderNotificationsSection(state)}
+      </div>
+
       <!-- Data -->
       <div class="settings-section">
         <div class="settings-section-label">${t('settings_data_sync')}</div>
@@ -232,6 +293,30 @@
     App.Storage.updateSettings({ defaultListBehavior: val });
   }
 
+  function _openMessageBuilder() {
+    App.showTab('communication');
+  }
+
+  function _toggleReminderNotifications() {
+    const s = App.Storage.getState().settings;
+    App.Reminders?.setNotifications?.(!(s.reminderNotifications === true));
+    render();
+  }
+
+  function _toggleReminderPopups() {
+    const s = App.Storage.getState().settings;
+    App.Reminders?.setPopups?.(s.reminderPopups === false);
+    render();
+  }
+
+  function _requestNotificationPermission() {
+    App.Reminders?.requestPermission?.().finally(() => render());
+  }
+
+  function _sendTestNotification() {
+    App.Reminders?.sendTestNotification?.();
+  }
+
   function _cloudCredentials() {
     const email = document.getElementById('cloud-email')?.value.trim() || '';
     const password = document.getElementById('cloud-password')?.value || '';
@@ -285,6 +370,8 @@
 
   App.Settings = {
     render, _setTheme, _setLanguage, _saveUsername, _saveReminder, _saveListDefault,
+    _openMessageBuilder, _toggleReminderNotifications, _toggleReminderPopups,
+    _requestNotificationPermission, _sendTestNotification,
     _cloudSignIn, _cloudCreateAccount, _cloudSignOut, _cloudBackup, _cloudRestore,
     _refreshCloudStatus,
   };

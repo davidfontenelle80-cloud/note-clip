@@ -1,7 +1,6 @@
 /**
  * dashboard.js — Note Clip PWA
- * Dashboard tab: greeting, today's focus, today's tasks, quick note,
- * mini calendar (with month/year pickers + swipe), upcoming reminders.
+ * Dashboard tab: greeting, today's focus, today's tasks, quick note.
  * Stage 2 — Items C + D.
  */
 (function (App) {
@@ -363,21 +362,11 @@
           </button>
         </div>
       </div>
-
-      <!-- Mini Calendar -->
-      <div id="cal-wrap">${buildCalendar(_calYear, _calMonth)}</div>
-
-      <!-- Upcoming Reminders -->
-      <section class="dash-section dash-upcoming-section" id="dash-reminders" style="margin-top:var(--space-lg)">
-        <h3 class="dash-section-title">${App.I18n.t('dash_upcoming')}</h3>
-        <div id="dash-reminders-list"></div>
-      </section>
     `;
 
     // Populate dynamic sections
     _renderTodayTasks();
-    _renderUpcoming();
-    _initCalendarSwipe();
+    App.Reminders?.checkDue();
   }
 
   App.Dashboard = {

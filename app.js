@@ -6,7 +6,7 @@
 (function (App) {
   'use strict';
 
-  const TABS = ['dashboard','notes','lists','shared','communication','settings'];
+  const TABS = ['dashboard','notes','lists','calendar','shared','communication','settings'];
   let _activeTab = 'dashboard';
 
   // ── Tab routing ──────────────────────────────────────────────────
@@ -30,6 +30,7 @@
       dashboard:     () => App.Dashboard?.render(),
       notes:         () => App.Notes?.render(),
       lists:         () => App.Lists?.render(),
+      calendar:      () => App.Calendar?.render(),
       shared:        () => App.Shared?.render(),
       communication: () => App.Communication?.render(),
       settings:      () => App.Settings?.render(),
@@ -44,6 +45,7 @@
     const handlers = {
       notes:         () => App.Notes?.onFab(),
       lists:         () => App.Lists?.onFab(),
+      calendar:      () => App.Notes?._openNoteModal(null),
       shared:        () => App.Shared?.onFab(),
       communication: () => App.Communication?.onFab(),
       dashboard:     () => App.Notes?._openNoteModal(null),
@@ -208,6 +210,9 @@
 
     // Setup keyboard
     setupKeyboard();
+
+    // Reminder checks run locally and never block app usage.
+    App.Reminders?.init();
 
     // Show initial tab
     showTab('dashboard');

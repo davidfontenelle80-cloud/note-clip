@@ -66,6 +66,8 @@
       theme: 'light',
       username: '',
       defaultReminderTime: '08:00',
+      reminderPopups: true,
+      reminderNotifications: false,
       defaultListBehavior: 'reusable',
       cloudSync: false,
       lastCloudBackupAt: '',
