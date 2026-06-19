@@ -5,7 +5,7 @@
 (function (App) {
   'use strict';
 
-  let _view = 'categories'; // 'categories' | 'notes' | 'note-list'
+  let _view = 'notes'; // 'categories' | 'notes' | 'note-list'
   let _filterCatId = null;
   let _filterStatus = 'active';
   let _searchQuery = '';
@@ -218,7 +218,14 @@
   // ── Category Grid ─────────────────────────────────────────────────
   function buildCategoryGrid(state) {
     if (!state.categories.length) {
-      return `<div class="empty-state">
+      return `<div class="category-manage-header">
+        <div>
+          <div class="category-manage-title">${App.I18n.t('categories')}</div>
+          <div class="category-manage-sub">${App.I18n.t('tap_plus')}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="App.Notes._openCatModal(null)">${App.I18n.t('add_category')}</button>
+      </div>
+      <div class="empty-state">
         <div class="empty-state-icon"><span class="empty-stationery empty-notes" aria-hidden="true"><span></span></span></div>
         <div class="empty-state-text">${App.I18n.t('categories')}</div>
         <div class="empty-state-sub">${App.I18n.t('tap_plus')}</div>
@@ -232,18 +239,25 @@
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();App.Notes._viewCat('${cat.id}')}">
         <div class="category-card-top">
           <div class="category-icon-wrap">${_iconHtml(cat.icon)}</div>
-          <div style="display:flex;gap:4px;flex-shrink:0">
-            <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">✎</button>
-            <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">×</button>
-          </div>
         </div>
         <div class="category-name">${_esc(_categoryDisplayName(cat))}</div>
         <div class="category-count">${count} ${App.I18n.t('notes')}</div>
+        <div class="category-card-actions" aria-label="${App.I18n.t('categories')}">
+          <button class="category-action-btn"
+            onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="${App.I18n.t('edit_category')}">${App.I18n.t('edit')}</button>
+          <button class="category-action-btn danger"
+            onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="${App.I18n.t('delete_category')}">${App.I18n.t('delete')}</button>
+        </div>
       </div>`;
     }).join('');
-    return `<div class="category-grid">${cards}</div>`;
+    return `<div class="category-manage-header">
+      <div>
+        <div class="category-manage-title">${App.I18n.t('categories')}</div>
+        <div class="category-manage-sub">${state.categories.length} ${App.I18n.t('categories')}</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="App.Notes._openCatModal(null)">${App.I18n.t('add_category')}</button>
+    </div>
+    <div class="category-grid">${cards}</div>`;
   }
 
   // ── Note Card ─────────────────────────────────────────────────────
@@ -360,11 +374,11 @@
       : '';
 
     const viewTabs = `
-      <div class="status-tabs" style="margin-bottom:var(--space-md)">
-        <button class="status-tab${_view==='categories'?' active':''}"
-          onclick="App.Notes._setView('categories')">${App.I18n.t('by_category')}</button>
+      <div class="status-tabs notes-mode-tabs">
         <button class="status-tab${_view!=='categories'?' active':''}"
-          onclick="App.Notes._setView('notes')">${App.I18n.t('all_notes')}</button>
+          onclick="App.Notes._setView('notes')">${App.I18n.t('tab_notes')}</button>
+        <button class="status-tab${_view==='categories'?' active':''}"
+          onclick="App.Notes._setView('categories')">${App.I18n.t('categories')}</button>
       </div>`;
 
     let content = '';
@@ -387,7 +401,7 @@
 
     el.innerHTML = `
       <div class="section-header">
-        <span class="section-title">${_view === 'note-list' ? '' : App.I18n.t(_view==='categories'?'categories':'all_notes')}</span>
+        <span class="section-title">${_view === 'note-list' ? '' : App.I18n.t('tab_notes')}</span>
       </div>
       ${_view !== 'note-list' ? viewTabs : ''}
       ${content}
@@ -938,7 +952,7 @@
     _setView, _viewCat, _setStatus, _setSearch,
     _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
     _openNoteModal, _closeModal, _saveNote, _pickColor,
-    _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
+    _openCatModal, _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
     _selectCatIcon, _selectCustomEmoji, _filterCatIcons,
     _openAppleMaps, _openGoogleMaps, _copyAddress,
   };
