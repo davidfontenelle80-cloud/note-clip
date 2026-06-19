@@ -73,6 +73,34 @@
     _toastTimer = setTimeout(() => toast.classList.remove('visible'), 2600);
   }
 
+  function shortErrorMessage(value) {
+    const raw = value?.message || String(value || 'Unknown app error');
+    return raw.length > 140 ? raw.slice(0, 137) + '...' : raw;
+  }
+
+  function setupGlobalErrorHandlers() {
+    if (window.__noteClipErrorHandlersReady) return;
+    window.__noteClipErrorHandlersReady = 'true';
+
+    window.addEventListener('error', event => {
+      if (event.target && event.target !== window) {
+        console.warn('[NoteClip] Resource failed to load:', event.target?.src || event.target?.href || event.target);
+        return;
+      }
+      if (!event.error && event.message === 'Script error.') {
+        console.warn('[NoteClip] Generic script error with no details:', event);
+        return;
+      }
+      console.error('[NoteClip] Window error:', event.error || event.message, event);
+      showToast('App error: ' + shortErrorMessage(event.error || event.message), 'error');
+    });
+
+    window.addEventListener('unhandledrejection', event => {
+      console.error('[NoteClip] Unhandled promise rejection:', event.reason, event);
+      showToast('App error: ' + shortErrorMessage(event.reason), 'error');
+    });
+  }
+
   function enhanceModal(modalOrId) {
     const modal = typeof modalOrId === 'string' ? document.getElementById(modalOrId) : modalOrId;
     if (!modal || modal.dataset.a11yReady) return;
@@ -207,6 +235,9 @@
 
     // Register SW
     registerSW();
+
+    // Surface hidden mobile script failures
+    setupGlobalErrorHandlers();
 
     // Setup keyboard
     setupKeyboard();

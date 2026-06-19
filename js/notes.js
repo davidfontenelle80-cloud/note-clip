@@ -466,11 +466,11 @@
 
           <div class="form-group">
             <label class="form-label">${App.I18n.t('note_title')}</label>
-            <input id="note-title" class="form-input" placeholder="${App.I18n.t('note_title_ph')}" value="${_esc(n.title)}">
+            <input id="note-title" class="form-input" autocomplete="off" autocorrect="off" placeholder="${App.I18n.t('note_title_ph')}" value="${_esc(n.title)}">
           </div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('note_body')}</label>
-            <textarea id="note-body" class="form-textarea" placeholder="${App.I18n.t('note_body_ph')}">${_esc(n.body)}</textarea>
+            <textarea id="note-body" class="form-textarea" autocomplete="off" autocorrect="off" placeholder="${App.I18n.t('note_body_ph')}">${_esc(n.body)}</textarea>
           </div>
 
           <div class="form-row">
@@ -532,7 +532,7 @@
             <div style="padding-top:var(--space-sm)">
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_appt')}</label>
-                <input id="note-appt-name" class="form-input" placeholder="Appointment name…" value="${_esc(n.appointmentName)}">
+                <input id="note-appt-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Appointment name…" value="${_esc(n.appointmentName)}">
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -546,11 +546,11 @@
               </div>
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_location')}</label>
-                <input id="note-location" class="form-input" placeholder="Location name…" value="${_esc(n.locationName)}">
+                <input id="note-location" class="form-input" autocomplete="off" autocorrect="off" placeholder="Location name…" value="${_esc(n.locationName)}">
               </div>
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_address')}</label>
-                <input id="note-address" class="form-input" placeholder="Full address…" value="${_esc(n.address)}">
+                <input id="note-address" class="form-input" autocomplete="off" autocorrect="off" placeholder="Full address…" value="${_esc(n.address)}">
               </div>
               ${mapsBlock}
             </div>
@@ -569,7 +569,7 @@
                 : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">${App.I18n.t('archive')}</button>`}
             ` : ''}
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
-            <button class="btn btn-primary" onclick="App.Notes._saveNote('${isEdit ? n.id : ''}')">${App.I18n.t('save')}</button>
+            <button id="note-save-btn" class="btn btn-primary" onclick="App.Notes._saveNote('${isEdit ? n.id : ''}')">${App.I18n.t('save')}</button>
           </div>
         </div>
       </div>`;
@@ -581,6 +581,7 @@
   }
 
   let _selectedNoteColor = 'yellow';
+  let _saving = false;
 
   function _pickColor(c) {
     _selectedNoteColor = c;
@@ -590,40 +591,50 @@
   }
 
   function _saveNote(id) {
-    const title    = document.getElementById('note-title')?.value.trim() || '';
-    const body     = document.getElementById('note-body')?.value.trim()  || '';
-    const priority = document.getElementById('note-priority')?.value || 'medium';
-    const status   = document.getElementById('note-status')?.value   || 'active';
-    const catId    = document.getElementById('note-cat')?.value       || null;
-    const dueDate  = document.getElementById('note-due')?.value       || '';
-    const dueTime  = document.getElementById('note-due-time')?.value  || '';
-    const reminder = document.getElementById('note-reminder')?.value  || '';
-    const apptName = document.getElementById('note-appt-name')?.value || '';
-    const apptDt   = document.getElementById('note-appt-dt')?.value   || '';
-    const leaveBy  = document.getElementById('note-leave')?.value     || '';
-    const locName  = document.getElementById('note-location')?.value  || '';
-    const address  = document.getElementById('note-address')?.value   || '';
+    if (_saving) return;
+    _saving = true;
+    const saveBtn = document.getElementById('note-save-btn');
+    if (saveBtn) saveBtn.disabled = true;
 
-    if (!title && !body) { App.showToast(App.I18n.t('toast_enter_title'), 'error'); return; }
+    try {
+      const title    = document.getElementById('note-title')?.value.trim() || '';
+      const body     = document.getElementById('note-body')?.value.trim()  || '';
+      const priority = document.getElementById('note-priority')?.value || 'medium';
+      const status   = document.getElementById('note-status')?.value   || 'active';
+      const catId    = document.getElementById('note-cat')?.value       || null;
+      const dueDate  = document.getElementById('note-due')?.value       || '';
+      const dueTime  = document.getElementById('note-due-time')?.value  || '';
+      const reminder = document.getElementById('note-reminder')?.value  || '';
+      const apptName = document.getElementById('note-appt-name')?.value || '';
+      const apptDt   = document.getElementById('note-appt-dt')?.value   || '';
+      const leaveBy  = document.getElementById('note-leave')?.value     || '';
+      const locName  = document.getElementById('note-location')?.value  || '';
+      const address  = document.getElementById('note-address')?.value   || '';
 
-    const patch = {
-      title, body, priority, status, color: _selectedNoteColor,
-      categoryId: catId || null,
-      dueDate, dueTime, reminder, appointmentName: apptName,
-      appointmentDatetime: apptDt, leaveBy, locationName: locName, address,
-    };
+      if (!title && !body) { App.showToast(App.I18n.t('toast_enter_title'), 'error'); return; }
 
-    if (id) {
-      App.Storage.updateNote(id, patch);
-      App.showToast(App.I18n.t('toast_note_updated'), 'success');
-    } else {
-      App.Storage.addNote(patch);
-      App.showToast(App.I18n.t('toast_note_saved'), 'success');
+      const patch = {
+        title, body, priority, status, color: _selectedNoteColor,
+        categoryId: catId || null,
+        dueDate, dueTime, reminder, appointmentName: apptName,
+        appointmentDatetime: apptDt, leaveBy, locationName: locName, address,
+      };
+
+      if (id) {
+        App.Storage.updateNote(id, patch);
+        App.showToast(App.I18n.t('toast_note_updated'), 'success');
+      } else {
+        App.Storage.addNote(patch);
+        App.showToast(App.I18n.t('toast_note_saved'), 'success');
+      }
+      _closeModal();
+      render();
+      if (document.getElementById('pane-calendar')?.classList.contains('active')) App.Calendar?.render();
+      App.Reminders?.checkDue();
+    } finally {
+      _saving = false;
+      if (saveBtn && document.contains(saveBtn)) saveBtn.disabled = false;
     }
-    _closeModal();
-    render();
-    if (document.getElementById('pane-calendar')?.classList.contains('active')) App.Calendar?.render();
-    App.Reminders?.checkDue();
   }
 
   function _editNote(id) {
@@ -700,16 +711,20 @@
       </div>
       <div class="cat-icon-picker" role="radiogroup" aria-label="${App.I18n.t('cat_icon')}">
         <div class="cat-icon-curated-label">${App.I18n.t('cat_curated_icons')}</div>
+        <input id="cat-icon-search" class="form-input cat-icon-search" autocomplete="off" autocorrect="off"
+          placeholder="Search icons…" oninput="App.Notes._filterCatIcons(this.value)">
         ${CATEGORY_ICON_GROUPS.map(group => `
-          <section class="cat-icon-group" aria-label="${_esc(group.label[lang])}">
+          <section class="cat-icon-group" aria-label="${_esc(group.label[lang])}" data-icon-group>
             <div class="cat-icon-group-title">${_esc(group.label[lang])}</div>
             <div class="cat-icon-grid">
               ${group.icons.map(icon => {
                 const id = icon[0];
                 const selected = id === safeIcon;
+                const search = `${group.label.en} ${group.label.es} ${icon[1]} ${icon[2]} ${id}`.toLowerCase();
                 return `<button type="button" class="cat-icon-option${selected ? ' selected' : ''}"
                   role="radio" aria-checked="${selected ? 'true' : 'false'}"
-                  data-icon="${_esc(id)}" onclick="App.Notes._selectCatIcon('${_esc(id)}')">
+                  data-icon="${_esc(id)}" data-icon-search="${_esc(search)}"
+                  onclick="App.Notes._selectCatIcon('${_esc(id)}')">
                   ${_iconHtml(id)}
                   <span>${_esc(lang === 'es' ? icon[2] : icon[1])}</span>
                 </button>`;
@@ -717,12 +732,13 @@
             </div>
           </section>
         `).join('')}
-        <section class="cat-icon-group cat-custom-emoji-section" aria-label="${App.I18n.t('cat_custom_emoji')}">
-          <div class="cat-icon-group-title">${App.I18n.t('cat_custom_emoji')}</div>
+        <div id="cat-icon-empty" class="cat-icon-empty" hidden>No matching icons</div>
+        <details class="cat-custom-emoji-section cat-custom-fallback">
+          <summary>${App.I18n.t('cat_custom_emoji')}</summary>
           <div class="cat-custom-emoji-panel">
             <div class="cat-custom-emoji-copy">${App.I18n.t('cat_custom_emoji_sub')}</div>
             <div class="cat-custom-emoji-row">
-              <input id="cat-custom-emoji" class="form-input cat-emoji-input" inputmode="text" autocomplete="off"
+              <input id="cat-custom-emoji" class="form-input cat-emoji-input" inputmode="text" autocomplete="off" autocorrect="off"
                 maxlength="12" placeholder="${App.I18n.t('cat_custom_emoji_ph')}" value="${isCustom ? _esc(safeIcon) : ''}"
                 oninput="App.Notes._selectCustomEmoji(this.value,false)">
               <button type="button" class="btn btn-secondary btn-sm" onclick="App.Notes._selectCustomEmoji(document.getElementById('cat-custom-emoji')?.value,true)">
@@ -731,8 +747,23 @@
             </div>
             <div id="cat-custom-emoji-help" class="settings-row-sub">${App.I18n.t('cat_custom_emoji_help')}</div>
           </div>
-        </section>
+        </details>
       </div>`;
+  }
+
+  function _filterCatIcons(query) {
+    const q = String(query || '').trim().toLowerCase();
+    let shown = 0;
+    document.querySelectorAll('.cat-icon-option').forEach(btn => {
+      const match = !q || (btn.dataset.iconSearch || '').includes(q);
+      btn.hidden = !match;
+      if (match) shown += 1;
+    });
+    document.querySelectorAll('[data-icon-group]').forEach(group => {
+      group.hidden = !group.querySelector('.cat-icon-option:not([hidden])');
+    });
+    const empty = document.getElementById('cat-icon-empty');
+    if (empty) empty.hidden = shown > 0;
   }
 
   function _selectCatIcon(icon) {
@@ -800,7 +831,7 @@
           <div class="modal-title">${isEdit ? App.I18n.t('edit_category') : App.I18n.t('add_category')}</div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_name')}</label>
-            <input id="cat-name" class="form-input" placeholder="Category name…" value="${_esc(c.name)}">
+            <input id="cat-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Category name…" value="${_esc(c.name)}">
           </div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_icon')}</label>
@@ -908,7 +939,7 @@
     _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
     _openNoteModal, _closeModal, _saveNote, _pickColor,
     _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
-    _selectCatIcon, _selectCustomEmoji,
+    _selectCatIcon, _selectCustomEmoji, _filterCatIcons,
     _openAppleMaps, _openGoogleMaps, _copyAddress,
   };
 

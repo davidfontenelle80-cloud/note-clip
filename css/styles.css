@@ -1375,7 +1375,42 @@ input, textarea, select {
   font-weight: 800;
   color: var(--color-text);
 }
+.cat-icon-search {
+  margin: var(--space-sm) 0;
+}
+.cat-icon-grid {
+  gap: 10px;
+}
+.cat-icon-option {
+  min-height: 86px;
+}
+.cat-icon-option .cat-stationery,
+.cat-icon-option .cat-emoji-icon {
+  transform: rotate(-4deg) scale(1.08);
+}
+.cat-icon-option[hidden],
+.cat-icon-group[hidden],
+.cat-icon-empty[hidden] {
+  display: none !important;
+}
+.cat-icon-empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+  padding: var(--space-md);
+}
+.cat-custom-fallback {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-sm);
+}
+.cat-custom-fallback summary {
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 800;
+}
 .cat-custom-emoji-panel {
+  margin-top: var(--space-sm);
   padding: var(--space-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
