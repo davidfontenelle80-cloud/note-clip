@@ -116,20 +116,14 @@
   };
 
   function _safeIconId(icon) {
-    return App.Storage.sanitizeCategoryIcon
+    const safeIcon = App.Storage.sanitizeCategoryIcon
       ? App.Storage.sanitizeCategoryIcon(icon)
       : 'ic_cat_note';
-  }
-
-  function _isCustomEmojiIcon(icon) {
-    return App.Storage.isCustomCategoryEmoji
-      ? App.Storage.isCustomCategoryEmoji(icon)
-      : false;
+    return String(safeIcon || '').startsWith('ic_cat_') ? safeIcon : 'ic_cat_note';
   }
 
   function _catClassForIcon(icon) {
     const safeIcon = _safeIconId(icon);
-    if (_isCustomEmojiIcon(safeIcon)) return 'emoji';
     if (CAT_ICON_CLASS[safeIcon]) return CAT_ICON_CLASS[safeIcon];
     if (/folder|archive|filed|record|project/.test(safeIcon)) return 'folder';
     if (/stack|notes|cards|reference|old/.test(safeIcon)) return 'stack';
@@ -160,16 +154,15 @@
   }
 
   function _iconOption(id) {
-    if (_isCustomEmojiIcon(id)) return [id, App.I18n.t('cat_custom_emoji'), App.I18n.t('cat_custom_emoji')];
+    const safeIcon = _safeIconId(id);
     for (const group of CATEGORY_ICON_GROUPS) {
-      const found = group.icons.find(icon => icon[0] === id);
+      const found = group.icons.find(icon => icon[0] === safeIcon);
       if (found) return found;
     }
     return CATEGORY_ICON_GROUPS[0].icons[0];
   }
 
   function _iconLabel(id) {
-    if (_isCustomEmojiIcon(id)) return `${App.I18n.t('cat_custom_emoji')}: ${id}`;
     const icon = _iconOption(id);
     return App.I18n.current() === 'es' ? icon[2] : icon[1];
   }
@@ -193,9 +186,6 @@
   // Render category icons as the same paper/stationery family as the nav.
   function _iconHtml(icon, cls) {
     const safeIcon = _safeIconId(icon);
-    if (_isCustomEmojiIcon(safeIcon)) {
-      return `<span class="cat-emoji-icon${cls === 'chip-icon-img' ? ' cat-emoji-chip' : ''}" aria-hidden="true">${_esc(safeIcon)}</span>`;
-    }
     const catClass = _catClassForIcon(safeIcon);
     if (catClass && cls === 'chip-icon-img') {
       return `<span class="cat-chip-stationery cat-${catClass}" aria-hidden="true"></span>`;
@@ -300,7 +290,7 @@
   }
 
   // ── Notes Grid View ───────────────────────────────────────────────
-  function buildNotesGrid(state) {
+  function filteredNotes(state) {
     let notes = state.notes;
     if (_filterCatId) notes = notes.filter(n => n.categoryId === _filterCatId);
 
@@ -341,6 +331,28 @@
       return (b.createdAt || '').localeCompare(a.createdAt || '');
     });
 
+    return notes;
+  }
+
+  function buildNotesResultContent(state) {
+    const notes = filteredNotes(state);
+
+    if (!notes.length) {
+      const name = _profileName();
+      const firstNoteText = !_searchQuery && name
+        ? App.I18n.t('empty_first_note_named', { name: _esc(name) })
+        : App.I18n.t('no_notes');
+      return `<div class="empty-state">
+        <div class="empty-state-icon"><span class="empty-stationery empty-notes" aria-hidden="true"><span></span></span></div>
+        <div class="empty-state-text">${firstNoteText}</div>
+        <div class="empty-state-sub">${_searchQuery ? 'No results - try a different search' : App.I18n.t('tap_plus')}</div>
+      </div>`;
+    }
+
+    return `<div class="notes-grid">${notes.map(n => buildNoteCard(n, state)).join('')}</div>`;
+  }
+
+  function buildNotesGrid(state) {
     const searchBar = `
       <div class="search-bar-wrap" style="margin-bottom:var(--space-md)">
         <input id="notes-search" class="form-input" type="search"
@@ -349,18 +361,7 @@
           oninput="App.Notes._setSearch(this.value)">
       </div>`;
 
-    if (!notes.length) {
-      const name = _profileName();
-      const firstNoteText = !_searchQuery && name
-        ? App.I18n.t('empty_first_note_named', { name: _esc(name) })
-        : App.I18n.t('no_notes');
-      return searchBar + `<div class="empty-state">
-        <div class="empty-state-icon"><span class="empty-stationery empty-notes" aria-hidden="true"><span></span></span></div>
-        <div class="empty-state-text">${firstNoteText}</div>
-        <div class="empty-state-sub">${_searchQuery ? 'No results — try a different search' : App.I18n.t('tap_plus')}</div>
-      </div>`;
-    }
-    return searchBar + `<div class="notes-grid">${notes.map(n => buildNoteCard(n, state)).join('')}</div>`;
+    return searchBar + `<div class="notes-results">${buildNotesResultContent(state)}</div>`;
   }
 
   // ── Main Render ───────────────────────────────────────────────────
@@ -428,11 +429,9 @@
 
   function _setSearch(q) {
     _searchQuery = q || '';
-    // Debounce: re-render on input without full page rebuild
-    const state = App.Storage.getState();
-    const gridEl = document.querySelector('.notes-grid, .empty-state');
-    const wrapEl = gridEl ? gridEl.closest('.notes-grid, .search-bar-wrap')?.parentElement : null;
-    render();
+    const results = document.querySelector('#pane-notes .notes-results');
+    if (!results) return;
+    results.innerHTML = buildNotesResultContent(App.Storage.getState());
   }
 
   // ── Note Modal ────────────────────────────────────────────────────
@@ -474,10 +473,11 @@
 
     const html = `
       <div id="note-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
-        <div class="modal-sheet">
+        <div class="modal-sheet modal-sheet-sticky">
           <div class="modal-handle"></div>
           <div class="modal-title">${isEdit ? App.I18n.t('edit_note') : App.I18n.t('add_note')}</div>
 
+          <div class="modal-scroll-body">
           <div class="form-group">
             <label class="form-label">${App.I18n.t('note_title')}</label>
             <input id="note-title" class="form-input" autocomplete="off" autocorrect="off" placeholder="${App.I18n.t('note_title_ph')}" value="${_esc(n.title)}">
@@ -569,6 +569,7 @@
               ${mapsBlock}
             </div>
           </details>
+          </div>
 
           <div class="modal-actions sticky-actions">
             ${isEdit ? `
@@ -713,7 +714,6 @@
   function _categoryIconPickerHtml(selectedIcon) {
     const lang = App.I18n.current() === 'es' ? 'es' : 'en';
     const safeIcon = _safeIconId(selectedIcon);
-    const isCustom = _isCustomEmojiIcon(safeIcon);
     return `
       <input id="cat-icon" type="hidden" value="${_esc(safeIcon)}">
       <div class="cat-icon-selected" aria-live="polite">
@@ -747,21 +747,6 @@
           </section>
         `).join('')}
         <div id="cat-icon-empty" class="cat-icon-empty" hidden>No matching icons</div>
-        <details class="cat-custom-emoji-section cat-custom-fallback">
-          <summary>${App.I18n.t('cat_custom_emoji')}</summary>
-          <div class="cat-custom-emoji-panel">
-            <div class="cat-custom-emoji-copy">${App.I18n.t('cat_custom_emoji_sub')}</div>
-            <div class="cat-custom-emoji-row">
-              <input id="cat-custom-emoji" class="form-input cat-emoji-input" inputmode="text" autocomplete="off" autocorrect="off"
-                maxlength="12" placeholder="${App.I18n.t('cat_custom_emoji_ph')}" value="${isCustom ? _esc(safeIcon) : ''}"
-                oninput="App.Notes._selectCustomEmoji(this.value,false)">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="App.Notes._selectCustomEmoji(document.getElementById('cat-custom-emoji')?.value,true)">
-                ${App.I18n.t('cat_use_emoji')}
-              </button>
-            </div>
-            <div id="cat-custom-emoji-help" class="settings-row-sub">${App.I18n.t('cat_custom_emoji_help')}</div>
-          </div>
-        </details>
       </div>`;
   }
 
@@ -789,37 +774,10 @@
     const label = document.getElementById('cat-icon-selected-name');
     if (preview) preview.innerHTML = _iconHtml(safeIcon);
     if (label) label.textContent = _iconLabel(safeIcon);
-    const customInput = document.getElementById('cat-custom-emoji');
-    if (customInput && !_isCustomEmojiIcon(safeIcon)) customInput.value = '';
     document.querySelectorAll('.cat-icon-option').forEach(btn => {
       const selected = btn.dataset.icon === safeIcon;
       btn.classList.toggle('selected', selected);
       btn.setAttribute('aria-checked', selected ? 'true' : 'false');
-    });
-  }
-
-  function _selectCustomEmoji(value, showError) {
-    const emoji = String(value || '').trim();
-    const help = document.getElementById('cat-custom-emoji-help');
-    if (!emoji) {
-      if (help) help.textContent = App.I18n.t('cat_custom_emoji_help');
-      return;
-    }
-    if (!_isCustomEmojiIcon(emoji)) {
-      if (help) help.textContent = App.I18n.t('cat_invalid_emoji');
-      if (showError) App.showToast(App.I18n.t('cat_invalid_emoji'), 'error');
-      return;
-    }
-    const input = document.getElementById('cat-icon');
-    const preview = document.getElementById('cat-icon-preview');
-    const label = document.getElementById('cat-icon-selected-name');
-    if (input) input.value = emoji;
-    if (preview) preview.innerHTML = _iconHtml(emoji);
-    if (label) label.textContent = _iconLabel(emoji);
-    if (help) help.textContent = App.I18n.t('cat_custom_emoji_selected');
-    document.querySelectorAll('.cat-icon-option').forEach(btn => {
-      btn.classList.remove('selected');
-      btn.setAttribute('aria-checked', 'false');
     });
   }
 
@@ -840,9 +798,10 @@
 
     const html = `
       <div id="cat-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
-        <div class="modal-sheet cat-modal-sheet">
+        <div class="modal-sheet modal-sheet-sticky cat-modal-sheet">
           <div class="modal-handle"></div>
           <div class="modal-title">${isEdit ? App.I18n.t('edit_category') : App.I18n.t('add_category')}</div>
+          <div class="modal-scroll-body">
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_name')}</label>
             <input id="cat-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Category name…" value="${_esc(c.name)}">
@@ -851,7 +810,8 @@
             <label class="form-label">${App.I18n.t('cat_icon')}</label>
             ${_categoryIconPickerHtml(icon)}
           </div>
-          <div class="modal-actions">
+          </div>
+          <div class="modal-actions sticky-actions">
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
             <button class="btn btn-primary" onclick="App.Notes._saveCat('${isEdit?c.id:''}')">${App.I18n.t('save')}</button>
           </div>
@@ -953,7 +913,7 @@
     _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
     _openNoteModal, _closeModal, _saveNote, _pickColor,
     _openCatModal, _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
-    _selectCatIcon, _selectCustomEmoji, _filterCatIcons,
+    _selectCatIcon, _filterCatIcons,
     _openAppleMaps, _openGoogleMaps, _copyAddress,
   };
 
