@@ -22,37 +22,75 @@
   }
 
   const CATEGORY_ICON_GROUPS = [
-    { key: 'notes_paper', label: { en: 'Notes / Paper', es: 'Notas / Papel' }, icons: [
+    { key: 'notes_paper', label: { en: 'Notes & Paper', es: 'Notas y papel' }, icons: [
       ['ic_cat_note','Note','Nota'], ['ic_cat_sticky','Sticky note','Nota adhesiva'], ['ic_cat_notebook','Notebook','Cuaderno'], ['ic_cat_clipboard','Clipboard','Portapapeles'],
       ['ic_cat_paper_stack','Paper stack','Papeles'], ['ic_cat_bookmark','Bookmark','Marcador'], ['ic_cat_paperclip','Paper clip','Clip'], ['ic_cat_folder','Folder','Carpeta'],
+      ['ic_cat_index_card','Index card','Tarjeta'], ['ic_cat_lined_note','Lined note','Nota rayada'], ['ic_cat_daily_note','Daily note','Nota diaria'], ['ic_cat_label_note','Label note','Etiqueta'],
     ] },
     { key: 'work', label: { en: 'Work', es: 'Trabajo' }, icons: [
-      ['ic_cat_work_note','Work note','Nota de trabajo'], ['ic_cat_work_folder','Folder','Carpeta'], ['ic_cat_work_clipboard','Clipboard','Portapapeles'],
-      ['ic_cat_checklist','Checklist','Lista'], ['ic_cat_briefcase_note','Briefcase note','Nota laboral'], ['ic_cat_receipt','Receipt','Recibo'],
-    ] },
-    { key: 'home', label: { en: 'Home', es: 'Hogar' }, icons: [
-      ['ic_cat_home_note','Home note','Nota de hogar'], ['ic_cat_grocery_note','Grocery note','Nota de compras'], ['ic_cat_cleaning_note','Cleaning note','Nota de limpieza'],
-      ['ic_cat_meal_note','Meal note','Nota de comida'], ['ic_cat_household_list','Household list','Lista del hogar'],
-    ] },
-    { key: 'health', label: { en: 'Health', es: 'Salud' }, icons: [
-      ['ic_cat_health_note','Health note','Nota de salud'], ['ic_cat_medicine_note','Medicine note','Nota de medicina'], ['ic_cat_walking_note','Walking note','Nota de caminar'],
-      ['ic_cat_sleep_note','Sleep note','Nota de descanso'], ['ic_cat_water_note','Water note','Nota de agua'],
+      ['ic_cat_work_note','Work note','Nota de trabajo'], ['ic_cat_work_folder','Work folder','Carpeta de trabajo'], ['ic_cat_work_clipboard','Work clipboard','Portapapeles'], ['ic_cat_checklist','Checklist','Lista'],
+      ['ic_cat_briefcase_note','Briefcase note','Nota laboral'], ['ic_cat_receipt','Receipt','Recibo'], ['ic_cat_task_note','Task note','Nota de tarea'], ['ic_cat_office_note','Office note','Nota de oficina'],
+      ['ic_cat_client_note','Client note','Nota de cliente'], ['ic_cat_deadline_note','Deadline note','Fecha limite'],
     ] },
     { key: 'personal', label: { en: 'Personal', es: 'Personal' }, icons: [
-      ['ic_cat_personal_card','Personal card','Tarjeta personal'], ['ic_cat_calendar','Calendar','Calendario'], ['ic_cat_reminder_bell','Reminder bell','Recordatorio'],
-      ['ic_cat_star','Star','Estrella'], ['ic_cat_checkmark','Checkmark','Marca'], ['ic_cat_goal_note','Goal note','Meta'],
+      ['ic_cat_personal_card','Personal card','Tarjeta personal'], ['ic_cat_calendar','Calendar','Calendario'], ['ic_cat_reminder_bell','Reminder bell','Recordatorio'], ['ic_cat_star','Star','Estrella'],
+      ['ic_cat_checkmark','Checkmark','Marca'], ['ic_cat_goal_note','Goal note','Meta'], ['ic_cat_habit_note','Habit note','Habito'], ['ic_cat_journal_note','Journal note','Diario'],
+      ['ic_cat_birthday_note','Birthday note','Cumpleanos'], ['ic_cat_profile_note','Profile note','Perfil'],
+    ] },
+    { key: 'home', label: { en: 'Home', es: 'Hogar' }, icons: [
+      ['ic_cat_home_note','Home note','Nota de hogar'], ['ic_cat_grocery_note','Grocery note','Nota de compras'], ['ic_cat_cleaning_note','Cleaning note','Limpieza'], ['ic_cat_meal_note','Meal note','Comida'],
+      ['ic_cat_household_list','Household list','Lista del hogar'], ['ic_cat_repair_note','Repair note','Reparacion'], ['ic_cat_chore_note','Chore note','Tarea de casa'], ['ic_cat_garden_note','Garden note','Jardin'],
+      ['ic_cat_utility_note','Utility note','Servicios'], ['ic_cat_recipe_card','Recipe card','Receta'],
+    ] },
+    { key: 'medical', label: { en: 'Medical', es: 'Salud' }, icons: [
+      ['ic_cat_health_note','Health note','Nota de salud'], ['ic_cat_medicine_note','Medicine note','Medicina'], ['ic_cat_walking_note','Walking note','Caminar'], ['ic_cat_sleep_note','Sleep note','Descanso'],
+      ['ic_cat_water_note','Water note','Agua'], ['ic_cat_appointment_note','Appointment note','Cita'], ['ic_cat_wellness_log','Wellness log','Registro'], ['ic_cat_care_note','Care note','Cuidado'],
+      ['ic_cat_pharmacy_note','Pharmacy note','Farmacia'],
+    ] },
+    { key: 'finance', label: { en: 'Finance', es: 'Finanzas' }, icons: [
+      ['ic_cat_budget_note','Budget note','Presupuesto'], ['ic_cat_bill_note','Bill note','Factura'], ['ic_cat_savings_note','Savings note','Ahorros'], ['ic_cat_invoice_note','Invoice note','Factura'],
+      ['ic_cat_tax_folder','Tax folder','Impuestos'], ['ic_cat_expense_list','Expense list','Gastos'], ['ic_cat_payment_note','Payment note','Pago'], ['ic_cat_account_note','Account note','Cuenta'],
+      ['ic_cat_price_note','Price note','Precio'], ['ic_cat_finance_receipt','Finance receipt','Recibo'],
+    ] },
+    { key: 'travel', label: { en: 'Travel', es: 'Viajes' }, icons: [
+      ['ic_cat_travel_folder','Travel folder','Carpeta de viaje'], ['ic_cat_itinerary_note','Itinerary note','Itinerario'], ['ic_cat_map_note','Map note','Mapa'], ['ic_cat_packing_list','Packing list','Maleta'],
+      ['ic_cat_reservation_note','Reservation note','Reserva'], ['ic_cat_route_note','Route note','Ruta'], ['ic_cat_fuel_receipt','Fuel receipt','Combustible'], ['ic_cat_trip_checklist','Trip checklist','Lista de viaje'],
+      ['ic_cat_luggage_tag','Luggage tag','Etiqueta'], ['ic_cat_travel_label','Travel label','Etiqueta viaje'],
+    ] },
+    { key: 'education', label: { en: 'Education', es: 'Educacion' }, icons: [
+      ['ic_cat_study_note','Study note','Estudio'], ['ic_cat_class_notebook','Class notebook','Clase'], ['ic_cat_reading_list','Reading list','Lectura'], ['ic_cat_lesson_note','Lesson note','Leccion'],
+      ['ic_cat_assignment_clipboard','Assignment clipboard','Asignacion'], ['ic_cat_school_folder','School folder','Carpeta'], ['ic_cat_vocab_cards','Vocab cards','Vocabulario'], ['ic_cat_research_notes','Research notes','Investigacion'],
+      ['ic_cat_course_checklist','Course checklist','Curso'], ['ic_cat_learning_goal','Learning goal','Meta'],
+    ] },
+    { key: 'shopping', label: { en: 'Shopping', es: 'Compras' }, icons: [
+      ['ic_cat_shopping_list','Shopping list','Lista de compras'], ['ic_cat_coupon_note','Coupon note','Cupon'], ['ic_cat_receipt_note','Receipt note','Recibo'], ['ic_cat_order_label','Order label','Pedido'],
+      ['ic_cat_returns_note','Returns note','Devolucion'], ['ic_cat_wishlist_note','Wishlist note','Deseos'], ['ic_cat_price_tag_note','Price tag','Precio'], ['ic_cat_pantry_list','Pantry list','Despensa'],
+      ['ic_cat_store_note','Store note','Tienda'], ['ic_cat_purchase_plan','Purchase plan','Plan de compra'],
+    ] },
+    { key: 'meetings', label: { en: 'Meetings', es: 'Reuniones' }, icons: [
+      ['ic_cat_agenda_note','Agenda note','Agenda'], ['ic_cat_meeting_notes','Meeting notes','Notas'], ['ic_cat_minutes_note','Minutes note','Minutas'], ['ic_cat_appointment_card','Appointment card','Cita'],
+      ['ic_cat_attendee_list','Attendee list','Asistentes'], ['ic_cat_followup_flag','Follow-up flag','Seguimiento'], ['ic_cat_schedule_note','Schedule note','Horario'], ['ic_cat_call_agenda','Call agenda','Llamada'],
+      ['ic_cat_planning_meeting','Planning note','Planificacion'],
+    ] },
+    { key: 'communication', label: { en: 'Communication', es: 'Comunicacion' }, icons: [
+      ['ic_cat_message_note','Message note','Mensaje'], ['ic_cat_envelope_note','Envelope note','Correo'], ['ic_cat_contact_card','Contact card','Contacto'], ['ic_cat_announcement_note','Announcement note','Aviso'],
+      ['ic_cat_reply_note','Reply note','Respuesta'], ['ic_cat_draft_note','Draft note','Borrador'], ['ic_cat_call_note','Call note','Llamada'], ['ic_cat_text_note','Text note','Texto'],
+      ['ic_cat_email_note','Email note','Email'], ['ic_cat_contact_memo','Contact memo','Memo'],
     ] },
     { key: 'ideas', label: { en: 'Ideas', es: 'Ideas' }, icons: [
-      ['ic_cat_idea_note','Idea note','Nota de idea'], ['ic_cat_lightbulb_note','Lightbulb note','Nota de idea'], ['ic_cat_pencil_note','Pencil note','Nota de lapiz'],
-      ['ic_cat_sketch_note','Sketch note','Boceto'], ['ic_cat_bookmark_note','Bookmark note','Nota marcada'],
+      ['ic_cat_idea_note','Idea note','Idea'], ['ic_cat_lightbulb_note','Lightbulb note','Idea'], ['ic_cat_pencil_note','Pencil note','Lapiz'], ['ic_cat_sketch_note','Sketch note','Boceto'],
+      ['ic_cat_bookmark_note','Bookmark note','Marcador'], ['ic_cat_brainstorm_note','Brainstorm note','Lluvia de ideas'], ['ic_cat_outline_note','Outline note','Bosquejo'], ['ic_cat_concept_card','Concept card','Concepto'],
+      ['ic_cat_inspiration_note','Inspiration note','Inspiracion'],
     ] },
-    { key: 'followup', label: { en: 'Follow-Up', es: 'Seguimiento' }, icons: [
-      ['ic_cat_pinned_note','Pinned note','Nota fijada'], ['ic_cat_flag_note','Flag note','Nota marcada'], ['ic_cat_reminder_note','Reminder note','Nota de recordatorio'],
-      ['ic_cat_clock_note','Clock note','Nota de hora'], ['ic_cat_checklist_note','Checklist note','Nota de lista'],
+    { key: 'projects', label: { en: 'Projects', es: 'Proyectos' }, icons: [
+      ['ic_cat_project_folder','Project folder','Proyecto'], ['ic_cat_milestone_note','Milestone note','Hito'], ['ic_cat_task_board','Task board','Tablero'], ['ic_cat_launch_list','Launch list','Lanzamiento'],
+      ['ic_cat_planning_note','Planning note','Plan'], ['ic_cat_roadmap_note','Roadmap note','Ruta'], ['ic_cat_review_note','Review note','Revision'], ['ic_cat_blocked_note','Blocked note','Bloqueado'],
+      ['ic_cat_project_checklist','Project checklist','Checklist'], ['ic_cat_status_note','Status note','Estado'],
     ] },
-    { key: 'orders', label: { en: 'Orders', es: 'Pedidos' }, icons: [
-      ['ic_cat_package_note','Package note','Nota de paquete'], ['ic_cat_shipping_label','Shipping label','Etiqueta de envio'], ['ic_cat_order_receipt','Receipt','Recibo'],
-      ['ic_cat_delivery_note','Delivery note','Nota de entrega'], ['ic_cat_order_checklist','Order checklist','Lista de pedido'],
+    { key: 'archive', label: { en: 'Archive', es: 'Archivo' }, icons: [
+      ['ic_cat_archive_box','Archive box','Caja'], ['ic_cat_filed_note','Filed note','Archivado'], ['ic_cat_record_folder','Record folder','Registro'], ['ic_cat_old_notes','Old notes','Notas viejas'],
+      ['ic_cat_storage_label','Storage label','Etiqueta'], ['ic_cat_reference_stack','Reference stack','Referencias'], ['ic_cat_completed_file','Completed file','Completado'], ['ic_cat_backup_note','Backup note','Respaldo'],
+      ['ic_cat_history_note','History note','Historial'],
     ] },
   ];
 
@@ -83,7 +121,46 @@
       : 'ic_cat_note';
   }
 
+  function _isCustomEmojiIcon(icon) {
+    return App.Storage.isCustomCategoryEmoji
+      ? App.Storage.isCustomCategoryEmoji(icon)
+      : false;
+  }
+
+  function _catClassForIcon(icon) {
+    const safeIcon = _safeIconId(icon);
+    if (_isCustomEmojiIcon(safeIcon)) return 'emoji';
+    if (CAT_ICON_CLASS[safeIcon]) return CAT_ICON_CLASS[safeIcon];
+    if (/folder|archive|filed|record|project/.test(safeIcon)) return 'folder';
+    if (/stack|notes|cards|reference|old/.test(safeIcon)) return 'stack';
+    if (/clipboard|assignment|board/.test(safeIcon)) return 'clipboard';
+    if (/checklist|list|task|chore|course|packing|pantry|attendee|launch/.test(safeIcon)) return 'checklist';
+    if (/receipt|bill|invoice|tax|expense|payment|budget|savings|price|finance|coupon/.test(safeIcon)) return 'receipt';
+    if (/package|shipping|delivery|order|returns|purchase/.test(safeIcon)) return 'shipping';
+    if (/travel|itinerary|map|route|reservation|luggage|trip/.test(safeIcon)) return 'delivery';
+    if (/study|class|lesson|school|vocab|research|education|reading/.test(safeIcon)) return 'notebook';
+    if (/meeting|agenda|minutes|appointment|schedule|call/.test(safeIcon)) return 'calendar';
+    if (/message|envelope|reply|draft|email|contact|announcement|memo|text/.test(safeIcon)) return 'personal';
+    if (/home|repair|utility|recipe|garden/.test(safeIcon)) return 'home';
+    if (/grocery|meal|store|shopping/.test(safeIcon)) return 'meal';
+    if (/health|care|wellness|pharmacy|medicine/.test(safeIcon)) return 'health';
+    if (/water/.test(safeIcon)) return 'water';
+    if (/sleep/.test(safeIcon)) return 'sleep';
+    if (/walking/.test(safeIcon)) return 'walking';
+    if (/idea|brainstorm|concept|inspiration|lightbulb/.test(safeIcon)) return 'idea';
+    if (/pencil|outline/.test(safeIcon)) return 'pencil';
+    if (/sketch/.test(safeIcon)) return 'sketch';
+    if (/flag|followup|blocked/.test(safeIcon)) return 'flag';
+    if (/bell|reminder/.test(safeIcon)) return 'bell';
+    if (/clock|deadline|history/.test(safeIcon)) return 'clock';
+    if (/goal|milestone|roadmap|status|review/.test(safeIcon)) return 'goal';
+    if (/bookmark|label|tag/.test(safeIcon)) return 'bookmark';
+    if (/star|birthday|wishlist/.test(safeIcon)) return 'star';
+    return 'note';
+  }
+
   function _iconOption(id) {
+    if (_isCustomEmojiIcon(id)) return [id, App.I18n.t('cat_custom_emoji'), App.I18n.t('cat_custom_emoji')];
     for (const group of CATEGORY_ICON_GROUPS) {
       const found = group.icons.find(icon => icon[0] === id);
       if (found) return found;
@@ -92,6 +169,7 @@
   }
 
   function _iconLabel(id) {
+    if (_isCustomEmojiIcon(id)) return `${App.I18n.t('cat_custom_emoji')}: ${id}`;
     const icon = _iconOption(id);
     return App.I18n.current() === 'es' ? icon[2] : icon[1];
   }
@@ -115,7 +193,10 @@
   // Render category icons as the same paper/stationery family as the nav.
   function _iconHtml(icon, cls) {
     const safeIcon = _safeIconId(icon);
-    const catClass = CAT_ICON_CLASS[safeIcon] || 'note';
+    if (_isCustomEmojiIcon(safeIcon)) {
+      return `<span class="cat-emoji-icon${cls === 'chip-icon-img' ? ' cat-emoji-chip' : ''}" aria-hidden="true">${_esc(safeIcon)}</span>`;
+    }
+    const catClass = _catClassForIcon(safeIcon);
     if (catClass && cls === 'chip-icon-img') {
       return `<span class="cat-chip-stationery cat-${catClass}" aria-hidden="true"></span>`;
     }
@@ -607,6 +688,7 @@
   function _categoryIconPickerHtml(selectedIcon) {
     const lang = App.I18n.current() === 'es' ? 'es' : 'en';
     const safeIcon = _safeIconId(selectedIcon);
+    const isCustom = _isCustomEmojiIcon(safeIcon);
     return `
       <input id="cat-icon" type="hidden" value="${_esc(safeIcon)}">
       <div class="cat-icon-selected" aria-live="polite">
@@ -617,6 +699,7 @@
         </div>
       </div>
       <div class="cat-icon-picker" role="radiogroup" aria-label="${App.I18n.t('cat_icon')}">
+        <div class="cat-icon-curated-label">${App.I18n.t('cat_curated_icons')}</div>
         ${CATEGORY_ICON_GROUPS.map(group => `
           <section class="cat-icon-group" aria-label="${_esc(group.label[lang])}">
             <div class="cat-icon-group-title">${_esc(group.label[lang])}</div>
@@ -634,6 +717,21 @@
             </div>
           </section>
         `).join('')}
+        <section class="cat-icon-group cat-custom-emoji-section" aria-label="${App.I18n.t('cat_custom_emoji')}">
+          <div class="cat-icon-group-title">${App.I18n.t('cat_custom_emoji')}</div>
+          <div class="cat-custom-emoji-panel">
+            <div class="cat-custom-emoji-copy">${App.I18n.t('cat_custom_emoji_sub')}</div>
+            <div class="cat-custom-emoji-row">
+              <input id="cat-custom-emoji" class="form-input cat-emoji-input" inputmode="text" autocomplete="off"
+                maxlength="12" placeholder="${App.I18n.t('cat_custom_emoji_ph')}" value="${isCustom ? _esc(safeIcon) : ''}"
+                oninput="App.Notes._selectCustomEmoji(this.value,false)">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="App.Notes._selectCustomEmoji(document.getElementById('cat-custom-emoji')?.value,true)">
+                ${App.I18n.t('cat_use_emoji')}
+              </button>
+            </div>
+            <div id="cat-custom-emoji-help" class="settings-row-sub">${App.I18n.t('cat_custom_emoji_help')}</div>
+          </div>
+        </section>
       </div>`;
   }
 
@@ -646,10 +744,37 @@
     const label = document.getElementById('cat-icon-selected-name');
     if (preview) preview.innerHTML = _iconHtml(safeIcon);
     if (label) label.textContent = _iconLabel(safeIcon);
+    const customInput = document.getElementById('cat-custom-emoji');
+    if (customInput && !_isCustomEmojiIcon(safeIcon)) customInput.value = '';
     document.querySelectorAll('.cat-icon-option').forEach(btn => {
       const selected = btn.dataset.icon === safeIcon;
       btn.classList.toggle('selected', selected);
       btn.setAttribute('aria-checked', selected ? 'true' : 'false');
+    });
+  }
+
+  function _selectCustomEmoji(value, showError) {
+    const emoji = String(value || '').trim();
+    const help = document.getElementById('cat-custom-emoji-help');
+    if (!emoji) {
+      if (help) help.textContent = App.I18n.t('cat_custom_emoji_help');
+      return;
+    }
+    if (!_isCustomEmojiIcon(emoji)) {
+      if (help) help.textContent = App.I18n.t('cat_invalid_emoji');
+      if (showError) App.showToast(App.I18n.t('cat_invalid_emoji'), 'error');
+      return;
+    }
+    const input = document.getElementById('cat-icon');
+    const preview = document.getElementById('cat-icon-preview');
+    const label = document.getElementById('cat-icon-selected-name');
+    if (input) input.value = emoji;
+    if (preview) preview.innerHTML = _iconHtml(emoji);
+    if (label) label.textContent = _iconLabel(emoji);
+    if (help) help.textContent = App.I18n.t('cat_custom_emoji_selected');
+    document.querySelectorAll('.cat-icon-option').forEach(btn => {
+      btn.classList.remove('selected');
+      btn.setAttribute('aria-checked', 'false');
     });
   }
 
@@ -783,7 +908,7 @@
     _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
     _openNoteModal, _closeModal, _saveNote, _pickColor,
     _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
-    _selectCatIcon,
+    _selectCatIcon, _selectCustomEmoji,
     _openAppleMaps, _openGoogleMaps, _copyAddress,
   };
 
