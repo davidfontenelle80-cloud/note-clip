@@ -1,12 +1,10 @@
 /**
  * dashboard.js — Note Clip PWA
- * Dashboard tab: greeting, today's focus, today's tasks, quick note.
+ * Dashboard tab: greeting, today's focus, today's tasks, quick note,
  * Stage 2 — Items C + D.
  */
 (function (App) {
   'use strict';
-
-  let _calYear, _calMonth, _selectedDate;
 
   // ── Helpers ───────────────────────────────────────────────────────
   function _esc(s) {
@@ -44,156 +42,73 @@
     return `<span class="greeting-stationery-icon greeting-${period}" aria-hidden="true"><span></span></span>`;
   }
 
-  // ── Calendar ──────────────────────────────────────────────────────
-  function buildCalendar(year, month) {
-    const today    = new Date();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrev  = new Date(year, month, 0).getDate();
+
+  // ── Weather ───────────────────────────────────────────────────────
+  let _weatherCache = null; // { icon, temp, fetchedAt }
+  let _weatherFetching = false;
+  let _geoGranted = false; // true after user explicitly toggled ON
+
+  const WMO_ICON = {
+    0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
+    45:'🌫️', 48:'🌫️',
+    51:'🌦️', 53:'🌦️', 55:'🌧️',
+    61:'🌧️', 63:'🌧️', 65:'🌧️',
+    71:'🌨️', 73:'🌨️', 75:'❄️',
+    80:'🌦️', 81:'🌧️', 82:'🌧️',
+    95:'⛈️', 96:'⛈️', 99:'⛈️',
+  };
+
+  function _weatherIcon(code) {
+    return WMO_ICON[code] || '🌡️';
+  }
+
+  function _weatherChipHtml() {
+    if (!_weatherCache) return '';
+    return `<div class="weather-chip">
+      <span class="weather-chip-icon">${_weatherCache.icon}</span>
+      <span class="weather-chip-temp">${_weatherCache.temp}°F</span>
+    </div>`;
+  }
+
+  function _fetchWeather() {
     const state = App.Storage.getState();
-    const noteDates = new Set(
-      state.notes.filter(n => n.dueDate).map(n => n.dueDate.slice(0, 10))
+    if (!state.settings.weatherEnabled) return;
+    if (_weatherFetching) return;
+    // Only call geolocation once per session (or on first toggle-ON)
+    _weatherFetching = true;
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
+        fetch(url)
+          .then(r => r.json())
+          .then(data => {
+            const cw = data.current_weather;
+            if (!cw) return;
+            _weatherCache = {
+              icon: _weatherIcon(cw.weathercode),
+              temp: Math.round(cw.temperature),
+              fetchedAt: Date.now(),
+            };
+            _weatherFetching = false;
+            _renderWeatherChip();
+          })
+          .catch(() => { _weatherFetching = false; });
+      },
+      () => { _weatherFetching = false; } // denied / error — hide silently
     );
-
-    const monthNames   = ['January','February','March','April','May','June',
-      'July','August','September','October','November','December'];
-    const monthNamesEs = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-      'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    const lang = App.I18n.current();
-    const monthLabel = (lang === 'es' ? monthNamesEs : monthNames)[month];
-    const dayLabels  = lang === 'es'
-      ? ['Do','Lu','Ma','Mi','Ju','Vi','Sa']
-      : ['Su','Mo','Tu','We','Th','Fr','Sa'];
-
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
-    let cells = '';
-    for (let i = firstDay - 1; i >= 0; i--)
-      cells += `<div class="cal-day other-month">${daysInPrev - i}</div>`;
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const cls = [
-        'cal-day',
-        ds === todayStr      ? 'today'    : '',
-        ds === _selectedDate ? 'selected' : '',
-        noteDates.has(ds)   ? 'has-note' : '',
-      ].filter(Boolean).join(' ');
-      cells += `<button type="button" class="${cls}" data-date="${ds}" aria-label="${ds}"
-        onclick="App.Dashboard._selectDate('${ds}')">${d}</button>`;
-    }
-
-    const total = Math.ceil((firstDay + daysInMonth) / 7) * 7;
-    for (let d = 1; d <= total - firstDay - daysInMonth; d++)
-      cells += `<div class="cal-day other-month">${d}</div>`;
-
-    return `
-      <div class="mini-calendar" id="dash-calendar">
-        <div class="cal-header">
-          <button class="cal-nav-btn" onclick="App.Dashboard._prevMonth()">&#8249;</button>
-          <span class="cal-month-label">
-            <span style="cursor:pointer" onclick="App.Dashboard._openMonthPicker()">${monthLabel}</span>
-            &nbsp;
-            <span style="cursor:pointer" onclick="App.Dashboard._openYearPicker()">${year}</span>
-          </span>
-          <button class="cal-nav-btn" onclick="App.Dashboard._nextMonth()">&#8250;</button>
-        </div>
-        <div class="cal-grid">
-          ${dayLabels.map(l => `<div class="cal-day-label">${l}</div>`).join('')}
-          ${cells}
-        </div>
-      </div>`;
   }
 
-  function _prevMonth() {
-    _calMonth--;
-    if (_calMonth < 0) { _calMonth = 11; _calYear--; }
-    _refreshCalendar();
+  function _renderWeatherChip() {
+    const el = document.getElementById('dashboard-weather');
+    if (el) el.innerHTML = _weatherChipHtml();
   }
 
-  function _nextMonth() {
-    _calMonth++;
-    if (_calMonth > 11) { _calMonth = 0; _calYear++; }
-    _refreshCalendar();
-  }
-
-  function _selectDate(ds) {
-    _selectedDate = ds;
-    _refreshCalendar();
-    const state = App.Storage.getState();
-    const dayNotes = state.notes.filter(n => n.dueDate && n.dueDate.slice(0,10) === ds);
-    if (dayNotes.length) {
-      App.showToast(App.I18n.t('toast_notes_on_date', {count: dayNotes.length, date: ds}), 'info');
-      App.showTab('notes');
-      if (App.Notes && App.Notes.filterByDate) App.Notes.filterByDate(ds);
-    } else {
-      App.showToast(App.I18n.t('toast_no_notes_on_date'), 'info');
-    }
-  }
-
-  function _refreshCalendar() {
-    const el = document.getElementById('cal-wrap');
-    if (el) {
-      el.innerHTML = buildCalendar(_calYear, _calMonth);
-      _initCalendarSwipe();
-    }
-  }
-
-  // ── Month Picker ──────────────────────────────────────────────────
-  function _openMonthPicker() {
-    const months = App.I18n.current() === 'es'
-      ? ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
-      : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const html = `<div class="picker-overlay" id="month-picker">
-      <div class="picker-panel">
-        <div class="picker-grid">
-          ${months.map((m,i) => `<button type="button" class="picker-btn${i===_calMonth?' picker-active':''}" data-val="${i}">${m}</button>`).join('')}
-        </div>
-      </div>
-    </div>`;
-    const cal = document.getElementById('dash-calendar');
-    if (!cal) return;
-    cal.insertAdjacentHTML('beforeend', html);
-    document.getElementById('month-picker').addEventListener('click', e => {
-      const btn = e.target.closest('[data-val]');
-      if (btn) { _calMonth = +btn.dataset.val; }
-      document.getElementById('month-picker')?.remove();
-      if (btn) _refreshCalendar();
-    });
-  }
-
-  // ── Year Picker ───────────────────────────────────────────────────
-  function _openYearPicker() {
-    const cur = _calYear;
-    const years = Array.from({length:11}, (_,i) => cur - 5 + i);
-    const html = `<div class="picker-overlay" id="year-picker">
-      <div class="picker-panel">
-        <div class="picker-grid" style="grid-template-columns:repeat(3,1fr)">
-          ${years.map(y => `<button type="button" class="picker-btn${y===cur?' picker-active':''}" data-val="${y}">${y}</button>`).join('')}
-        </div>
-      </div>
-    </div>`;
-    const cal = document.getElementById('dash-calendar');
-    if (!cal) return;
-    cal.insertAdjacentHTML('beforeend', html);
-    document.getElementById('year-picker').addEventListener('click', e => {
-      const btn = e.target.closest('[data-val]');
-      if (btn) { _calYear = +btn.dataset.val; }
-      document.getElementById('year-picker')?.remove();
-      if (btn) _refreshCalendar();
-    });
-  }
-
-  // ── Swipe gesture on calendar ─────────────────────────────────────
-  function _initCalendarSwipe() {
-    let sx = 0;
-    const cal = document.getElementById('dash-calendar');
-    if (!cal) return;
-    cal.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, {passive:true});
-    cal.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - sx;
-      if (Math.abs(dx) > 50) dx < 0 ? _nextMonth() : _prevMonth();
-    }, {passive:true});
+  function _clearWeather() {
+    _weatherCache = null;
+    _weatherFetching = false;
+    const el = document.getElementById('dashboard-weather');
+    if (el) el.innerHTML = '';
   }
 
   // ── Quick Note ────────────────────────────────────────────────────
@@ -265,6 +180,9 @@
         <span class="task-chip-title">${_esc(n.title || App.I18n.t('no_notes'))}</span>
         ${n.priority ? `<span class="priority-badge priority-${n.priority}">${App.I18n.t('priority_'+n.priority)}</span>` : ''}
         ${n.dueTime  ? `<span class="task-chip-time">${_formatTime(n.dueTime)}</span>` : ''}
+        <button type="button" class="bell-btn${n.reminderAt ? ' has-reminder' : ''}"
+          title="Set reminder"
+          onclick="event.stopPropagation();App.Reminders.openPickerForNote('${n.id}')">⏰</button>
       </button>
     `).join('');
   }
@@ -272,32 +190,6 @@
   function _openTask(id) {
     App.showTab('notes');
     setTimeout(() => App.Notes?._editNote?.(id), 0);
-  }
-
-  // ── Upcoming Reminders ────────────────────────────────────────────
-  function _renderUpcoming() {
-    const today = new Date().toISOString().slice(0, 10);
-    const notes = App.Storage.getNotes()
-      .filter(n => n.dueDate && n.dueDate >= today && !n.completed && !n.archived)
-      .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-      .slice(0, 5);
-    const el = document.getElementById('dash-reminders-list');
-    if (!el) return;
-    if (!notes.length) {
-      el.innerHTML = `<p class="empty-state-sm">${App.I18n.t('dash_nothing_upcoming')}</p>`;
-      return;
-    }
-    const lang = App.I18n.current();
-    const displayNotes = notes.map(n => Object.assign({}, n, { dueTime: _formatTime(n.dueTime) }));
-    el.innerHTML = displayNotes.map(n => {
-      const d     = new Date(n.dueDate + 'T12:00:00');
-      const label = d.toLocaleDateString(lang === 'es' ? 'es-US' : 'en-US', {month:'short', day:'numeric'});
-      return `<div class="reminder-row">
-        <span class="reminder-dot" style="background:var(--note-${n.color||'yellow'})"></span>
-        <span class="reminder-title">${_esc(n.title || App.I18n.t('no_notes'))}</span>
-        <span class="reminder-date">${label}${n.dueTime ? ' · '+n.dueTime : ''}</span>
-      </div>`;
-    }).join('');
   }
 
   // ── Today's Focus ─────────────────────────────────────────────────
@@ -320,17 +212,15 @@
     const name = (state.settings.username || '').trim();
     const greeting = name ? `${getGreeting(name)}, ${_esc(name)}` : getGreeting('');
 
-    if (_calYear === undefined) {
-      _calYear  = now.getFullYear();
-      _calMonth = now.getMonth();
-    }
-
     el.innerHTML = `
       <!-- Greeting -->
       <div class="greeting-block">
         <div class="greeting-text">${greetingIcon()} ${greeting}</div>
         <div class="greeting-date">${dateStr}</div>
       </div>
+
+      <!-- Weather chip (opt-in, renders into this slot) -->
+      <div id="dashboard-weather"></div>
 
       <!-- Today's Focus -->
       <div class="focus-card">
@@ -362,20 +252,24 @@
           </button>
         </div>
       </div>
+
     `;
 
     // Populate dynamic sections
     _renderTodayTasks();
-    App.Reminders?.checkDue();
+    // Trigger weather fetch if enabled (no-op if already cached or disabled)
+    const _st = App.Storage.getState();
+    if (_st.settings.weatherEnabled) {
+      if (_weatherCache) { _renderWeatherChip(); } else { _fetchWeather(); }
+    }
   }
 
   App.Dashboard = {
     render,
     _saveQuickNote, _saveFocus,
     _showQuickNoteCategory, _assignQuickCat, _dismissCatPicker,
-    _prevMonth, _nextMonth, _selectDate,
-    _openMonthPicker, _openYearPicker,
     _openTask,
+    _fetchWeather, _clearWeather,
   };
 
 })(window.App = window.App || {});

@@ -5,15 +5,8 @@
 (function (App) {
   'use strict';
 
-  let _pendingDelete = null;
-  let _undoTimer = null;
-
   function _esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-
-  function _profileName() {
-    return (App.Storage.getState().settings.username || '').trim();
   }
 
   // ── Item Row Builder ───────────────────────────────────────────────
@@ -41,6 +34,9 @@
       ${checkEl}
       <span class="list-item-text${textCls}">${_esc(item.text)}</span>
       ${restoreBtn}
+      <button class="bell-btn${item.reminderAt ? ' has-reminder' : ''}"
+        title="Set reminder"
+        onclick="App.Reminders.openPickerForListItem('${listId}','${item.id}')">⏰</button>
       <button class="card-delete-btn" style="width:24px;height:24px;font-size:0.7rem" title="Edit"
         onclick="App.Lists._editItem('${listId}','${item.id}')">✎</button>
       <button class="card-delete-btn" style="width:24px;height:24px;font-size:0.75rem"
@@ -124,6 +120,8 @@
         </div>
         <div style="display:flex;gap:4px;align-items:center">
           ${resetBtn}${copyBtn}
+          <button class="card-delete-btn" title="${t('share_list')}"
+            onclick="App.Lists._shareList('${list.id}')">↗</button>
           <button class="card-delete-btn" title="Edit"
             onclick="App.Lists._editList('${list.id}')">✎</button>
           <button class="card-delete-btn" title="Delete"
@@ -150,16 +148,12 @@
     if (!el) return;
     const state = App.Storage.getState();
     const t = App.I18n.t.bind(App.I18n);
-    const name = _profileName();
-    const emptyListText = name
-      ? t('empty_first_list_named', { name: _esc(name) })
-      : t('no_lists');
 
     const content = state.lists.length
       ? state.lists.map(buildListCard).join('')
       : `<div class="empty-state">
-           <div class="empty-state-icon"><span class="empty-stationery empty-list" aria-hidden="true"><span></span></span></div>
-           <div class="empty-state-text">${emptyListText}</div>
+           <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_lists.png" class="icon-img-lg" alt=""></span></div>
+           <div class="empty-state-text">${t('no_lists')}</div>
            <div class="empty-state-sub">${t('tap_plus')}</div>
          </div>`;
 
@@ -177,7 +171,8 @@
   }
 
   function _deleteItem(listId, itemId) {
-    _deleteItemWithUndo(listId, itemId);
+    App.Storage.deleteListItem(listId, itemId);
+    render();
   }
 
   function _editItem(listId, itemId) {
@@ -185,7 +180,13 @@
     const list  = state.lists.find(l => l.id === listId);
     const item  = list && list.items.find(i => i.id === itemId);
     if (!item) return;
-    _editItemModal(listId, item);
+    const t = App.I18n.t.bind(App.I18n);
+    const newText = prompt(t('list_edit_item') + ':', item.text);
+    if (newText === null) return;           // user cancelled
+    const trimmed = newText.trim();
+    if (!trimmed) return;                   // empty — ignore
+    App.Storage.updateListItem(listId, itemId, trimmed);
+    render();
   }
 
   function _addItem(listId) {
@@ -221,6 +222,29 @@
     render();
   }
 
+  // ── Share List ───────────────────────────────────────────────────────
+  function _shareList(id) {
+    const state = App.Storage.getState();
+    const list  = state.lists.find(l => l.id === id);
+    if (!list) return;
+    const t = App.I18n.t.bind(App.I18n);
+
+    // Build plain-text representation
+    const lines = [`📋 ${list.name}`];
+    list.items.forEach(item => {
+      lines.push((item.checked ? '✓ ' : '• ') + item.text);
+    });
+    const text = lines.join('\n');
+
+    if (navigator.share) {
+      navigator.share({ title: list.name, text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text)
+        .then(() => App.showToast(t('share_list_copied'), 'success'))
+        .catch(() => App.showToast(t('toast_copy_failed'), 'error'));
+    }
+  }
+
   // ── List Modal ────────────────────────────────────────────────────
   function _openModal(list) {
     const isEdit = !!list;
@@ -254,7 +278,6 @@
         </div>
       </div>`;
     document.body.insertAdjacentHTML('beforeend', html);
-    App.enhanceModal?.('list-modal');
     document.getElementById('list-name').focus();
   }
 
@@ -289,121 +312,6 @@
 
   function _closeModal() {
     document.getElementById('list-modal') && document.getElementById('list-modal').remove();
-    App.restoreFocus?.();
-  }
-
-  function _openItemModal(listId, item) {
-    const t = App.I18n.t.bind(App.I18n);
-    const html = `
-      <div id="list-item-modal" class="modal-backdrop" onclick="if(event.target===this)App.Lists._closeItemModal()">
-        <div class="modal-sheet">
-          <div class="modal-handle"></div>
-          <div class="modal-title">${t('list_edit_item')}</div>
-          <div class="form-group">
-            <label class="form-label" for="list-item-text">${t('list_edit_item')}</label>
-            <input id="list-item-text" class="form-input" value="${_esc(item.text)}"
-              onkeydown="if(event.key==='Enter')App.Lists._saveItemEdit('${listId}','${item.id}')">
-          </div>
-          <div class="modal-actions">
-            <button class="btn btn-secondary" onclick="App.Lists._closeItemModal()">${t('cancel')}</button>
-            <button class="btn btn-primary" onclick="App.Lists._saveItemEdit('${listId}','${item.id}')">${t('save')}</button>
-          </div>
-        </div>
-      </div>`;
-    document.body.insertAdjacentHTML('beforeend', html);
-    App.enhanceModal?.('list-item-modal');
-    const input = document.getElementById('list-item-text');
-    input?.focus();
-    input?.select();
-  }
-
-  function _showUndo() {
-    const t = App.I18n.t.bind(App.I18n);
-    document.getElementById('list-undo-toast')?.remove();
-    clearTimeout(_undoTimer);
-    const html = `<div id="list-undo-toast" class="undo-toast" role="status">
-      <span>${t('toast_item_deleted')}</span>
-      <button type="button" onclick="App.Lists._undoDeleteItem()">${t('undo')}</button>
-    </div>`;
-    document.body.insertAdjacentHTML('beforeend', html);
-    _undoTimer = setTimeout(() => {
-      document.getElementById('list-undo-toast')?.remove();
-      _pendingDelete = null;
-    }, 5000);
-  }
-
-  function _buildItemRow(listId, item, opts) {
-    opts = opts || {};
-    const checkable = opts.checkable !== false;
-    const restoreMode = !!opts.restoreMode;
-    const checkCls = item.checked ? ' checked' : '';
-    const textCls = item.checked ? ' checked' : '';
-
-    const checkEl = checkable
-      ? `<button type="button" class="list-item-check${checkCls}"
-           aria-label="${item.checked ? 'Mark item incomplete' : 'Mark item complete'}"
-           onclick="App.Lists._toggleItem('${listId}','${item.id}')">
-           ${item.checked ? '&#10003;' : ''}</button>`
-      : `<span class="list-item-check" aria-hidden="true" style="opacity:0.3;cursor:default"></span>`;
-
-    const restoreBtn = restoreMode
-      ? `<button class="card-delete-btn" title="Restore" aria-label="Restore item"
-           onclick="App.Lists._toggleItem('${listId}','${item.id}')">&#8630;</button>`
-      : '';
-
-    return `<div class="list-item">
-      ${checkEl}
-      <span class="list-item-text${textCls}">${_esc(item.text)}</span>
-      ${restoreBtn}
-      <button class="card-delete-btn" title="Edit" aria-label="Edit item"
-        onclick="App.Lists._editItem('${listId}','${item.id}')">&#9998;</button>
-      <button class="card-delete-btn" title="Delete" aria-label="Delete item"
-        onclick="App.Lists._deleteItem('${listId}','${item.id}')">&times;</button>
-    </div>`;
-  }
-
-  function _deleteItemWithUndo(listId, itemId) {
-    const state = App.Storage.getState();
-    const list = state.lists.find(l => l.id === listId);
-    const index = list ? list.items.findIndex(i => i.id === itemId) : -1;
-    const item = index >= 0 ? list.items[index] : null;
-    if (!item) return;
-    App.Storage.deleteListItem(listId, itemId);
-    _pendingDelete = { listId, item, index };
-    render();
-    _showUndo();
-  }
-
-  function _editItemModal(listId, item) {
-    if (item) _openItemModal(listId, item);
-  }
-
-  function _saveItemEdit(listId, itemId) {
-    const trimmed = document.getElementById('list-item-text')?.value.trim() || '';
-    if (!trimmed) return;
-    App.Storage.updateListItem(listId, itemId, trimmed);
-    _closeItemModal();
-    render();
-  }
-
-  function _closeItemModal() {
-    document.getElementById('list-item-modal')?.remove();
-    App.restoreFocus?.();
-  }
-
-  function _undoDeleteItem() {
-    if (!_pendingDelete) return;
-    const state = App.Storage.getState();
-    const list = state.lists.find(l => l.id === _pendingDelete.listId);
-    if (list) {
-      const insertAt = Math.min(Math.max(_pendingDelete.index, 0), list.items.length);
-      list.items.splice(insertAt, 0, _pendingDelete.item);
-      App.Storage.setState(state);
-    }
-    _pendingDelete = null;
-    clearTimeout(_undoTimer);
-    document.getElementById('list-undo-toast')?.remove();
-    render();
   }
 
   function onFab() { _openModal(null); }
@@ -411,8 +319,7 @@
   App.Lists = {
     render, onFab,
     _toggleItem, _deleteItem, _editItem, _addItem, _reset, _copyList,
-    _openModal, _editList, _saveList, _deleteList, _closeModal,
-    _saveItemEdit, _closeItemModal, _undoDeleteItem,
+    _openModal, _editList, _saveList, _deleteList, _closeModal, _shareList,
   };
 
 })(window.App = window.App || {});

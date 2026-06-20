@@ -97,53 +97,65 @@
       ${authControls}`;
   }
 
-  function _toolsSection() {
-    const t = App.I18n.t.bind(App.I18n);
-    return `
-      <div class="settings-row">
-        <div>
-          <div class="settings-row-label">${t('message_builder')}</div>
-          <div class="settings-row-sub">${t('message_builder_sub')}</div>
-        </div>
-        <button class="btn btn-secondary btn-sm" onclick="App.Settings._openMessageBuilder()">${t('open_message_builder')}</button>
-      </div>`;
+
+  function _isStandalone() {
+    return window.navigator.standalone === true ||
+           window.matchMedia('(display-mode: standalone)').matches;
   }
 
-  function _reminderNotificationsSection(state) {
-    const t = App.I18n.t.bind(App.I18n);
-    const status = App.Reminders ? App.Reminders.getStatus() : { supported: false, permission: 'unavailable' };
-    const s = state.settings || {};
-    const phoneOn = s.reminderNotifications === true;
-    const popupsOn = s.reminderPopups !== false;
-    const permissionLabel = status.supported ? status.permission : t('notification_unavailable');
-    return `
-      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
-        <div>
-          <div class="settings-row-label">${t('reminder_notifications')}</div>
-          <div class="settings-row-sub">${t('reminder_notifications_sub')}</div>
-          <div class="settings-row-sub">${t('notification_permission')}: ${_esc(permissionLabel)}</div>
+  function _notifSection(s, t) {
+    const hasNotifAPI = 'Notification' in window;
+    const standalone  = _isStandalone();
+
+    // Embedded browser (no Notification API and not standalone)
+    if (!hasNotifAPI && !standalone) {
+      return `<div class="settings-row-sub" style="color:var(--color-text-muted)">${t('notif_embedded')}</div>`;
+    }
+
+    // Standalone but no Notification API (some browsers)
+    if (!hasNotifAPI) {
+      return `<div class="settings-row-sub" style="color:var(--color-text-muted)">${t('notif_not_supported')}</div>`;
+    }
+
+    const permState = App.Reminders?.getPermissionState?.() || 'unsupported';
+
+    // Standalone-installed but not yet granted — give clear guidance
+    if (!standalone && permState !== 'granted') {
+      return `<div class="settings-row-sub" style="color:var(--color-text-muted)">${t('notif_embedded')}</div>`;
+    }
+
+    const statusKey = permState === 'granted' ? 'notif_status_granted'
+                    : permState === 'denied'  ? 'notif_status_denied'
+                    : 'notif_status_default';
+    const statusColor = permState === 'granted' ? 'var(--color-success)'
+                      : permState === 'denied'  ? 'var(--color-error)' : '';
+    const reqBtn = permState !== 'granted'
+      ? `<button class="btn btn-primary btn-sm" onclick="App.Reminders.requestPermission()">${t('notif_request_perm')}</button>`
+      : '';
+    const testBtn = permState === 'granted'
+      ? `<button class="btn btn-secondary btn-sm" onclick="App.Reminders.sendTest()">${t('notif_test')}</button>`
+      : '';
+    return (
+      `<div class="settings-row-sub" style="color:${statusColor}">${t(statusKey)}</div>` +
+      `<div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">${reqBtn}${testBtn}</div>`
+    );
+  }
+
+
+  function _openComms() {
+    if (!App.Communication) return;
+    const html = `
+      <div id="comms-modal" class="modal-backdrop" onclick="if(event.target===this)this.remove()">
+        <div class="modal-sheet" style="max-height:80vh">
+          <div class="modal-handle"></div>
+          <div id="comms-modal-body"></div>
+          <div class="modal-actions sticky-actions">
+            <button class="btn btn-secondary" onclick="document.getElementById('comms-modal').remove()">${App.I18n.t('close')}</button>
+          </div>
         </div>
-        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
-          <button class="btn btn-secondary btn-sm" style="flex:1 1 140px" onclick="App.Settings._toggleReminderNotifications()">
-            ${phoneOn ? t('notifications_on') : t('notifications_off')}
-          </button>
-          <button class="btn btn-secondary btn-sm" style="flex:1 1 140px" onclick="App.Settings._requestNotificationPermission()">
-            ${t('request_permission')}
-          </button>
-          <button class="btn btn-secondary btn-sm" style="flex:1 1 140px" onclick="App.Settings._sendTestNotification()">
-            ${t('send_test_notification')}
-          </button>
-        </div>
-      </div>
-      <div class="settings-row">
-        <div>
-          <div class="settings-row-label">${t('reminder_popups')}</div>
-          <div class="settings-row-sub">${t('reminder_popups_sub')}</div>
-        </div>
-        <button class="btn btn-secondary btn-sm" onclick="App.Settings._toggleReminderPopups()">
-          ${popupsOn ? t('notifications_on') : t('notifications_off')}
-        </button>
       </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    App.Communication.renderInto('comms-modal-body');
   }
 
   function render() {
@@ -218,16 +230,21 @@
         </div>
       </div>
 
-      <!-- Tools -->
-      <div class="settings-section">
-        <div class="settings-section-label">${t('settings_tools')}</div>
-        ${_toolsSection()}
-      </div>
 
-      <!-- Reminders -->
+      <!-- Weather -->
       <div class="settings-section">
-        <div class="settings-section-label">${t('reminder_notifications')}</div>
-        ${_reminderNotificationsSection(state)}
+        <div class="settings-section-label">${t('weather_enable')}</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">${t('weather_enable')}</div>
+            <div class="settings-row-sub" style="max-width:280px">${t('weather_disclosure')}</div>
+          </div>
+          <label class="toggle-switch" style="flex-shrink:0">
+            <input type="checkbox" id="settings-weather"${s.weatherEnabled ? ' checked' : ''}
+              onchange="App.Settings._saveWeather(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
       </div>
 
       <!-- Data -->
@@ -240,6 +257,27 @@
             <div class="settings-row-sub">${t('settings_count', {notes: noteCountStr, lists: listCountStr})}</div>
           </div>
           <button class="btn btn-secondary btn-sm" onclick="App.Storage.exportJSON()">${t('settings_export_btn')}</button>
+        </div>
+      </div>
+
+
+      <!-- Notifications -->
+      <div class="settings-section">
+        <div class="settings-section-label">${t('notif_settings_title')}</div>
+        <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+          <div class="settings-row-sub" style="margin-bottom:var(--space-xs)">${t('notif_settings_sub')}</div>
+          ${_notifSection(s, t)}
+        </div>
+      </div>
+
+      <!-- Tools -->
+      <div class="settings-section">
+        <div class="settings-section-label">${t('settings_tools_title')}</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">${t('settings_comms_title')}</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="App.Settings._openComms()">${t('open')}</button>
         </div>
       </div>
 
@@ -288,33 +326,18 @@
     App.Storage.updateSettings({ defaultReminderTime: val });
   }
 
+  function _saveWeather(enabled) {
+    App.Storage.updateSettings({ weatherEnabled: !!enabled });
+    if (enabled) {
+      App.Dashboard?._fetchWeather?.();
+    } else {
+      App.Dashboard?._clearWeather?.();
+    }
+  }
+
   function _saveListDefault() {
     const val = document.getElementById('settings-list-default')?.value || 'reusable';
     App.Storage.updateSettings({ defaultListBehavior: val });
-  }
-
-  function _openMessageBuilder() {
-    App.showTab('communication');
-  }
-
-  function _toggleReminderNotifications() {
-    const s = App.Storage.getState().settings;
-    App.Reminders?.setNotifications?.(!(s.reminderNotifications === true));
-    render();
-  }
-
-  function _toggleReminderPopups() {
-    const s = App.Storage.getState().settings;
-    App.Reminders?.setPopups?.(s.reminderPopups === false);
-    render();
-  }
-
-  function _requestNotificationPermission() {
-    App.Reminders?.requestPermission?.().finally(() => render());
-  }
-
-  function _sendTestNotification() {
-    App.Reminders?.sendTestNotification?.();
   }
 
   function _cloudCredentials() {
@@ -370,10 +393,8 @@
 
   App.Settings = {
     render, _setTheme, _setLanguage, _saveUsername, _saveReminder, _saveListDefault,
-    _openMessageBuilder, _toggleReminderNotifications, _toggleReminderPopups,
-    _requestNotificationPermission, _sendTestNotification,
     _cloudSignIn, _cloudCreateAccount, _cloudSignOut, _cloudBackup, _cloudRestore,
-    _refreshCloudStatus,
+    _refreshCloudStatus, _openComms, _saveWeather,
   };
 
 })(window.App = window.App || {});

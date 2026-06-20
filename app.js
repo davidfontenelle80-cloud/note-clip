@@ -6,7 +6,7 @@
 (function (App) {
   'use strict';
 
-  const TABS = ['dashboard','notes','lists','calendar','communication','settings'];
+  const TABS = ['dashboard','notes','lists','calendar','shared','communication','settings'];
   let _activeTab = 'dashboard';
 
   // ── Tab routing ──────────────────────────────────────────────────
@@ -30,6 +30,7 @@
       dashboard:     () => App.Dashboard?.render(),
       notes:         () => App.Notes?.render(),
       lists:         () => App.Lists?.render(),
+      shared:        () => App.Shared?.render(),
       calendar:      () => App.Calendar?.render(),
       communication: () => App.Communication?.render(),
       settings:      () => App.Settings?.render(),
@@ -44,8 +45,8 @@
     const handlers = {
       notes:         () => App.Notes?.onFab(),
       lists:         () => App.Lists?.onFab(),
+      shared:        () => App.Shared?.onFab(),
       calendar:      () => App.Notes?._openNoteModal(null),
-      communication: () => App.Communication?.onFab(),
       dashboard:     () => App.Notes?._openNoteModal(null),
     };
     handlers[_activeTab]?.();
@@ -177,6 +178,9 @@
       const vv = window.visualViewport;
       const inset = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
       document.documentElement.style.setProperty('--keyboard-inset', `${Math.round(inset)}px`);
+      // --vvp-height: actual visible viewport height (updates when keyboard opens on iOS)
+      const vvpH = vv ? Math.round(vv.height) : window.innerHeight;
+      document.documentElement.style.setProperty('--vvp-height', `${vvpH}px`);
     };
     updateKeyboardInset();
     window.visualViewport?.addEventListener('resize', updateKeyboardInset);
@@ -210,49 +214,4 @@
     });
 
     // Wire FAB
-    document.getElementById('fab')?.addEventListener('click', onFab);
-
-    // Wire update banner
-    document.getElementById('update-btn')?.addEventListener('click', applyUpdate);
-
-    // Wire EN/ES toggle in header
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const lang = btn.dataset.lang;
-        App.Storage.updateSettings({ language: lang });
-        App.I18n.set(lang);
-        refreshCurrentTab();
-      });
-    });
-
-    // System theme listener
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-      const s = App.Storage.getState().settings;
-      if (s.theme === 'system') applyTheme('system');
-    });
-
-    // Register SW
-    registerSW();
-
-    // Surface hidden mobile script failures
-    setupGlobalErrorHandlers();
-
-    // Setup keyboard
-    setupKeyboard();
-
-    // Reminder checks run locally and never block app usage.
-    App.Reminders?.init();
-
-    // Show initial tab
-    showTab('dashboard');
-    App.Onboarding?.maybeShow();
-
-    console.log('[NoteClip] App ready.');
-  }
-
-  // Expose globals
-  Object.assign(App, { showTab, refreshCurrentTab, showToast, applyTheme, onFab, enhanceModal, restoreFocus });
-
-  document.addEventListener('DOMContentLoaded', init);
-
-})(window.App = window.App || {});
+    document.getElementById('fab')?.addEventListener('click',

@@ -1,252 +1,385 @@
 /**
- * reminders.js - Note Clip PWA
- * In-app reminder popups plus optional active-browser Notification API support.
+ * reminders.js — Note Clip PWA
+ * Layer A: in-app reminder popup.
+ * Layer B: browser Notification API.
+ * Stage 10D — Part 2.
  */
 (function (App) {
   'use strict';
 
-  const SIDE_KEY = 'noteClip_reminderState_v1';
-  const SNOOZE_MINUTES = 10;
-  let _popupOpen = false;
-  let _checkTimer = null;
+  const NOTIFIED_KEY = 'noteClip_notified';
+  const SNOOZED_KEY  = 'noteClip_snoozed';
+  let _checkTimer    = null;
+  let _popupVisible  = false;
+
+  // ── Persistence helpers ────────────────────────────────────────────
+  function _getNotified() {
+    try { return JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '{}'); } catch(e) { return {}; }
+  }
+  function _setNotified(map) {
+    try { localStorage.setItem(NOTIFIED_KEY, JSON.stringify(map)); } catch(e) {}
+  }
+  function _getSnoozed() {
+    try { return JSON.parse(localStorage.getItem(SNOOZED_KEY) || '{}'); } catch(e) { return {}; }
+  }
+  function _setSnoozed(map) {
+    try { localStorage.setItem(SNOOZED_KEY, JSON.stringify(map)); } catch(e) {}
+  }
+
+  // ── Reminder timing ────────────────────────────────────────────────
+  function _reminderSig(n) {
+    return `${n.dueDate||''}_${n.dueTime||''}_${n.reminder||''}_${n.reminderAt||''}`;
+  }
+
+  function _reminderTime(n) {
+    // Direct ISO reminder takes precedence over preset
+    if (n.reminderAt) {
+      const t = new Date(n.reminderAt).getTime();
+      return isNaN(t) ? null : t;
+    }
+    if (!n.dueDate || !n.reminder) return null;
+    const [y, m, d] = n.dueDate.split('-').map(Number);
+    if (n.reminder === 'same_day')  return new Date(y, m-1, d, 8, 0, 0).getTime();
+    if (n.reminder === 'day_before') return new Date(y, m-1, d-1, 8, 0, 0).getTime();
+    if (n.dueTime && (n.reminder === '1h_before' || n.reminder === '2h_before')) {
+      const [hh, mm] = n.dueTime.split(':').map(Number);
+      const base = new Date(y, m-1, d, hh, mm, 0).getTime();
+      return base - (n.reminder === '1h_before' ? 3600000 : 7200000);
+    }
+    // Fallback: reminder set but no time — fire at 8am on due date
+    return new Date(y, m-1, d, 8, 0, 0).getTime();
+  }
+
+  // ── Check which notes need a popup ────────────────────────────────
+  function _duePending() {
+    const now      = Date.now();
+    const notified = _getNotified();
+    const snoozed  = _getSnoozed();
+
+    // Notes
+    const notesPending = App.Storage.getNotes().filter(n => {
+      if (!n.reminderAt && (!n.dueDate || !n.reminder)) return false;
+      if (n.completed || n.archived) return false;
+      const rt = _reminderTime(n);
+      if (!rt || rt > now) return false;
+      const sig = _reminderSig(n);
+      if (notified[n.id] === sig) return false;
+      const snoozeUntil = snoozed[n.id];
+      if (snoozeUntil && snoozeUntil > now) return false;
+      return true;
+    });
+
+    // List items with reminderAt
+    const state = App.Storage.getState();
+    const listsPending = [];
+    state.lists.forEach(list => {
+      list.items.forEach(item => {
+        if (!item.reminderAt) return;
+        const rt = new Date(item.reminderAt).getTime();
+        if (isNaN(rt) || rt > now) return;
+        const key = list.id + '_' + item.id;
+        const sig = 'list_' + item.reminderAt;
+        if (notified[key] === sig) return;
+        const snoozeUntil = snoozed[key];
+        if (snoozeUntil && snoozeUntil > now) return;
+        listsPending.push({
+          id: key, _listId: list.id, _itemId: item.id,
+          title: list.name + ': ' + item.text,
+          _sig: sig, _isListItem: true,
+        });
+      });
+    });
+
+    return [...notesPending, ...listsPending];
+  }
+
+  // ── In-app popup (Layer A) ─────────────────────────────────────────
+  function _removePopup() {
+    document.getElementById('reminder-popup-bar')?.remove();
+    _popupVisible = false;
+  }
+
+  function _showPopup(notes) {
+    _removePopup();
+    if (!notes.length) return;
+    const n = notes[0]; // show one at a time; user dismisses to see next
+    const lang = App.I18n.current();
+    const more = notes.length > 1 ? `<span class="rem-more">+${notes.length - 1}</span>` : '';
+
+    const bar = document.createElement('div');
+    bar.id = 'reminder-popup-bar';
+    bar.className = 'reminder-popup-bar';
+    bar.innerHTML = `
+      <div class="rem-icon">🔔</div>
+      <div class="rem-body">
+        <div class="rem-title">${App.I18n.t('reminder_popup_title')}${more}</div>
+        <div class="rem-note">${_esc(n.title || App.I18n.t('no_notes'))}</div>
+      </div>
+      <div class="rem-actions">
+        <button class="rem-btn rem-open" onclick="App.Reminders._open('${n.id}')">${App.I18n.t('reminder_open')}</button>
+        <button class="rem-btn rem-snooze" onclick="App.Reminders._snooze('${n.id}')">${App.I18n.t('reminder_snooze')}</button>
+        <button class="rem-btn rem-dismiss" onclick="App.Reminders._dismiss('${n.id}')">✕</button>
+      </div>`;
+    document.body.appendChild(bar);
+    _popupVisible = true;
+  }
 
   function _esc(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  function _sideState() {
-    try { return JSON.parse(localStorage.getItem(SIDE_KEY) || '{}') || {}; }
-    catch { return {}; }
+  // ── Popup actions ─────────────────────────────────────────────────
+  function _open(id) {
+    _dismiss(id);
+    App.showTab?.('notes');
+    setTimeout(() => App.Notes?._editNote?.(id), 0);
   }
 
-  function _saveSideState(state) {
-    try { localStorage.setItem(SIDE_KEY, JSON.stringify(state)); }
-    catch (err) { console.warn('[Reminders] sidecar save failed', err); }
-  }
-
-  function _settings() {
-    const s = App.Storage.getState().settings || {};
-    return {
-      popups: s.reminderPopups !== false,
-      phone: s.reminderNotifications === true,
-      defaultTime: s.defaultReminderTime || '08:00',
-    };
-  }
-
-  function _toDate(date, time) {
-    if (!date) return null;
-    const d = new Date(`${date}T${time || '08:00'}:00`);
-    return Number.isNaN(d.getTime()) ? null : d;
-  }
-
-  function _triggerAt(note) {
-    if (!note || !note.dueDate || note.completed || note.archived) return null;
-    const settings = _settings();
-    const dueTime = note.dueTime || settings.defaultTime;
-    let trigger = _toDate(note.dueDate, dueTime);
-    if (!trigger) return null;
-
-    if (note.reminder === 'same_day') {
-      trigger = _toDate(note.dueDate, settings.defaultTime);
-    } else if (note.reminder === 'day_before') {
-      trigger = new Date(trigger.getTime() - 24 * 60 * 60 * 1000);
-    } else if (note.reminder === '1h_before') {
-      trigger = new Date(trigger.getTime() - 60 * 60 * 1000);
-    } else if (note.reminder === '2h_before') {
-      trigger = new Date(trigger.getTime() - 2 * 60 * 60 * 1000);
-    } else if (!note.dueTime && !note.reminder) {
-      return null;
+  function _dismiss(id) {
+    const pending = _duePending();
+    const item = pending.find(x => x.id === id);
+    if (item && item._isListItem) {
+      const map = _getNotified();
+      map[id] = item._sig;
+      _setNotified(map);
+    } else {
+      const note = App.Storage.getNotes().find(n => n.id === id);
+      if (note) {
+        const map = _getNotified();
+        map[id] = _reminderSig(note);
+        _setNotified(map);
+      }
     }
-    return trigger;
+    _removePopup();
+    // Check if more pending
+    const morePending = _duePending();
+    if (morePending.length) {
+      setTimeout(() => _showPopup(morePending), 400);
+    }
   }
 
-  function _key(note, trigger) {
-    return [note.id, note.dueDate || '', note.dueTime || '', note.reminder || '', trigger.toISOString()].join('|');
+  function _snooze(id) {
+    const map = _getSnoozed();
+    map[id] = Date.now() + 3600000; // 1 hour
+    _setSnoozed(map);
+    _removePopup();
+    App.showToast?.(App.I18n.t('reminder_snoozed'), 'info');
+    const pending = _duePending();
+    if (pending.length) setTimeout(() => _showPopup(pending), 400);
   }
 
-  function _dueReminders() {
-    const now = new Date();
-    const state = _sideState();
-    return App.Storage.getNotes()
-      .map(note => {
-        const trigger = _triggerAt(note);
-        if (!trigger || trigger > now) return null;
-        const key = _key(note, trigger);
-        const meta = state[key] || {};
-        if (meta.dismissedAt) return null;
-        if (meta.snoozeUntil && new Date(meta.snoozeUntil) > now) return null;
-        return { note, trigger, key, meta };
-      })
-      .filter(Boolean)
-      .sort((a, b) => a.trigger - b.trigger);
+  // ── Browser notification (Layer B) ────────────────────────────────
+  function _canNotify() {
+    return 'Notification' in window && Notification.permission === 'granted';
   }
 
-  function _mark(key, patch) {
-    const state = _sideState();
-    state[key] = Object.assign({}, state[key] || {}, patch);
-    _saveSideState(state);
-  }
-
-  function _body(note) {
-    return App.I18n.t('notification_body', { title: note.title || App.I18n.t('note_untitled') });
-  }
-
-  function _showPopup(item) {
-    if (_popupOpen || document.getElementById('reminder-popup')) return;
-    _popupOpen = true;
-    _mark(item.key, { inAppShownAt: new Date().toISOString() });
-    const isOverdue = item.trigger < new Date(Date.now() - 60 * 1000);
-    const triggerLabel = item.trigger.toLocaleString(App.I18n.current() === 'es' ? 'es-ES' : 'en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-    const html = `
-      <div id="reminder-popup" class="modal-backdrop" onclick="if(event.target===this)App.Reminders.dismiss('${item.key}')">
-        <div class="modal-sheet reminder-popup-sheet">
-          <div class="modal-handle"></div>
-          <div class="reminder-popup-card">
-            <div class="reminder-popup-kicker">${isOverdue ? App.I18n.t('reminder_overdue_label') : App.I18n.t('reminder_popup_title')}</div>
-            <div class="reminder-popup-title">${_esc(item.note.title || App.I18n.t('note_untitled'))}</div>
-            <div class="reminder-popup-body">${_esc(_body(item.note))}</div>
-            <div class="reminder-popup-time">${_esc(triggerLabel)}</div>
-          </div>
-          <div class="modal-actions reminder-popup-actions">
-            <button class="btn btn-secondary" onclick="App.Reminders.snooze('${item.key}')">${App.I18n.t('reminder_snooze')}</button>
-            <button class="btn btn-secondary" onclick="App.Reminders.dismiss('${item.key}')">${App.I18n.t('reminder_dismiss')}</button>
-            <button class="btn btn-primary" onclick="App.Reminders.open('${item.note.id}','${item.key}')">${App.I18n.t('reminder_open_note')}</button>
-          </div>
-        </div>
-      </div>`;
-    document.body.insertAdjacentHTML('beforeend', html);
-    App.enhanceModal?.('reminder-popup');
-  }
-
-  function _notify(item) {
-    const settings = _settings();
-    if (!settings.phone || !('Notification' in window) || Notification.permission !== 'granted') return;
-    if (item.meta.phoneNotifiedAt) return;
+  function _sendBrowserNotification(note) {
+    if (!_canNotify()) return;
+    const lang = App.I18n.current();
+    const title = App.I18n.t('notif_title');
+    const body  = App.I18n.t('notif_body', { noteTitle: note.title || App.I18n.t('no_notes') });
     try {
-      const notification = new Notification(App.I18n.t('notification_title'), {
-        body: _body(item.note),
-        icon: './icons/icon-192.png',
-        tag: item.key,
-        renotify: false,
-      });
-      notification.onclick = () => {
-        window.focus?.();
-        open(item.note.id, item.key);
-        notification.close();
-      };
-      _mark(item.key, { phoneNotifiedAt: new Date().toISOString() });
-    } catch (err) {
-      console.warn('[Reminders] notification failed', err);
+      const n = new Notification(title, { body, icon: './icons/icon-192.png', tag: 'note-clip-' + note.id });
+      n.onclick = () => { window.focus(); _open(note.id); };
+    } catch(e) {
+      // Silently ignore — Layer A popup already shown
     }
-  }
-
-  function checkDue() {
-    const due = _dueReminders();
-    if (!due.length) return [];
-    if (_settings().phone) due.forEach(_notify);
-    if (_settings().popups) _showPopup(due[0]);
-    return due;
-  }
-
-  function dismiss(key) {
-    _mark(key, { dismissedAt: new Date().toISOString() });
-    document.getElementById('reminder-popup')?.remove();
-    _popupOpen = false;
-    App.restoreFocus?.();
-    App.showToast(App.I18n.t('reminder_dismissed'), 'success');
-    setTimeout(checkDue, 120);
-  }
-
-  function snooze(key) {
-    const until = new Date(Date.now() + SNOOZE_MINUTES * 60 * 1000).toISOString();
-    _mark(key, { snoozeUntil: until });
-    document.getElementById('reminder-popup')?.remove();
-    _popupOpen = false;
-    App.restoreFocus?.();
-    App.showToast(App.I18n.t('reminder_snoozed'), 'success');
-  }
-
-  function open(noteId, key) {
-    if (key) _mark(key, { dismissedAt: new Date().toISOString(), openedAt: new Date().toISOString() });
-    document.getElementById('reminder-popup')?.remove();
-    _popupOpen = false;
-    App.showTab('notes');
-    setTimeout(() => App.Notes?._editNote?.(noteId), 0);
-  }
-
-  function getStatus() {
-    return {
-      supported: 'Notification' in window,
-      permission: ('Notification' in window) ? Notification.permission : 'unavailable',
-      popups: _settings().popups,
-      phone: _settings().phone,
-    };
-  }
-
-  function setPopups(on) {
-    App.Storage.updateSettings({ reminderPopups: !!on });
-    if (on) setTimeout(checkDue, 120);
-  }
-
-  function setNotifications(on) {
-    App.Storage.updateSettings({ reminderNotifications: !!on });
-    if (on) setTimeout(checkDue, 120);
   }
 
   function requestPermission() {
     if (!('Notification' in window)) {
-      App.showToast(App.I18n.t('notification_not_supported'), 'error');
-      return Promise.resolve('unavailable');
+      App.showToast?.(App.I18n.t('notif_not_supported'), 'error');
+      return;
     }
-    return Notification.requestPermission().then(permission => {
-      App.showToast(
-        permission === 'granted' ? App.I18n.t('notification_permission_granted') : App.I18n.t('notification_permission_denied'),
-        permission === 'granted' ? 'success' : 'error'
-      );
-      return permission;
+    Notification.requestPermission().then(result => {
+      const st = App.Storage.getState();
+      if (result === 'granted') {
+        App.Storage.updateSettings({ notificationsEnabled: true });
+        App.showToast?.(App.I18n.t('notif_granted'), 'success');
+      } else {
+        App.Storage.updateSettings({ notificationsEnabled: false });
+        App.showToast?.(App.I18n.t('notif_denied'), 'error');
+      }
+      // Re-render settings if visible
+      if (document.getElementById('pane-settings')?.classList.contains('active')) {
+        App.Settings?.render?.();
+      }
     });
   }
 
-  function sendTestNotification() {
-    if (!('Notification' in window)) {
-      App.showToast(App.I18n.t('notification_not_supported'), 'error');
-      return;
-    }
-    if (Notification.permission !== 'granted') {
-      App.showToast(App.I18n.t('notification_permission_denied'), 'error');
+  function sendTest() {
+    if (!_canNotify()) {
+      App.showToast?.(App.I18n.t('notif_need_permission'), 'error');
       return;
     }
     try {
-      new Notification(App.I18n.t('notification_title'), {
-        body: App.I18n.t('notification_test_body'),
+      new Notification(App.I18n.t('notif_title'), {
+        body: App.I18n.t('notif_test_body'),
         icon: './icons/icon-192.png',
         tag: 'note-clip-test',
       });
-      App.showToast(App.I18n.t('notification_test_sent'), 'success');
-    } catch (err) {
-      console.warn('[Reminders] test notification failed', err);
-      App.showToast(App.I18n.t('notification_test_failed'), 'error');
+      App.showToast?.(App.I18n.t('notif_test_sent'), 'success');
+    } catch(e) {
+      App.showToast?.(App.I18n.t('notif_not_supported'), 'error');
     }
   }
 
+  // ── Main check ────────────────────────────────────────────────────
+  function checkReminders() {
+    if (_popupVisible) return;
+    const pending = _duePending();
+    if (!pending.length) return;
+
+    const st = App.Storage.getState();
+    // Layer B: browser notification if permitted and enabled
+    if (st.settings.notificationsEnabled && _canNotify()) {
+      pending.forEach(n => _sendBrowserNotification(n));
+      // Also mark them notified so we don't double-show in Layer A
+      const map = _getNotified();
+      pending.forEach(n => { map[n.id] = _reminderSig(n); });
+      _setNotified(map);
+    } else {
+      // Layer A: in-app popup
+      _showPopup(pending);
+    }
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────
   function init() {
+    checkReminders();
+    // Check every 60 seconds
+    _checkTimer = setInterval(checkReminders, 60000);
+    // Check on page foreground
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') setTimeout(checkDue, 250);
+      if (document.visibilityState === 'visible') checkReminders();
     });
-    window.addEventListener('focus', () => setTimeout(checkDue, 250));
-    clearInterval(_checkTimer);
-    _checkTimer = setInterval(checkDue, 60 * 1000);
-    setTimeout(checkDue, 700);
+  }
+
+  // ── Reminder bell picker ──────────────────────────────────────────
+  function openPickerForNote(noteId) {
+    const state = App.Storage.getState();
+    const note = state.notes.find(n => n.id === noteId);
+    if (!note) return;
+    const current = note.reminderAt || '';
+    const dateVal = current ? current.slice(0,10) : '';
+    const timeVal = current ? current.slice(11,16) : '08:00';
+    const t = App.I18n.t.bind(App.I18n);
+    const clearBtn = current
+      ? `<button class="btn btn-secondary btn-sm" onclick="App.Reminders._clearNoteBell('${noteId}')">${t('reminder_clear')}</button>`
+      : '';
+    const html = `
+      <div id="reminder-picker-modal" class="modal-backdrop" onclick="if(event.target===this)document.getElementById('reminder-picker-modal').remove()">
+        <div class="modal-sheet" style="max-height:65vh">
+          <div class="modal-handle"></div>
+          <div class="modal-title">⏰ ${_esc(t('reminder_bell_title'))}</div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label class="form-label">${_esc(t('note_due'))}</label>
+              <input type="date" id="rpicker-date" class="form-input" value="${_esc(dateVal)}">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label class="form-label">${_esc(t('note_due_time'))}</label>
+              <input type="time" id="rpicker-time" class="form-input" value="${_esc(timeVal)}">
+            </div>
+          </div>
+          <div class="modal-actions">
+            ${clearBtn}
+            <button class="btn btn-secondary" onclick="document.getElementById('reminder-picker-modal').remove()">${_esc(t('cancel'))}</button>
+            <button class="btn btn-primary" onclick="App.Reminders._saveNoteBell('${noteId}')">${_esc(t('save'))}</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  function _saveNoteBell(noteId) {
+    const date = document.getElementById('rpicker-date')?.value || '';
+    const time = document.getElementById('rpicker-time')?.value || '08:00';
+    document.getElementById('reminder-picker-modal')?.remove();
+    if (!date) { App.showToast?.(App.I18n.t('note_due') + '?', 'error'); return; }
+    const reminderAt = `${date}T${time}:00`;
+    App.Storage.updateNote(noteId, { reminderAt });
+    App.showToast?.(App.I18n.t('reminder_set_for'), 'success');
+    // Re-render notes or dashboard if visible
+    if (document.getElementById('pane-notes')?.classList.contains('active')) App.Notes?.render?.();
+    if (document.getElementById('pane-dashboard')?.classList.contains('active')) App.Dashboard?.render?.();
+  }
+
+  function _clearNoteBell(noteId) {
+    document.getElementById('reminder-picker-modal')?.remove();
+    App.Storage.updateNote(noteId, { reminderAt: '' });
+    App.showToast?.(App.I18n.t('reminder_removed'), 'success');
+    if (document.getElementById('pane-notes')?.classList.contains('active')) App.Notes?.render?.();
+    if (document.getElementById('pane-dashboard')?.classList.contains('active')) App.Dashboard?.render?.();
+  }
+
+  function openPickerForListItem(listId, itemId) {
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === listId);
+    const item = list && list.items.find(i => i.id === itemId);
+    if (!item) return;
+    const current = item.reminderAt || '';
+    const dateVal = current ? current.slice(0,10) : '';
+    const timeVal = current ? current.slice(11,16) : '08:00';
+    const t = App.I18n.t.bind(App.I18n);
+    const clearBtn = current
+      ? `<button class="btn btn-secondary btn-sm" onclick="App.Reminders._clearListBell('${listId}','${itemId}')">${t('reminder_clear')}</button>`
+      : '';
+    const label = _esc(list.name + ': ' + item.text);
+    const html = `
+      <div id="reminder-picker-modal" class="modal-backdrop" onclick="if(event.target===this)document.getElementById('reminder-picker-modal').remove()">
+        <div class="modal-sheet" style="max-height:65vh">
+          <div class="modal-handle"></div>
+          <div class="modal-title">⏰ ${_esc(t('reminder_bell_title'))}</div>
+          <div style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-sm)">${label}</div>
+          <div class="form-row">
+            <div class="form-group" style="flex:1">
+              <label class="form-label">${_esc(t('note_due'))}</label>
+              <input type="date" id="rpicker-date" class="form-input" value="${_esc(dateVal)}">
+            </div>
+            <div class="form-group" style="flex:1">
+              <label class="form-label">${_esc(t('note_due_time'))}</label>
+              <input type="time" id="rpicker-time" class="form-input" value="${_esc(timeVal)}">
+            </div>
+          </div>
+          <div class="modal-actions">
+            ${clearBtn}
+            <button class="btn btn-secondary" onclick="document.getElementById('reminder-picker-modal').remove()">${_esc(t('cancel'))}</button>
+            <button class="btn btn-primary" onclick="App.Reminders._saveListBell('${listId}','${itemId}')">${_esc(t('save'))}</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  function _saveListBell(listId, itemId) {
+    const date = document.getElementById('rpicker-date')?.value || '';
+    const time = document.getElementById('rpicker-time')?.value || '08:00';
+    document.getElementById('reminder-picker-modal')?.remove();
+    if (!date) { App.showToast?.(App.I18n.t('note_due') + '?', 'error'); return; }
+    const reminderAt = `${date}T${time}:00`;
+    App.Storage.updateListItemReminder(listId, itemId, reminderAt);
+    App.showToast?.(App.I18n.t('reminder_set_for'), 'success');
+    if (document.getElementById('pane-lists')?.classList.contains('active')) App.Lists?.render?.();
+  }
+
+  function _clearListBell(listId, itemId) {
+    document.getElementById('reminder-picker-modal')?.remove();
+    App.Storage.updateListItemReminder(listId, itemId, '');
+    App.showToast?.(App.I18n.t('reminder_removed'), 'success');
+    if (document.getElementById('pane-lists')?.classList.contains('active')) App.Lists?.render?.();
   }
 
   App.Reminders = {
-    init, checkDue, dismiss, snooze, open, getStatus,
-    setPopups, setNotifications, requestPermission, sendTestNotification,
+    init, checkReminders,
+    requestPermission, sendTest,
+    _open, _dismiss, _snooze,
+    openPickerForNote, openPickerForListItem,
+    _saveNoteBell, _clearNoteBell, _saveListBell, _clearListBell,
+    getPermissionState: () => {
+      if (!('Notification' in window)) return 'unsupported';
+      return Notification.permission; // 'default' | 'granted' | 'denied'
+    },
   };
 
 })(window.App = window.App || {});
