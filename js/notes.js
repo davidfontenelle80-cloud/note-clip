@@ -269,8 +269,12 @@
       onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();App.Notes._editNote('${note.id}')}">
       <div class="note-card-header">
         <div class="note-card-title">${_esc(title)}</div>
-        <button class="card-delete-btn"
-          onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="Delete">×</button>
+        <div class="note-card-actions">
+          <button class="card-share-btn"
+            onclick="event.stopPropagation();App.Notes._openShareModal('${note.id}')" title="${App.I18n.t('share_note')}">${App.I18n.t('share')}</button>
+          <button class="card-delete-btn"
+            onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="${App.I18n.t('delete')}">×</button>
+        </div>
       </div>
       ${body ? `<div class="note-card-body">${_esc(body.slice(0,120))}${body.length>120?'…':''}</div>` : ''}
       <div class="note-card-footer">
@@ -434,6 +438,77 @@
     results.innerHTML = buildNotesResultContent(App.Storage.getState());
   }
 
+  function _shareTextForNote(note) {
+    const lines = [];
+    const title = (note.title || '').trim();
+    const body = (note.body || '').trim();
+    if (title) lines.push(title);
+    if (body) lines.push(body);
+    if (note.dueDate) lines.push(`${App.I18n.t('note_due')}: ${note.dueDate}`);
+    return lines.join('\n\n') || App.I18n.t('no_notes');
+  }
+
+  function _shareTitleForNote(note) {
+    return (note.title || App.I18n.t('tab_notes')).trim();
+  }
+
+  function _getShareNote(id) {
+    return App.Storage.getState().notes.find(n => n.id === id);
+  }
+
+  function _openShareModal(id) {
+    const note = _getShareNote(id);
+    if (!note) return;
+    const title = _shareTitleForNote(note);
+    const text = _shareTextForNote(note);
+    const encodedText = encodeURIComponent(text);
+    const encodedTitle = encodeURIComponent(title);
+    const nativeDisabled = navigator.share ? '' : ' disabled';
+    const html = `
+      <div id="note-share-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeShareModal()">
+        <div class="modal-sheet note-share-sheet">
+          <div class="modal-handle"></div>
+          <div class="modal-title">${App.I18n.t('share_note')}</div>
+          <div class="note-share-preview">${_esc(text)}</div>
+          <div class="note-share-actions">
+            <a class="share-btn" href="sms:?&body=${encodedText}">${App.I18n.t('share_text_message')}</a>
+            <a class="share-btn whatsapp" href="https://wa.me/?text=${encodedText}" target="_blank" rel="noopener">WhatsApp</a>
+            <a class="share-btn" href="mailto:?subject=${encodedTitle}&body=${encodedText}" target="_blank" rel="noopener">${App.I18n.t('share_email')}</a>
+            <button type="button" class="share-btn copy" onclick="App.Notes._copyShare('${id}')">${App.I18n.t('share_copy_note')}</button>
+            <button type="button" class="share-btn"${nativeDisabled} onclick="App.Notes._nativeShare('${id}')">${App.I18n.t('share_native')}</button>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="App.Notes._closeShareModal()">${App.I18n.t('cancel')}</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    App.enhanceModal?.('note-share-modal');
+  }
+
+  function _copyShare(id) {
+    const note = _getShareNote(id);
+    if (!note) return;
+    const copy = App.Communication?._copyText || (text => navigator.clipboard?.writeText(text) || Promise.reject(new Error('copy failed')));
+    copy(_shareTextForNote(note))
+      .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'))
+      .catch(() => App.showToast(App.I18n.t('toast_copy_failed'), 'error'));
+  }
+
+  function _nativeShare(id) {
+    const note = _getShareNote(id);
+    if (!note || !navigator.share) return;
+    navigator.share({ title: _shareTitleForNote(note), text: _shareTextForNote(note) })
+      .catch(err => {
+        if (err && err.name !== 'AbortError') App.showToast(App.I18n.t('toast_share_failed'), 'error');
+      });
+  }
+
+  function _closeShareModal() {
+    document.getElementById('note-share-modal')?.remove();
+    App.restoreFocus?.();
+  }
+
   // ── Note Modal ────────────────────────────────────────────────────
   function _openNoteModal(note) {
     const state = App.Storage.getState();
@@ -511,11 +586,12 @@
             <div class="color-row" id="color-row">${colorRow}</div>
           </div>
 
-          <details open style="margin-bottom:var(--space-md)">
-            <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;padding:8px 0;color:var(--color-text-muted)">
+          <details class="note-detail-section" open>
+            <summary class="note-detail-summary">
+              <span class="note-section-mark" aria-hidden="true">+</span>
               ${App.I18n.t('note_due_reminder')}
             </summary>
-            <div style="padding-top:var(--space-sm)">
+            <div class="note-detail-body">
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label">${App.I18n.t('note_due')}</label>
@@ -539,11 +615,12 @@
             </div>
           </details>
 
-          <details style="margin-bottom:var(--space-md)">
-            <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;padding:8px 0;color:var(--color-text-muted)">
+          <details class="note-detail-section note-detail-section-appt">
+            <summary class="note-detail-summary">
+              <span class="note-section-mark" aria-hidden="true">@</span>
               ${App.I18n.t('note_appt_location')}
             </summary>
-            <div style="padding-top:var(--space-sm)">
+            <div class="note-detail-body">
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_appt')}</label>
                 <input id="note-appt-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Appointment name…" value="${_esc(n.appointmentName)}">
@@ -582,6 +659,7 @@
               ${n.archived
                 ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._restoreNote('${n.id}')">${App.I18n.t('restore')}</button>`
                 : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">${App.I18n.t('archive')}</button>`}
+              <button class="btn btn-secondary btn-sm" onclick="App.Notes._openShareModal('${n.id}')">${App.I18n.t('share')}</button>
             ` : ''}
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
             <button id="note-save-btn" class="btn btn-primary" onclick="App.Notes._saveNote('${isEdit ? n.id : ''}')">${App.I18n.t('save')}</button>
@@ -783,6 +861,7 @@
 
   function _closeModal() {
     document.getElementById('note-modal')?.remove();
+    document.getElementById('note-share-modal')?.remove();
     document.getElementById('cat-modal')?.remove();
     document.getElementById('cat-delete-modal')?.remove();
     App.restoreFocus?.();
@@ -911,7 +990,7 @@
     render, onFab, filterByDate,
     _setView, _viewCat, _setStatus, _setSearch,
     _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
-    _openNoteModal, _closeModal, _saveNote, _pickColor,
+    _openNoteModal, _openShareModal, _closeShareModal, _copyShare, _nativeShare, _closeModal, _saveNote, _pickColor,
     _openCatModal, _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
     _selectCatIcon, _filterCatIcons,
     _openAppleMaps, _openGoogleMaps, _copyAddress,

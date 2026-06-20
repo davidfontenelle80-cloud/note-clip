@@ -172,6 +172,6 @@
 
   function onFab() { document.getElementById('comm-context')?.focus(); }
 
-  App.Communication = { render, onFab, _generate, _copyOutput, _saveOutput, _deleteDraft, _copyDraft };
+  App.Communication = { render, onFab, _generate, _copyOutput, _saveOutput, _deleteDraft, _copyDraft, _copyText };
 
 })(window.App = window.App || {});
