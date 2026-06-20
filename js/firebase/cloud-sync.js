@@ -81,6 +81,12 @@
 
   function init() {
     if (_initPromise) return _initPromise;
+    if (!App.Firebase || typeof App.Firebase.init !== 'function') {
+      const err = new Error('Cloud setup is unavailable. Refresh the app and try again.');
+      _ready = true;
+      _setError(err);
+      return Promise.reject(err);
+    }
     _initPromise = App.Firebase.init()
       .then(app => Promise.all([app, import(AUTH_URL)]))
       .then(([app, mod]) => {
