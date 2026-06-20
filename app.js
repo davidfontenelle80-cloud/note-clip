@@ -178,7 +178,6 @@
       const vv = window.visualViewport;
       const inset = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
       document.documentElement.style.setProperty('--keyboard-inset', `${Math.round(inset)}px`);
-      // --vvp-height: actual visible viewport height (updates when keyboard opens on iOS)
       const vvpH = vv ? Math.round(vv.height) : window.innerHeight;
       document.documentElement.style.setProperty('--vvp-height', `${vvpH}px`);
     };
@@ -190,7 +189,6 @@
     document.addEventListener('focusout', () => setTimeout(updateKeyboardInset, 160));
 
     document.addEventListener('keydown', e => {
-      // Escape closes any open modal
       if (e.key === 'Escape') {
         document.querySelector('.modal-backdrop')?.remove();
         restoreFocus();
@@ -214,4 +212,49 @@
     });
 
     // Wire FAB
-    document.getElementById('fab')?.addEventListener('click',
+    document.getElementById('fab')?.addEventListener('click', onFab);
+
+    // Wire update banner
+    document.getElementById('update-btn')?.addEventListener('click', applyUpdate);
+
+    // Wire EN/ES toggle in header
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lang = btn.dataset.lang;
+        App.Storage.updateSettings({ language: lang });
+        App.I18n.set(lang);
+        refreshCurrentTab();
+      });
+    });
+
+    // System theme listener
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      const s = App.Storage.getState().settings;
+      if (s.theme === 'system') applyTheme('system');
+    });
+
+    // Register SW
+    registerSW();
+
+    // Surface hidden mobile script failures
+    setupGlobalErrorHandlers();
+
+    // Setup keyboard
+    setupKeyboard();
+
+    // Show initial tab
+    showTab('dashboard');
+    App.Onboarding?.maybeShow();
+
+    // Init reminder system
+    App.Reminders?.init();
+
+    console.log('[NoteClip] App ready.');
+  }
+
+  // Expose globals
+  Object.assign(App, { showTab, refreshCurrentTab, showToast, applyTheme, onFab, enhanceModal, restoreFocus, applyUpdate });
+
+  document.addEventListener('DOMContentLoaded', init);
+
+})(window.App = window.App || {});
