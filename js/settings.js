@@ -129,15 +129,23 @@
                     : 'notif_status_default';
     const statusColor = permState === 'granted' ? 'var(--color-success)'
                       : permState === 'denied'  ? 'var(--color-error)' : '';
+    const pushConnected = permState === 'granted' && !!App.Push?.getSubscriptionId?.();
+    const pushStatus = permState === 'granted'
+      ? `<div class="settings-row-sub" style="color:${pushConnected ? 'var(--color-success)' : 'var(--color-warning)'}">${t(pushConnected ? 'notif_push_connected' : 'notif_push_not_connected')}</div>`
+      : '';
     const reqBtn = permState !== 'granted'
       ? `<button class="btn btn-primary btn-sm" onclick="App.Reminders.requestPermission()">${t('notif_request_perm')}</button>`
+      : '';
+    const reconnectBtn = permState === 'granted' && !pushConnected
+      ? `<button class="btn btn-primary btn-sm" onclick="App.Reminders.requestPermission()">${t('notif_reconnect_push')}</button>`
       : '';
     const testBtn = permState === 'granted'
       ? `<button class="btn btn-secondary btn-sm" onclick="App.Reminders.sendTest()">${t('notif_test')}</button>`
       : '';
     return (
       `<div class="settings-row-sub" style="color:${statusColor}">${t(statusKey)}</div>` +
-      `<div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">${reqBtn}${testBtn}</div>`
+      pushStatus +
+      `<div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">${reqBtn}${reconnectBtn}${testBtn}</div>`
     );
   }
 

@@ -186,29 +186,32 @@
     }
   }
 
-  function requestPermission() {
+  async function requestPermission() {
     if (!('Notification' in window)) {
       App.showToast?.(App.I18n.t('notif_not_supported'), 'error');
       return;
     }
-    Notification.requestPermission().then(result => {
-      const st = App.Storage.getState();
-      if (result === 'granted') {
-        App.Storage.updateSettings({ notificationsEnabled: true });
-        App.Push?.subscribe?.();
-        App.showToast?.(App.I18n.t('notif_granted'), 'success');
-      } else {
-        App.Storage.updateSettings({ notificationsEnabled: false });
-        App.showToast?.(App.I18n.t('notif_denied'), 'error');
+    const result = await Notification.requestPermission();
+    if (result === 'granted') {
+      App.Storage.updateSettings({ notificationsEnabled: true });
+      try {
+        if (!App.Push?.subscribe) throw new Error('Background push module is not loaded.');
+        await App.Push.subscribe();
+        App.showToast?.(App.I18n.t('notif_push_connected'), 'success');
+      } catch(e) {
+        console.warn('[NoteClip.Reminders] Background push connection failed.', e);
+        App.showToast?.(App.I18n.t('notif_push_failed'), 'error');
       }
-      // Re-render settings if visible
-      if (document.getElementById('pane-settings')?.classList.contains('active')) {
-        App.Settings?.render?.();
-      }
-    });
+    } else {
+      App.Storage.updateSettings({ notificationsEnabled: false });
+      App.showToast?.(App.I18n.t('notif_denied'), 'error');
+    }
+    if (document.getElementById('pane-settings')?.classList.contains('active')) {
+      App.Settings?.render?.();
+    }
   }
 
-  function sendTest() {
+  async function sendTest() {
     if (!_canNotify()) {
       App.showToast?.(App.I18n.t('notif_need_permission'), 'error');
       return;
@@ -219,9 +222,17 @@
         icon: './icons/icon-192.png',
         tag: 'note-clip-test',
       });
-      App.showToast?.(App.I18n.t('notif_test_sent'), 'success');
     } catch(e) {
       App.showToast?.(App.I18n.t('notif_not_supported'), 'error');
+      return;
+    }
+    try {
+      if (!App.Push?.sendTestPush) throw new Error('Background push module is not loaded.');
+      await App.Push.sendTestPush();
+      App.showToast?.(App.I18n.t('notif_test_scheduled'), 'success');
+    } catch(e) {
+      console.warn('[NoteClip.Reminders] Background push test failed.', e);
+      App.showToast?.(App.I18n.t('notif_push_failed'), 'error');
     }
   }
 

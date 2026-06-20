@@ -1,7 +1,7 @@
 /**
- * push.js — Note Clip PWA
+ * push.js - Note Clip PWA
  * Handles Web Push subscription and backend reminder sync.
- * All calls are fire-and-forget; failures are silent (local reminders still work).
+ * Local reminders still work if the background push backend is unavailable.
  */
 (function (App) {
   'use strict';
@@ -19,8 +19,13 @@
   function getSubscriptionId() {
     try { return localStorage.getItem(STORAGE_KEY) || ''; } catch(e) { return ''; }
   }
+
   function _setSubscriptionId(id) {
     try { localStorage.setItem(STORAGE_KEY, id); } catch(e) {}
+  }
+
+  function _clearSubscriptionId() {
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
   }
 
   function _urlB64ToUint8Array(base64String) {
@@ -30,65 +35,113 @@
     return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
   }
 
-  /**
-   * Called when the user grants notification permission.
-   * Subscribes to push, posts subscription to the Worker, stores subscriptionId.
-   */
   async function subscribe() {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      throw new Error('Background push is not supported on this browser.');
+    }
     try {
       const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly:      true,
-        applicationServerKey: _urlB64ToUint8Array(VAPID_PUB_KEY),
-      });
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: _urlB64ToUint8Array(VAPID_PUB_KEY),
+        });
+      }
+
       const json = sub.toJSON();
       const resp = await fetch(`${WORKER_URL}/api/subscribe`, {
-        method:  'POST',
+        method: 'POST',
         headers: _headers(),
-        body:    JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
+        body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
       });
-      if (resp.ok) {
-        const { subscriptionId } = await resp.json();
-        _setSubscriptionId(subscriptionId);
+      if (!resp.ok) {
+        _clearSubscriptionId();
+        throw new Error('Background notification server rejected the subscription.');
       }
+
+      const { subscriptionId } = await resp.json();
+      if (!subscriptionId) {
+        _clearSubscriptionId();
+        throw new Error('Background notification server did not return a subscription id.');
+      }
+      _setSubscriptionId(subscriptionId);
+      return subscriptionId;
     } catch (e) {
-      // Silent — foreground reminders still work
+      _clearSubscriptionId();
+      console.warn('[NoteClip.Push] Background push subscription failed.', e);
+      throw e;
     }
   }
 
-  /**
-   * Sync a reminder to the Worker backend.
-   * @param {string} sourceType  'note' | 'list_item' | 'task'
-   * @param {string} sourceId    note.id or `${listId}_${itemId}`
-   * @param {string} title       push notification title
-   * @param {string|null} body   push notification body (optional)
-   * @param {number} fireAt      unix timestamp in seconds
-   */
+  async function _ensureSubscriptionId() {
+    return getSubscriptionId() || await subscribe();
+  }
+
+  async function sendTestPush() {
+    const subscriptionId = await _ensureSubscriptionId();
+    const fireAt = Math.floor(Date.now() / 1000) + 10;
+    const resp = await fetch(`${WORKER_URL}/api/reminders`, {
+      method: 'POST',
+      headers: _headers(),
+      body: JSON.stringify({
+        subscriptionId,
+        title: 'Note Clip Reminder',
+        body: 'Background notification test.',
+        fireAt,
+        sourceType: 'test',
+        sourceId: 'settings-test-' + Date.now(),
+      }),
+    });
+    if (!resp.ok) {
+      throw new Error('Background notification test could not be scheduled.');
+    }
+    return fireAt;
+  }
+
+  async function diagnose() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      return { supported: false, connected: false };
+    }
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      return { supported: true, connected: !!sub && !!getSubscriptionId() };
+    } catch(e) {
+      return { supported: true, connected: false };
+    }
+  }
+
   async function syncReminder(sourceType, sourceId, title, body, fireAt) {
     const subscriptionId = getSubscriptionId();
-    if (!subscriptionId) return; // push not enabled — skip
+    if (!subscriptionId) return false;
     try {
-      await fetch(`${WORKER_URL}/api/reminders`, {
-        method:  'POST',
+      const resp = await fetch(`${WORKER_URL}/api/reminders`, {
+        method: 'POST',
         headers: _headers(),
-        body:    JSON.stringify({ subscriptionId, title, body: body || '', fireAt, sourceType, sourceId }),
+        body: JSON.stringify({ subscriptionId, title, body: body || '', fireAt, sourceType, sourceId }),
       });
-    } catch (e) { /* silent */ }
+      return resp.ok;
+    } catch (e) {
+      console.warn('[NoteClip.Push] Reminder sync failed.', e);
+      return false;
+    }
   }
 
-  /**
-   * Remove a reminder from the Worker backend (note completed/deleted or reminder cleared).
-   */
   async function clearReminder(sourceType, sourceId) {
     try {
-      await fetch(`${WORKER_URL}/api/reminders/${sourceType}/${encodeURIComponent(sourceId)}`, {
-        method:  'DELETE',
+      const subscriptionId = getSubscriptionId();
+      const url = new URL(`${WORKER_URL}/api/reminders/${sourceType}/${encodeURIComponent(sourceId)}`);
+      if (subscriptionId) url.searchParams.set('subscriptionId', subscriptionId);
+      await fetch(url.toString(), {
+        method: 'DELETE',
         headers: _headers(),
       });
-    } catch (e) { /* silent */ }
+    } catch (e) {
+      console.warn('[NoteClip.Push] Reminder clear failed.', e);
+    }
   }
 
-  App.Push = { subscribe, syncReminder, clearReminder, getSubscriptionId };
+  App.Push = { subscribe, syncReminder, clearReminder, getSubscriptionId, sendTestPush, diagnose };
 
 })(window.App = window.App || {});

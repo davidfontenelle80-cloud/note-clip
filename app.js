@@ -77,6 +77,13 @@
     return raw.length > 140 ? raw.slice(0, 137) + '...' : raw;
   }
 
+  function isOptionalCloudError(value) {
+    const raw = value?.message || String(value || '');
+    return raw.includes('App.Firebase.init') ||
+           raw.includes('Cloud setup is unavailable') ||
+           raw.includes('Cloud auth is unavailable');
+  }
+
   function setupGlobalErrorHandlers() {
     if (window.__noteClipErrorHandlersReady) return;
     window.__noteClipErrorHandlersReady = 'true';
@@ -90,11 +97,19 @@
         console.warn('[NoteClip] Generic script error with no details:', event);
         return;
       }
+      if (isOptionalCloudError(event.error || event.message)) {
+        console.warn('[NoteClip] Optional cloud setup issue:', event.error || event.message, event);
+        return;
+      }
       console.error('[NoteClip] Window error:', event.error || event.message, event);
       showToast('App error: ' + shortErrorMessage(event.error || event.message), 'error');
     });
 
     window.addEventListener('unhandledrejection', event => {
+      if (isOptionalCloudError(event.reason)) {
+        console.warn('[NoteClip] Optional cloud setup rejection:', event.reason, event);
+        return;
+      }
       console.error('[NoteClip] Unhandled promise rejection:', event.reason, event);
       showToast('App error: ' + shortErrorMessage(event.reason), 'error');
     });
