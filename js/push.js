@@ -74,12 +74,8 @@
     }
   }
 
-  async function _ensureSubscriptionId() {
-    return getSubscriptionId() || await subscribe();
-  }
-
   async function sendTestPush() {
-    const subscriptionId = await _ensureSubscriptionId();
+    const subscriptionId = await subscribe();
     const fireAt = Math.floor(Date.now() / 1000) + 10;
     const resp = await fetch(`${WORKER_URL}/api/reminders`, {
       method: 'POST',
