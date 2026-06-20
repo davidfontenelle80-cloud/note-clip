@@ -530,6 +530,47 @@
     });
   }
 
+  function _noteReminderTime(note) {
+    if (!note || note.completed || note.archived) return null;
+    if (note.reminderAt) {
+      const t = new Date(note.reminderAt).getTime();
+      return isNaN(t) ? null : t;
+    }
+    if (!note.dueDate || !note.reminder) return null;
+    const [y, m, d] = note.dueDate.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    if (note.reminder === 'same_day') return new Date(y, m - 1, d, 8, 0, 0).getTime();
+    if (note.reminder === 'day_before') return new Date(y, m - 1, d - 1, 8, 0, 0).getTime();
+    if (note.dueTime && (note.reminder === '1h_before' || note.reminder === '2h_before')) {
+      const [hh, mm] = note.dueTime.split(':').map(Number);
+      if (Number.isFinite(hh) && Number.isFinite(mm)) {
+        const base = new Date(y, m - 1, d, hh, mm, 0).getTime();
+        return base - (note.reminder === '1h_before' ? 3600000 : 7200000);
+      }
+    }
+    return new Date(y, m - 1, d, 8, 0, 0).getTime();
+  }
+
+  function _syncNotePushReminder(note) {
+    if (!note || !note.id) return;
+    const fireMs = _noteReminderTime(note);
+    if (fireMs) {
+      App.Push?.syncReminder?.(
+        'note',
+        note.id,
+        note.title || 'Reminder',
+        note.body || '',
+        Math.floor(fireMs / 1000)
+      );
+    } else {
+      App.Push?.clearReminder?.('note', note.id);
+    }
+  }
+
+  function _clearNotePushReminder(id) {
+    if (id) App.Push?.clearReminder?.('note', id);
+  }
+
   function _saveNote(id) {
     if (_saving) return;
     _saving = true;
@@ -550,11 +591,9 @@
         const cd = document.getElementById('note-reminder-custom-date')?.value || '';
         const ct = document.getElementById('note-reminder-custom-time')?.value || '08:00';
         if (cd) { reminderAt = `${cd}T${ct}:00`; reminder = ''; }
-        else { reminder = ''; }
+        else { reminder = ''; reminderAt = ''; }
       } else {
-        // Preserve existing reminderAt set via bell icon (don't overwrite with empty)
-        const existingNote = id ? App.Storage.getState().notes.find(n => n.id === id) : null;
-        reminderAt = existingNote ? (existingNote.reminderAt || '') : '';
+        reminderAt = '';
       }
       const apptName = document.getElementById('note-appt-name')?.value || '';
       const apptDt   = document.getElementById('note-appt-dt')?.value   || '';
@@ -571,13 +610,15 @@
         appointmentDatetime: apptDt, leaveBy, locationName: locName, address,
       };
 
+      let savedNote = null;
       if (id) {
-        App.Storage.updateNote(id, patch);
+        savedNote = App.Storage.updateNote(id, patch);
         App.showToast(App.I18n.t('toast_note_updated'), 'success');
       } else {
-        App.Storage.addNote(patch);
+        savedNote = App.Storage.addNote(patch);
         App.showToast(App.I18n.t('toast_note_saved'), 'success');
       }
+      _syncNotePushReminder(savedNote);
       _closeModal();
       render();
       // Refresh dashboard reminders if visible
@@ -604,6 +645,7 @@
 
   function _deleteNote(id, fromModal) {
     if (!confirm('Delete this note?')) return;
+    _clearNotePushReminder(id);
     App.Storage.deleteNote(id);
     if (fromModal) _closeModal();
     App.showToast(App.I18n.t('toast_note_deleted'), 'success');
@@ -611,14 +653,16 @@
   }
 
   function _completeNote(id) {
-    App.Storage.updateNote(id, { completed: true, status: 'completed' });
+    App.Storage.updateNote(id, { completed: true, status: 'completed', reminder: '', reminderAt: '' });
+    _clearNotePushReminder(id);
     _closeModal();
     App.showToast(App.I18n.t('toast_note_completed'), 'success');
     render();
   }
 
   function _archiveNote(id) {
-    App.Storage.updateNote(id, { archived: true });
+    App.Storage.updateNote(id, { archived: true, reminder: '', reminderAt: '' });
+    _clearNotePushReminder(id);
     _closeModal();
     App.showToast(App.I18n.t('toast_note_archived'), 'success');
     render();
@@ -744,6 +788,11 @@
   }
 
   function _confirmDeleteCat(id, deleteNotes) {
+    if (deleteNotes) {
+      App.Storage.getState().notes
+        .filter(n => n.categoryId === id)
+        .forEach(n => _clearNotePushReminder(n.id));
+    }
     App.Storage.deleteCategory(id, deleteNotes);
     App.showToast(App.I18n.t('toast_cat_deleted'), 'success');
     _closeModal();

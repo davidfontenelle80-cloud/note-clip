@@ -165,12 +165,29 @@
   }
 
   // ── Item actions ──────────────────────────────────────────────────
+  function _listReminderSourceId(listId, itemId) {
+    return listId + '_' + itemId;
+  }
+
+  function _clearListItemPushReminder(listId, itemId) {
+    App.Push?.clearReminder?.('list_item', _listReminderSourceId(listId, itemId));
+  }
+
   function _toggleItem(listId, itemId) {
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === listId);
+    const item = list && list.items.find(i => i.id === itemId);
+    const willComplete = item && !item.checked;
     App.Storage.toggleListItem(listId, itemId);
+    if (willComplete) {
+      App.Storage.updateListItemReminder(listId, itemId, '');
+      _clearListItemPushReminder(listId, itemId);
+    }
     render();
   }
 
   function _deleteItem(listId, itemId) {
+    _clearListItemPushReminder(listId, itemId);
     App.Storage.deleteListItem(listId, itemId);
     render();
   }
@@ -304,6 +321,11 @@
 
   function _deleteList(id, fromModal) {
     if (!confirm('Delete this list and all its items?')) return;
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === id);
+    if (list) {
+      list.items.forEach(item => _clearListItemPushReminder(id, item.id));
+    }
     App.Storage.deleteList(id);
     if (fromModal) _closeModal();
     App.showToast(App.I18n.t('toast_list_deleted'), 'success');
