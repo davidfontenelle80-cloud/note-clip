@@ -195,6 +195,7 @@
       const st = App.Storage.getState();
       if (result === 'granted') {
         App.Storage.updateSettings({ notificationsEnabled: true });
+        App.Push?.subscribe?.();
         App.showToast?.(App.I18n.t('notif_granted'), 'success');
       } else {
         App.Storage.updateSettings({ notificationsEnabled: false });
@@ -299,6 +300,9 @@
     if (!date) { App.showToast?.(App.I18n.t('note_due') + '?', 'error'); return; }
     const reminderAt = `${date}T${time}:00`;
     App.Storage.updateNote(noteId, { reminderAt });
+    const _fireTs = Math.floor(new Date(reminderAt).getTime() / 1000);
+    const _n = App.Storage.getNotes().find(n => n.id === noteId);
+    App.Push?.syncReminder?.('note', noteId, _n?.title || 'Reminder', null, _fireTs);
     App.showToast?.(App.I18n.t('reminder_set_for'), 'success');
     // Re-render notes or dashboard if visible
     if (document.getElementById('pane-notes')?.classList.contains('active')) App.Notes?.render?.();
@@ -308,6 +312,7 @@
   function _clearNoteBell(noteId) {
     document.getElementById('reminder-picker-modal')?.remove();
     App.Storage.updateNote(noteId, { reminderAt: '' });
+    App.Push?.clearReminder?.('note', noteId);
     App.showToast?.(App.I18n.t('reminder_removed'), 'success');
     if (document.getElementById('pane-notes')?.classList.contains('active')) App.Notes?.render?.();
     if (document.getElementById('pane-dashboard')?.classList.contains('active')) App.Dashboard?.render?.();
@@ -359,6 +364,12 @@
     if (!date) { App.showToast?.(App.I18n.t('note_due') + '?', 'error'); return; }
     const reminderAt = `${date}T${time}:00`;
     App.Storage.updateListItemReminder(listId, itemId, reminderAt);
+    const _lFireTs = Math.floor(new Date(reminderAt).getTime() / 1000);
+    const _lState = App.Storage.getState();
+    const _lList = _lState.lists.find(l => l.id === listId);
+    const _lItem = _lList && _lList.items.find(i => i.id === itemId);
+    const _lTitle = _lList && _lItem ? _lList.name + ': ' + _lItem.text : 'Reminder';
+    App.Push?.syncReminder?.('list_item', listId + '_' + itemId, _lTitle, null, _lFireTs);
     App.showToast?.(App.I18n.t('reminder_set_for'), 'success');
     if (document.getElementById('pane-lists')?.classList.contains('active')) App.Lists?.render?.();
   }
@@ -366,6 +377,7 @@
   function _clearListBell(listId, itemId) {
     document.getElementById('reminder-picker-modal')?.remove();
     App.Storage.updateListItemReminder(listId, itemId, '');
+    App.Push?.clearReminder?.('list_item', listId + '_' + itemId);
     App.showToast?.(App.I18n.t('reminder_removed'), 'success');
     if (document.getElementById('pane-lists')?.classList.contains('active')) App.Lists?.render?.();
   }
