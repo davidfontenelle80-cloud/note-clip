@@ -6,7 +6,7 @@
 (function (App) {
   'use strict';
 
-  const TABS = ['dashboard','notes','lists','shared','communication','settings'];
+  const TABS = ['dashboard','notes','lists','calendar','shared','communication','settings'];
   let _activeTab = 'dashboard';
 
   // ── Tab routing ──────────────────────────────────────────────────
@@ -31,6 +31,7 @@
       notes:         () => App.Notes?.render(),
       lists:         () => App.Lists?.render(),
       shared:        () => App.Shared?.render(),
+      calendar:      () => App.Calendar?.render(),
       communication: () => App.Communication?.render(),
       settings:      () => App.Settings?.render(),
     };
@@ -45,7 +46,7 @@
       notes:         () => App.Notes?.onFab(),
       lists:         () => App.Lists?.onFab(),
       shared:        () => App.Shared?.onFab(),
-      communication: () => App.Communication?.onFab(),
+      calendar:      () => App.Notes?._openNoteModal(null),
       dashboard:     () => App.Notes?._openNoteModal(null),
     };
     handlers[_activeTab]?.();
@@ -53,6 +54,7 @@
 
   // ── Toast ────────────────────────────────────────────────────────
   let _toastTimer;
+  let _lastFocus = null;
   function showToast(msg, type = '') {
     let toast = document.getElementById('app-toast');
     if (!toast) {
@@ -68,6 +70,80 @@
     toast.classList.add('visible');
     clearTimeout(_toastTimer);
     _toastTimer = setTimeout(() => toast.classList.remove('visible'), 2600);
+  }
+
+  function shortErrorMessage(value) {
+    const raw = value?.message || String(value || 'Unknown app error');
+    return raw.length > 140 ? raw.slice(0, 137) + '...' : raw;
+  }
+
+  function isOptionalCloudError(value) {
+    const raw = value?.message || String(value || '');
+    return raw.includes('App.Firebase.init') ||
+           raw.includes('Cloud setup is unavailable') ||
+           raw.includes('Cloud auth is unavailable');
+  }
+
+  function setupGlobalErrorHandlers() {
+    if (window.__noteClipErrorHandlersReady) return;
+    window.__noteClipErrorHandlersReady = 'true';
+
+    window.addEventListener('error', event => {
+      if (event.target && event.target !== window) {
+        console.warn('[NoteClip] Resource failed to load:', event.target?.src || event.target?.href || event.target);
+        return;
+      }
+      if (!event.error && event.message === 'Script error.') {
+        console.warn('[NoteClip] Generic script error with no details:', event);
+        return;
+      }
+      if (isOptionalCloudError(event.error || event.message)) {
+        console.warn('[NoteClip] Optional cloud setup issue:', event.error || event.message, event);
+        return;
+      }
+      console.error('[NoteClip] Window error:', event.error || event.message, event);
+      showToast('App error: ' + shortErrorMessage(event.error || event.message), 'error');
+    });
+
+    window.addEventListener('unhandledrejection', event => {
+      if (isOptionalCloudError(event.reason)) {
+        console.warn('[NoteClip] Optional cloud setup rejection:', event.reason, event);
+        return;
+      }
+      console.error('[NoteClip] Unhandled promise rejection:', event.reason, event);
+      showToast('App error: ' + shortErrorMessage(event.reason), 'error');
+    });
+  }
+
+  function enhanceModal(modalOrId) {
+    const modal = typeof modalOrId === 'string' ? document.getElementById(modalOrId) : modalOrId;
+    if (!modal || modal.dataset.a11yReady) return;
+    _lastFocus = document.activeElement;
+    modal.dataset.a11yReady = 'true';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.addEventListener('keydown', e => {
+      if (e.key !== 'Tab') return;
+      const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+  }
+
+  function restoreFocus() {
+    const target = _lastFocus;
+    _lastFocus = null;
+    if (target && document.contains(target) && typeof target.focus === 'function') {
+      setTimeout(() => target.focus(), 0);
+    }
   }
 
   // ── Theme ────────────────────────────────────────────────────────
@@ -113,10 +189,24 @@
 
   // ── Keyboard shortcuts ───────────────────────────────────────────
   function setupKeyboard() {
+    const updateKeyboardInset = () => {
+      const vv = window.visualViewport;
+      const inset = vv ? Math.max(0, window.innerHeight - vv.height - vv.offsetTop) : 0;
+      document.documentElement.style.setProperty('--keyboard-inset', `${Math.round(inset)}px`);
+      const vvpH = vv ? Math.round(vv.height) : window.innerHeight;
+      document.documentElement.style.setProperty('--vvp-height', `${vvpH}px`);
+    };
+    updateKeyboardInset();
+    window.visualViewport?.addEventListener('resize', updateKeyboardInset);
+    window.visualViewport?.addEventListener('scroll', updateKeyboardInset);
+    window.addEventListener('orientationchange', () => setTimeout(updateKeyboardInset, 250));
+    document.addEventListener('focusin', () => setTimeout(updateKeyboardInset, 80));
+    document.addEventListener('focusout', () => setTimeout(updateKeyboardInset, 160));
+
     document.addEventListener('keydown', e => {
-      // Escape closes any open modal
       if (e.key === 'Escape') {
         document.querySelector('.modal-backdrop')?.remove();
+        restoreFocus();
       }
     });
   }
@@ -166,12 +256,18 @@
 
     // Show initial tab
     showTab('dashboard');
+    App.Onboarding?.maybeShow();
+
+    // Init reminder system
+    App.Reminders?.init();
 
     console.log('[NoteClip] App ready.');
   }
 
   // Expose globals
-  Object.assign(App, { showTab, refreshCurrentTab, showToast, applyTheme, onFab });
+  Object.assign(App, { showTab, refreshCurrentTab, showToast, applyTheme, onFab, enhanceModal, restoreFocus, applyUpdate });
+
+  setupGlobalErrorHandlers(); // Harden early — catches pre-init module errors
 
   document.addEventListener('DOMContentLoaded', init);
 
