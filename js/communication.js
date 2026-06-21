@@ -134,7 +134,7 @@
   }
 
   function _deleteDraft(id) {
-    if (!confirm('Delete this draft?')) return;
+    if (!confirm(App.I18n.t('confirm_delete_draft'))) return;
     App.Storage.deleteDraft(id);
     App.showToast(App.I18n.t('toast_draft_deleted'), 'success');
     render();
