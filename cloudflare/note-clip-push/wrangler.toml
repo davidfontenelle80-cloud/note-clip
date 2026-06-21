@@ -1,0 +1,20 @@
+name = "note-clip-push"
+main = "src/worker.js"
+compatibility_date = "2026-06-20"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "note-clip-reminders"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+[vars]
+ALLOWED_ORIGIN = "https://davidfontenelle80-cloud.github.io"
+VAPID_SUBJECT = "https://davidfontenelle80-cloud.github.io/note-clip/"
+VAPID_PUBLIC_KEY = "BGA5XrD1QxrqjItGmiEmDCaOlv38nc8PJo9pumvk5xVHfuVIwVBoEJEbGTWoE4POoazNKgRicX2Dfs-Ppb9uzKA"
+
+# Required secrets, set with wrangler secret put:
+# - VAPID_PRIVATE_KEY
+# - PUSH_SECRET
