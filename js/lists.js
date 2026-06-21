@@ -1,5 +1,5 @@
 /**
- * lists.js â Note Clip PWA
+ * lists.js — Note Clip PWA
  * Lists tab: Reusable, Goal-Based, Template lists. Full CRUD.
  */
 (function (App) {
@@ -9,9 +9,9 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // ââ Item Row Builder âââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Item Row Builder ───────────────────────────────────────────────
   // opts: { checkable, restoreMode }
-  // restoreMode = show restore button (â©) instead of check toggle label
+  // restoreMode = show restore button (↩) instead of check toggle label
   function _buildItemRow(listId, item, opts) {
     opts = opts || {};
     const checkable   = opts.checkable !== false;
@@ -22,12 +22,12 @@
     const checkEl = checkable
       ? `<div class="list-item-check${checkCls}"
            onclick="App.Lists._toggleItem('${listId}','${item.id}')">
-           ${item.checked ? 'â' : ''}</div>`
+           ${item.checked ? '✓' : ''}</div>`
       : `<div class="list-item-check" style="opacity:0.3;cursor:default"></div>`;
 
     const restoreBtn = restoreMode
       ? `<button class="card-delete-btn" style="width:24px;height:24px;font-size:0.8rem" title="Restore"
-           onclick="App.Lists._toggleItem('${listId}','${item.id}')">â©</button>`
+           onclick="App.Lists._toggleItem('${listId}','${item.id}')">↩</button>`
       : '';
 
     return `<div class="list-item">
@@ -36,25 +36,25 @@
       ${restoreBtn}
       <button class="bell-btn${item.reminderAt ? ' has-reminder' : ''}"
         title="Set reminder"
-        onclick="App.Reminders.openPickerForListItem('${listId}','${item.id}')">â°</button>
+        onclick="App.Reminders.openPickerForListItem('${listId}','${item.id}')">⏰</button>
       <button class="card-delete-btn" style="width:24px;height:24px;font-size:0.7rem" title="Edit"
-        onclick="App.Lists._editItem('${listId}','${item.id}')">â</button>
+        onclick="App.Lists._editItem('${listId}','${item.id}')">✎</button>
       <button class="card-delete-btn" style="width:24px;height:24px;font-size:0.75rem"
-        onclick="App.Lists._deleteItem('${listId}','${item.id}')">Ã</button>
+        onclick="App.Lists._deleteItem('${listId}','${item.id}')">×</button>
     </div>`;
   }
 
-  // ââ List Card âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── List Card ─────────────────────────────────────────────────────
   function buildListCard(list) {
     const t = App.I18n.t.bind(App.I18n);
     const checked = list.items.filter(i => i.checked).length;
     const total   = list.items.length;
     const typeLabel = t('list_' + list.type);
 
-    // ââ Type-differentiated item areas âââââââââââââââââââââââââââââââ
+    // ── Type-differentiated item areas ───────────────────────────────
     let itemsArea = '';
     const noItems = `<div style="color:var(--color-text-dim);font-size:var(--text-sm);padding:var(--space-sm) 0">
-      ${t('add_item').replace('â¦','')} â add below</div>`;
+      ${t('add_item').replace('…','')} — add below</div>`;
 
     if (list.type === 'goal') {
       // Active items (unchecked)
@@ -74,7 +74,7 @@
             font-size:var(--text-xs);color:var(--color-text-dim);margin-bottom:4px">
             <span>${t('list_completed')} (${doneItems.length})</span>
             <button class="card-delete-btn" title="Restore all"
-              onclick="App.Lists._reset('${list.id}')">âº</button>
+              onclick="App.Lists._reset('${list.id}')">↺</button>
           </div>
           ${doneItems.map(i => _buildItemRow(list.id, i, {restoreMode: true})).join('')}
         </div>` : '';
@@ -94,22 +94,22 @@
         : noItems;
     }
 
-    // ââ Progress bar âââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ── Progress bar ─────────────────────────────────────────────────
     const progressSection = (list.type !== 'template' && total > 0)
       ? `<div style="font-size:var(--text-xs);color:var(--color-text-dim);padding:4px var(--space-md)">
            ${App.I18n.t('list_progress', { checked, total })}
          </div>`
       : '';
 
-    // ââ Header buttons ââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ── Header buttons ────────────────────────────────────────────────
     const resetBtn = list.type === 'reusable' && checked > 0
       ? `<button class="card-delete-btn" title="${t('list_reset')}"
-           onclick="App.Lists._reset('${list.id}')">âº</button>`
+           onclick="App.Lists._reset('${list.id}')">↺</button>`
       : '';
 
     const copyBtn = list.type === 'template'
       ? `<button class="card-delete-btn" title="${t('list_copy')}"
-           onclick="App.Lists._copyList('${list.id}')">ð</button>`
+           onclick="App.Lists._copyList('${list.id}')">📋</button>`
       : '';
 
     return `<div class="list-card">
@@ -121,11 +121,11 @@
         <div style="display:flex;gap:4px;align-items:center">
           ${resetBtn}${copyBtn}
           <button class="card-delete-btn" title="${t('share_list')}"
-            onclick="App.Lists._shareList('${list.id}')">â</button>
+            onclick="App.Lists._shareList('${list.id}')">↗</button>
           <button class="card-delete-btn" title="Edit"
-            onclick="App.Lists._editList('${list.id}')">â</button>
+            onclick="App.Lists._editList('${list.id}')">✎</button>
           <button class="card-delete-btn" title="Delete"
-            onclick="App.Lists._deleteList('${list.id}')">Ã</button>
+            onclick="App.Lists._deleteList('${list.id}')">×</button>
         </div>
       </div>
       ${progressSection}
@@ -142,7 +142,7 @@
     </div>`;
   }
 
-  // ââ Render ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Render ────────────────────────────────────────────────────────
   function render() {
     const el = document.getElementById('pane-lists');
     if (!el) return;
@@ -164,7 +164,7 @@
       ${content}`;
   }
 
-  // ââ Item actions ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Item actions ──────────────────────────────────────────────────
   function _listReminderSourceId(listId, itemId) {
     return listId + '_' + itemId;
   }
@@ -201,7 +201,7 @@
     const newText = prompt(t('list_edit_item') + ':', item.text);
     if (newText === null) return;           // user cancelled
     const trimmed = newText.trim();
-    if (!trimmed) return;                   // empty â ignore
+    if (!trimmed) return;                   // empty — ignore
     App.Storage.updateListItem(listId, itemId, trimmed);
     render();
   }
@@ -239,7 +239,7 @@
     render();
   }
 
-  // ââ Share List âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Share List ───────────────────────────────────────────────────────
   function _shareList(id) {
     const state = App.Storage.getState();
     const list  = state.lists.find(l => l.id === id);
@@ -247,9 +247,9 @@
     const t = App.I18n.t.bind(App.I18n);
 
     // Build plain-text representation
-    const lines = [`ð ${list.name}`];
+    const lines = [`📋 ${list.name}`];
     list.items.forEach(item => {
-      lines.push((item.checked ? 'â ' : 'â¢ ') + item.text);
+      lines.push((item.checked ? '✓ ' : '• ') + item.text);
     });
     const text = lines.join('\n');
 
@@ -262,7 +262,7 @@
     }
   }
 
-  // ââ List Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── List Modal ────────────────────────────────────────────────────
   function _openModal(list) {
     const isEdit = !!list;
     const t = App.I18n.t.bind(App.I18n);
@@ -281,7 +281,7 @@
           <div class="modal-title">${isEdit ? t('edit_list') : t('add_list')}</div>
           <div class="form-group">
             <label class="form-label">${t('list_name')}</label>
-            <input id="list-name" class="form-input" placeholder="My listâ¦" value="${_esc(l.name)}">
+            <input id="list-name" class="form-input" placeholder="My list…" value="${_esc(l.name)}">
           </div>
           <div class="form-group">
             <label class="form-label">${t('list_type')}</label>
