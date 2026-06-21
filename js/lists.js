@@ -1,5 +1,5 @@
 /**
- * lists.js — Note Clip PWA
+ * lists.js â Note Clip PWA
  * Lists tab: Reusable, Goal-Based, Template lists. Full CRUD.
  */
 (function (App) {
@@ -9,9 +9,9 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // ── Item Row Builder ───────────────────────────────────────────────
+  // ââ Item Row Builder âââââââââââââââââââââââââââââââââââââââââââââââ
   // opts: { checkable, restoreMode }
-  // restoreMode = show restore button (↩) instead of check toggle label
+  // restoreMode = show restore button (â©) instead of check toggle label
   function _buildItemRow(listId, item, opts) {
     opts = opts || {};
     const checkable   = opts.checkable !== false;
@@ -22,36 +22,39 @@
     const checkEl = checkable
       ? `<div class="list-item-check${checkCls}"
            onclick="App.Lists._toggleItem('${listId}','${item.id}')">
-           ${item.checked ? '✓' : ''}</div>`
+           ${item.checked ? 'â' : ''}</div>`
       : `<div class="list-item-check" style="opacity:0.3;cursor:default"></div>`;
 
     const restoreBtn = restoreMode
       ? `<button class="card-delete-btn" style="width:24px;height:24px;font-size:0.8rem" title="Restore"
-           onclick="App.Lists._toggleItem('${listId}','${item.id}')">↩</button>`
+           onclick="App.Lists._toggleItem('${listId}','${item.id}')">â©</button>`
       : '';
 
     return `<div class="list-item">
       ${checkEl}
       <span class="list-item-text${textCls}">${_esc(item.text)}</span>
       ${restoreBtn}
+      <button class="bell-btn${item.reminderAt ? ' has-reminder' : ''}"
+        title="Set reminder"
+        onclick="App.Reminders.openPickerForListItem('${listId}','${item.id}')">â°</button>
       <button class="card-delete-btn" style="width:24px;height:24px;font-size:0.7rem" title="Edit"
-        onclick="App.Lists._editItem('${listId}','${item.id}')">✎</button>
+        onclick="App.Lists._editItem('${listId}','${item.id}')">â</button>
       <button class="card-delete-btn" style="width:24px;height:24px;font-size:0.75rem"
-        onclick="App.Lists._deleteItem('${listId}','${item.id}')">×</button>
+        onclick="App.Lists._deleteItem('${listId}','${item.id}')">Ã</button>
     </div>`;
   }
 
-  // ── List Card ─────────────────────────────────────────────────────
+  // ââ List Card âââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function buildListCard(list) {
     const t = App.I18n.t.bind(App.I18n);
     const checked = list.items.filter(i => i.checked).length;
     const total   = list.items.length;
     const typeLabel = t('list_' + list.type);
 
-    // ── Type-differentiated item areas ───────────────────────────────
+    // ââ Type-differentiated item areas âââââââââââââââââââââââââââââââ
     let itemsArea = '';
     const noItems = `<div style="color:var(--color-text-dim);font-size:var(--text-sm);padding:var(--space-sm) 0">
-      ${t('add_item').replace('…','')} — add below</div>`;
+      ${t('add_item').replace('â¦','')} â add below</div>`;
 
     if (list.type === 'goal') {
       // Active items (unchecked)
@@ -71,7 +74,7 @@
             font-size:var(--text-xs);color:var(--color-text-dim);margin-bottom:4px">
             <span>${t('list_completed')} (${doneItems.length})</span>
             <button class="card-delete-btn" title="Restore all"
-              onclick="App.Lists._reset('${list.id}')">↺</button>
+              onclick="App.Lists._reset('${list.id}')">âº</button>
           </div>
           ${doneItems.map(i => _buildItemRow(list.id, i, {restoreMode: true})).join('')}
         </div>` : '';
@@ -91,22 +94,22 @@
         : noItems;
     }
 
-    // ── Progress bar ─────────────────────────────────────────────────
+    // ââ Progress bar âââââââââââââââââââââââââââââââââââââââââââââââââ
     const progressSection = (list.type !== 'template' && total > 0)
       ? `<div style="font-size:var(--text-xs);color:var(--color-text-dim);padding:4px var(--space-md)">
            ${App.I18n.t('list_progress', { checked, total })}
          </div>`
       : '';
 
-    // ── Header buttons ────────────────────────────────────────────────
+    // ââ Header buttons ââââââââââââââââââââââââââââââââââââââââââââââââ
     const resetBtn = list.type === 'reusable' && checked > 0
       ? `<button class="card-delete-btn" title="${t('list_reset')}"
-           onclick="App.Lists._reset('${list.id}')">↺</button>`
+           onclick="App.Lists._reset('${list.id}')">âº</button>`
       : '';
 
     const copyBtn = list.type === 'template'
       ? `<button class="card-delete-btn" title="${t('list_copy')}"
-           onclick="App.Lists._copyList('${list.id}')">📋</button>`
+           onclick="App.Lists._copyList('${list.id}')">ð</button>`
       : '';
 
     return `<div class="list-card">
@@ -117,10 +120,12 @@
         </div>
         <div style="display:flex;gap:4px;align-items:center">
           ${resetBtn}${copyBtn}
+          <button class="card-delete-btn" title="${t('share_list')}"
+            onclick="App.Lists._shareList('${list.id}')">â</button>
           <button class="card-delete-btn" title="Edit"
-            onclick="App.Lists._editList('${list.id}')">✎</button>
+            onclick="App.Lists._editList('${list.id}')">â</button>
           <button class="card-delete-btn" title="Delete"
-            onclick="App.Lists._deleteList('${list.id}')">×</button>
+            onclick="App.Lists._deleteList('${list.id}')">Ã</button>
         </div>
       </div>
       ${progressSection}
@@ -137,7 +142,7 @@
     </div>`;
   }
 
-  // ── Render ────────────────────────────────────────────────────────
+  // ââ Render ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function render() {
     const el = document.getElementById('pane-lists');
     if (!el) return;
@@ -159,13 +164,30 @@
       ${content}`;
   }
 
-  // ── Item actions ──────────────────────────────────────────────────
+  // ââ Item actions ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function _listReminderSourceId(listId, itemId) {
+    return listId + '_' + itemId;
+  }
+
+  function _clearListItemPushReminder(listId, itemId) {
+    App.Push?.clearReminder?.('list_item', _listReminderSourceId(listId, itemId));
+  }
+
   function _toggleItem(listId, itemId) {
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === listId);
+    const item = list && list.items.find(i => i.id === itemId);
+    const willComplete = item && !item.checked;
     App.Storage.toggleListItem(listId, itemId);
+    if (willComplete) {
+      App.Storage.updateListItemReminder(listId, itemId, '');
+      _clearListItemPushReminder(listId, itemId);
+    }
     render();
   }
 
   function _deleteItem(listId, itemId) {
+    _clearListItemPushReminder(listId, itemId);
     App.Storage.deleteListItem(listId, itemId);
     render();
   }
@@ -179,7 +201,7 @@
     const newText = prompt(t('list_edit_item') + ':', item.text);
     if (newText === null) return;           // user cancelled
     const trimmed = newText.trim();
-    if (!trimmed) return;                   // empty — ignore
+    if (!trimmed) return;                   // empty â ignore
     App.Storage.updateListItem(listId, itemId, trimmed);
     render();
   }
@@ -217,7 +239,30 @@
     render();
   }
 
-  // ── List Modal ────────────────────────────────────────────────────
+  // ââ Share List âââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function _shareList(id) {
+    const state = App.Storage.getState();
+    const list  = state.lists.find(l => l.id === id);
+    if (!list) return;
+    const t = App.I18n.t.bind(App.I18n);
+
+    // Build plain-text representation
+    const lines = [`ð ${list.name}`];
+    list.items.forEach(item => {
+      lines.push((item.checked ? 'â ' : 'â¢ ') + item.text);
+    });
+    const text = lines.join('\n');
+
+    if (navigator.share) {
+      navigator.share({ title: list.name, text }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text)
+        .then(() => App.showToast(t('share_list_copied'), 'success'))
+        .catch(() => App.showToast(t('toast_copy_failed'), 'error'));
+    }
+  }
+
+  // ââ List Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function _openModal(list) {
     const isEdit = !!list;
     const t = App.I18n.t.bind(App.I18n);
@@ -236,7 +281,7 @@
           <div class="modal-title">${isEdit ? t('edit_list') : t('add_list')}</div>
           <div class="form-group">
             <label class="form-label">${t('list_name')}</label>
-            <input id="list-name" class="form-input" placeholder="My list…" value="${_esc(l.name)}">
+            <input id="list-name" class="form-input" placeholder="My listâ¦" value="${_esc(l.name)}">
           </div>
           <div class="form-group">
             <label class="form-label">${t('list_type')}</label>
@@ -276,6 +321,11 @@
 
   function _deleteList(id, fromModal) {
     if (!confirm('Delete this list and all its items?')) return;
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === id);
+    if (list) {
+      list.items.forEach(item => _clearListItemPushReminder(id, item.id));
+    }
     App.Storage.deleteList(id);
     if (fromModal) _closeModal();
     App.showToast(App.I18n.t('toast_list_deleted'), 'success');
@@ -291,7 +341,7 @@
   App.Lists = {
     render, onFab,
     _toggleItem, _deleteItem, _editItem, _addItem, _reset, _copyList,
-    _openModal, _editList, _saveList, _deleteList, _closeModal,
+    _openModal, _editList, _saveList, _deleteList, _closeModal, _shareList,
   };
 
 })(window.App = window.App || {});
