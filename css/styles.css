@@ -1,10 +1,10 @@
 /**
- * styles.css â Note Clip PWA
+ * styles.css — Note Clip PWA
  * Warm paper theme. Pastel note cards. Tactile 3D effects.
  * Light-first. Dark mode via [data-theme="dark"].
  */
 
-/* ââ Design Tokens âââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Design Tokens ─────────────────────────────────────────────── */
 :root {
   --keyboard-inset:       0px;
 
@@ -61,7 +61,7 @@
   --note-coral:    #F2C4B0;
   --note-peach:    #F7D9B0;
 
-  /* 3D Shadow system â layered for depth */
+  /* 3D Shadow system — layered for depth */
   --shadow-sm:           0 1px 2px rgba(0,0,0,.04);
   --shadow-card:         0 1px 2px rgba(0,0,0,.04), 0 4px 12px rgba(160,130,80,.10), 0 8px 24px rgba(160,130,80,.08);
   --shadow-card-hover:   0 2px 4px rgba(0,0,0,.06), 0 8px 20px rgba(160,130,80,.14), 0 16px 32px rgba(160,130,80,.10);
@@ -69,14 +69,14 @@
   --shadow-btn:          0 2px 6px rgba(0,0,0,.10), 0 4px 12px rgba(0,0,0,.07);
   --shadow-fab:          0 4px 8px rgba(0,0,0,.14), 0 12px 28px rgba(0,0,0,.20), 0 20px 40px rgba(0,0,0,.10);
   --shadow-fab-press:    0 2px 4px rgba(0,0,0,.14), 0 4px 8px rgba(0,0,0,.10);
-  /* Inner highlight rim â tactile top-left glow */
+  /* Inner highlight rim — tactile top-left glow */
   --shadow-inset:        inset 0 1px 0 rgba(255,255,255,.75), inset 1px 0 0 rgba(255,255,255,.35);
 
   /* Spacing */
   --space-xs: 4px;  --space-sm: 8px;  --space-md: 16px;
   --space-lg: 24px; --space-xl: 40px;
 
-  /* Radius â no sharp corners */
+  /* Radius — no sharp corners */
   --radius-sm:   10px;
   --radius-md:   16px;
   --radius-lg:   22px;
@@ -101,14 +101,9 @@
   --header-height:      56px;
   --bottom-nav-height:  76px;
   --max-width:          600px;
-  /* Quick Note */
-  --quick-note-paper: #FFF9C4;
-  --quick-note-lines: rgba(100, 120, 180, 0.13);
-  --quick-note-fold: #F0E68C;
-  --quick-note-fold-shadow: rgba(0, 0, 0, 0.10);
 }
 
-/* ââ Dark mode â Executive Dashboard System ââââââââââââââââââââââââ */
+/* ── Dark mode — Executive Dashboard System ──────────────────────── */
 [data-theme="dark"] {
   color-scheme: dark;
 
@@ -123,18 +118,18 @@
   --color-text-2: rgba(232,237,245,.72);
   --color-text-3: rgba(232,237,245,.42);
 
-  /* Accent: Gold â primary actions, active nav, selected dates */
+  /* Accent: Gold — primary actions, active nav, selected dates */
   --color-primary:       #D4AF5A;
   --color-primary-light: rgba(212,175,90,.15);
   --color-primary-glow:  rgba(212,175,90,.30);
 
-  /* Accent: Blue â indicators, reminders, links, calendar markers */
+  /* Accent: Blue — indicators, reminders, links, calendar markers */
   --color-accent-blue:      #4F8CFF;
   --color-accent-cyan:      #47D1FF;
   --color-accent-blue-soft: rgba(79,140,255,.18);
   --color-accent-cyan-soft: rgba(71,209,255,.15);
 
-  /* Note card colors â deep, rich, tinted */
+  /* Note card colors — deep, rich, tinted */
   --note-lavender: #2A1F3D;
   --note-sky:      #0F2340;
   --note-mint:     #0D2820;
@@ -142,7 +137,7 @@
   --note-coral:    #2D1410;
   --note-peach:    #2A1A08;
 
-  /* Note card text â readable on dark card backgrounds */
+  /* Note card text — readable on dark card backgrounds */
   --note-text:   #E8EDF5;
   --note-text-2: rgba(232,237,245,.70);
 
@@ -153,14 +148,9 @@
   --color-primary-dark: #B8943A;
   --shadow-card:        0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
   --shadow-inset:       inset 0 1px 0 rgba(255,255,255,.08), inset 1px 0 0 rgba(255,255,255,.04);
-  /* Quick Note dark */
-  --quick-note-paper: #3D3820;
-  --quick-note-lines: rgba(150, 170, 220, 0.18);
-  --quick-note-fold: #2E2A15;
-  --quick-note-fold-shadow: rgba(0, 0, 0, 0.25);
 }
 
-/* ââ Reset + Base ââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Reset + Base ────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
   font-size: 16px;
@@ -186,7 +176,7 @@ input, textarea, select {
   background: var(--color-surface);
 }
 
-/* ââ Layout Shell ââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Layout Shell ────────────────────────────────────────────────── */
 .app-header {
   position: sticky;
   top: 0;
@@ -232,7 +222,7 @@ input, textarea, select {
 .tab-pane { display: none; }
 .tab-pane.active { display: block; }
 
-/* ââ Bottom Nav ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Bottom Nav ──────────────────────────────────────────────────── */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -278,7 +268,7 @@ input, textarea, select {
 .nav-tab:active { transform: scale(0.95); }
 .nav-tab .nav-icon { font-size: 1.3rem; line-height: 1; }
 
-/* ââ EN/ES Language Toggle âââââââââââââââââââââââââââââââââââââââââ */
+/* ── EN/ES Language Toggle ───────────────────────────────────────── */
 .lang-toggle {
   display: flex;
   align-items: center;
@@ -304,7 +294,7 @@ input, textarea, select {
 }
 .lang-btn:active { transform: scale(0.95); }
 
-/* ââ FAB Button ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── FAB Button ──────────────────────────────────────────────────── */
 .fab {
   position: fixed;
   bottom: calc(var(--bottom-nav-height) + 16px);
@@ -328,7 +318,7 @@ input, textarea, select {
 }
 .fab:hover { transform: scale(1.06); }
 
-/* ââ Buttons âââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Buttons ─────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -382,7 +372,7 @@ input, textarea, select {
 .btn-icon:hover { background: rgba(0,0,0,0.1); }
 [data-theme="dark"] .btn-icon { background: rgba(255,255,255,0.08); }
 
-/* ââ Cards âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Cards ───────────────────────────────────────────────────────── */
 .card {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
@@ -395,7 +385,7 @@ input, textarea, select {
   box-shadow: var(--shadow-card-hover), var(--shadow-inset);
 }
 
-/* ââ Note Cards ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Note Cards ──────────────────────────────────────────────────── */
 .note-card {
   position: relative;
   border-radius: var(--radius-lg);
@@ -481,7 +471,7 @@ input, textarea, select {
 }
 .card-delete-btn:active { transform: scale(0.88); }
 
-/* ââ Category Cards ââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Category Cards ──────────────────────────────────────────────── */
 .category-card {
   position: relative;
   background: var(--color-surface);
@@ -650,7 +640,7 @@ input, textarea, select {
   .cat-icon-option { min-height: 70px; }
 }
 
-/* ââ Notes Grid ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Notes Grid ──────────────────────────────────────────────────── */
 .notes-grid {
   columns: 2;
   column-gap: var(--space-md);
@@ -659,7 +649,7 @@ input, textarea, select {
   .notes-grid { columns: 1; }
 }
 
-/* ââ Priority Badge ââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Priority Badge ──────────────────────────────────────────────── */
 .priority-badge {
   display: inline-flex;
   align-items: center;
@@ -674,7 +664,7 @@ input, textarea, select {
 .priority-medium  { background: var(--color-info-soft); color: var(--color-info); }
 .priority-low     { background: var(--color-success-soft); color: var(--color-success); }
 
-/* ââ Status Chips ââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Status Chips ────────────────────────────────────────────────── */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -687,7 +677,7 @@ input, textarea, select {
   color: var(--color-text-muted);
 }
 
-/* ââ Section Headers âââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Section Headers ─────────────────────────────────────────────── */
 .section-header {
   display: flex;
   align-items: center;
@@ -700,7 +690,7 @@ input, textarea, select {
   color: var(--color-text);
 }
 
-/* ââ Form Controls âââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Form Controls ───────────────────────────────────────────────── */
 .form-group { margin-bottom: var(--space-md); }
 .form-label {
   display: block;
@@ -737,7 +727,7 @@ input, textarea, select {
   gap: var(--space-sm);
 }
 
-/* ââ Quick Note ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Quick Note ──────────────────────────────────────────────────── */
 .quick-note-wrap {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
@@ -769,7 +759,7 @@ input, textarea, select {
   background: var(--color-surface-2);
 }
 
-/* ââ Mini Calendar âââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Mini Calendar ───────────────────────────────────────────────── */
 .mini-calendar {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
@@ -841,14 +831,14 @@ input, textarea, select {
 }
 .cal-day.other-month { color: var(--color-text-dim); }
 .cal-day.has-note::after {
-  content: 'â¢';
+  content: '•';
   display: block;
   font-size: 0.4rem;
   color: var(--color-primary-dark);
   margin-top: -2px;
 }
 
-/* ââ Greeting ââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Greeting ────────────────────────────────────────────────────── */
 .greeting-block {
   margin-bottom: var(--space-lg);
 }
@@ -863,7 +853,7 @@ input, textarea, select {
   margin-top: 2px;
 }
 
-/* ââ Today's Focus âââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Today's Focus ───────────────────────────────────────────────── */
 .focus-card {
   background: linear-gradient(145deg, var(--note-peach) 0%, var(--note-yellow) 100%);
   border-radius: var(--radius-lg);
@@ -892,7 +882,7 @@ input, textarea, select {
 .focus-input:focus { outline: none; }
 .focus-input::placeholder { color: var(--color-text-3); }
 
-/* ââ Reminder Item âââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Reminder Item ───────────────────────────────────────────────── */
 .reminder-item {
   display: flex;
   align-items: center;
@@ -919,7 +909,7 @@ input, textarea, select {
 .reminder-text { flex: 1; font-size: var(--text-sm); font-weight: 500; }
 .reminder-time { font-size: var(--text-xs); color: var(--color-text-muted); }
 
-/* ââ List Items ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── List Items ──────────────────────────────────────────────────── */
 .list-card {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
@@ -995,7 +985,7 @@ input, textarea, select {
   border-color: var(--color-primary);
 }
 
-/* ââ Status Tab Bar ââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Status Tab Bar ──────────────────────────────────────────────── */
 .status-tabs {
   display: flex;
   gap: var(--space-xs);
@@ -1023,7 +1013,7 @@ input, textarea, select {
   border-color: var(--color-primary);
 }
 
-/* ââ Modal / Sheet âââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Modal / Sheet ───────────────────────────────────────────────── */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1084,7 +1074,7 @@ input, textarea, select {
   border-top: 1px solid var(--color-border);
 }
 
-/* ââ Color Picker Row ââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Color Picker Row ────────────────────────────────────────────── */
 .color-row {
   display: flex;
   gap: var(--space-sm);
@@ -1102,7 +1092,7 @@ input, textarea, select {
 .color-swatch:active { transform: scale(0.88); }
 .color-swatch.selected { border-color: var(--color-text); transform: scale(1.12); }
 
-/* ââ Toast âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Toast ───────────────────────────────────────────────────────── */
 .toast {
   position: fixed;
   top: calc(var(--header-height) + var(--space-sm));
@@ -1123,7 +1113,7 @@ input, textarea, select {
 .toast.success { background: var(--color-success); color: white; }
 .toast.error   { background: var(--color-error);   color: white; }
 
-/* ââ Empty State âââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Empty State ─────────────────────────────────────────────────── */
 .empty-state {
   text-align: center;
   padding: var(--space-xl) var(--space-md);
@@ -1133,7 +1123,7 @@ input, textarea, select {
 .empty-state-text { font-size: var(--text-base); font-weight: 500; margin-bottom: var(--space-sm); }
 .empty-state-sub  { font-size: var(--text-sm); }
 
-/* ââ Settings ââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Settings ────────────────────────────────────────────────────── */
 .settings-section {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
@@ -1163,7 +1153,7 @@ input, textarea, select {
 .settings-row-label { font-size: var(--text-base); font-weight: 500; }
 .settings-row-sub   { font-size: var(--text-xs); color: var(--color-text-muted); }
 
-/* ââ Theme Toggle ââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Theme Toggle ────────────────────────────────────────────────── */
 .theme-toggle {
   display: flex;
   gap: 2px;
@@ -1185,7 +1175,7 @@ input, textarea, select {
   box-shadow: 0 1px 4px rgba(0,0,0,.15);
 }
 
-/* ââ Shared / Communication ââââââââââââââââââââââââââââââââââââââââ */
+/* ── Shared / Communication ──────────────────────────────────────── */
 .share-card {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
@@ -1219,7 +1209,7 @@ input, textarea, select {
 .share-btn.email    { color: var(--color-info); }
 .share-btn.copy     { color: var(--color-text-muted); }
 
-/* ââ Draft Card ââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Draft Card ──────────────────────────────────────────────────── */
 .draft-output {
   background: var(--color-surface-2);
   border-radius: var(--radius-md);
@@ -1233,17 +1223,17 @@ input, textarea, select {
   margin-top: var(--space-md);
 }
 
-/* ââ Focus visible âââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Focus visible ───────────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
 }
 
-/* ââ Numbers âââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Numbers ─────────────────────────────────────────────────────── */
 .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 
-/* ââ Update Notice âââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Update Notice ───────────────────────────────────────────────── */
 .update-notice {
   display: flex;
   align-items: center;
@@ -1283,7 +1273,7 @@ input, textarea, select {
   font-weight: 700;
 }
 
-/* ââ Utility âââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Utility ─────────────────────────────────────────────────────── */
 .hidden { display: none !important; }
 .sr-only {
   position: absolute; width: 1px; height: 1px;
@@ -1304,7 +1294,7 @@ input, textarea, select {
 .text-sm { font-size: var(--text-sm); }
 .w-full { width: 100%; }
 
-/* ââ Task Chips (Dashboard Today's Tasks) ââââââââââââââââââââââââââ */
+/* ── Task Chips (Dashboard Today's Tasks) ────────────────────────── */
 .task-chip {
   display: flex; align-items: center; gap: 8px;
   width: 100%; border: 0; color: inherit; text-align: left;
@@ -1320,7 +1310,7 @@ input, textarea, select {
 .task-chip-time { font-size: .75rem; color: var(--color-text-3); }
 .empty-state-sm { font-size: .85rem; color: var(--color-text-3); padding: 8px 0; }
 
-/* ââ Reminder Rows (Dashboard Upcoming) ââââââââââââââââââââââââââââ */
+/* ── Reminder Rows (Dashboard Upcoming) ──────────────────────────── */
 .reminder-row { display:flex; align-items:center; gap:10px; min-height:48px; padding:11px 12px; border:1px solid var(--color-border); border-radius:12px; background:var(--color-surface); box-shadow:0 2px 8px rgba(48,38,20,.07), inset 0 1px 0 rgba(255,255,255,.45); margin-bottom:8px; }
 .reminder-row:last-child { margin-bottom:0; }
 .reminder-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; box-shadow:0 0 0 4px color-mix(in srgb,currentColor 12%,transparent); }
@@ -1329,7 +1319,7 @@ input, textarea, select {
 .dash-upcoming-section .dash-section-title { color:var(--color-text); font-weight:800; letter-spacing:.1em; }
 .dash-upcoming-section #dash-reminders-list { padding-bottom: calc(var(--bottom-nav-height) + 12px); }
 
-/* ââ Dash Section âââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Dash Section ─────────────────────────────────────────────────── */
 .dash-section { margin-bottom: var(--space-lg); }
 .dash-section-title {
   font-size: var(--text-sm);
@@ -1340,7 +1330,7 @@ input, textarea, select {
   margin-bottom: var(--space-sm);
 }
 
-/* ââ Calendar Month/Year Pickers âââââââââââââââââââââââââââââââââââ */
+/* ── Calendar Month/Year Pickers ─────────────────────────────────── */
 .picker-overlay { position:absolute; inset:0; background:rgba(0,0,0,.3); display:flex; align-items:center; justify-content:center; border-radius:inherit; z-index:10; }
 .picker-panel { background:var(--color-surface); border-radius:16px; padding:16px; box-shadow:var(--shadow-card); }
 .picker-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
@@ -1348,19 +1338,19 @@ input, textarea, select {
 .picker-btn.picker-active { background:var(--color-primary); color:#fff; font-weight:600; }
 #dash-calendar { position:relative; }
 
-/* ââ Shared Tab âââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Shared Tab ───────────────────────────────────────────────────── */
 .shared-header { margin-bottom: 12px; }
 .shared-subtitle { font-size: .85rem; color: var(--color-text-3); margin-top: 2px; }
 .shared-card { padding: 10px 12px; margin-bottom: 8px; }
 .shared-card-actions { display: flex; gap: 6px; margin-top: 8px; }
 .shared-card-actions button { flex: 1; padding: 6px; font-size: .75rem; }
 
-/* ââ Calendar Tab âââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Calendar Tab ─────────────────────────────────────────────────── */
 #cal-tab-cal { position: relative; }
 .cal-tab-calendar { margin-bottom: 0; }
 .cal-day.has-reminder::after {
   conte
-/* ââ Toggle Switch âââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Toggle Switch ───────────────────────────────────────────────── */
 .toggle-switch { position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
 .toggle-switch input { opacity:0; width:0; height:0; }
 .toggle-slider {
@@ -1376,7 +1366,7 @@ input, textarea, select {
 .toggle-switch input:checked + .toggle-slider { background:var(--color-primary); }
 .toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); }
 
-/* ââ Weather Chip ââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Weather Chip ────────────────────────────────────────────────── */
 .weather-chip {
   display:inline-flex; align-items:center; gap:6px;
   background:var(--color-surface-2,rgba(0,0,0,.06));
@@ -1387,7 +1377,7 @@ input, textarea, select {
 .weather-chip-icon { font-size:1.1rem; line-height:1; }
 .weather-chip-temp { font-weight:600; }
 
-/* ââ Reminder Bell Icon ââââââââââââââââââââââââââââââââââââââââââââ */
+/* ── Reminder Bell Icon ──────────────────────────────────────────── */
 .bell-btn {
   background:none; border:none; cursor:pointer; padding:2px 4px;
   font-size:0.85rem; line-height:1; opacity:0.55;
