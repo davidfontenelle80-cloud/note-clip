@@ -1,7 +1,7 @@
 /**
- * app.js â Note Clip PWA
+ * app.js — Note Clip PWA
  * Tab router, SW registration, global helpers (showToast, applyTheme, refreshCurrentTab).
- * Load LAST â all feature modules must be loaded first.
+ * Load LAST — all feature modules must be loaded first.
  */
 (function (App) {
   'use strict';
@@ -9,7 +9,7 @@
   const TABS = ['dashboard','notes','lists','calendar','shared','communication','settings'];
   let _activeTab = 'dashboard';
 
-  // ââ Tab routing ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Tab routing ──────────────────────────────────────────────────
   function showTab(name) {
     if (!TABS.includes(name)) return;
     _activeTab = name;
@@ -40,7 +40,7 @@
 
   function refreshCurrentTab() { showTab(_activeTab); }
 
-  // ââ FAB routing ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── FAB routing ──────────────────────────────────────────────────
   function onFab() {
     const handlers = {
       notes:         () => App.Notes?.onFab(),
@@ -52,7 +52,7 @@
     handlers[_activeTab]?.();
   }
 
-  // ââ Toast ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Toast ────────────────────────────────────────────────────────
   let _toastTimer;
   let _lastFocus = null;
   function showToast(msg, type = '') {
@@ -146,7 +146,7 @@
     }
   }
 
-  // ââ Theme ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Theme ────────────────────────────────────────────────────────
   function applyTheme(theme) {
     const root = document.documentElement;
     if (theme === 'system') {
@@ -157,7 +157,7 @@
     }
   }
 
-  // ââ Service Worker âââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Service Worker ───────────────────────────────────────────────
   function registerSW() {
     if (!('serviceWorker' in navigator)) return;
     navigator.serviceWorker.register('./sw.js', { scope: './' })
@@ -187,7 +187,7 @@
     });
   }
 
-  // ââ Keyboard shortcuts âââââââââââââââââââââââââââââââââââââââââââ
+  // ── Keyboard shortcuts ───────────────────────────────────────────
   function setupKeyboard() {
     const updateKeyboardInset = () => {
       const vv = window.visualViewport;
@@ -211,7 +211,7 @@
     });
   }
 
-  // ââ Init âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Init ─────────────────────────────────────────────────────────
   function init() {
     const state = App.Storage.getState();
 
@@ -269,6 +269,6 @@
 
   setupGlobalErrorHandlers(); // Harden early — catches pre-init module errors
 
-    document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', init);
 
 })(window.App = window.App || {});
