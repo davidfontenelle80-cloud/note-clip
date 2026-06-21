@@ -1,9 +1,170 @@
 /**
- * settings.js — Note Clip PWA
+ * settings.js â Note Clip PWA
  * Settings tab: theme, language, username, reminders, export.
  */
 (function (App) {
   'use strict';
+
+  let _cloudInitStarted = false;
+
+  function _esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function _formatDate(value) {
+    if (!value) return App.I18n.t('cloud_never');
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleString(App.I18n.current() === 'es' ? 'es-ES' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  }
+
+  function _cloudSection(state) {
+    const t = App.I18n.t.bind(App.I18n);
+    const cloud = App.Cloud ? App.Cloud.getStatus() : null;
+    const loading = !!cloud?.loading;
+    const disabled = loading ? ' disabled' : '';
+    const signedIn = !!cloud?.user;
+    const accountText = signedIn
+      ? t('cloud_signed_in_as', { email: cloud.email })
+      : t('cloud_not_signed_in');
+    const chip = !App.Cloud
+      ? t('settings_offline')
+      : loading
+        ? t('cloud_loading')
+        : signedIn
+          ? t('cloud_available')
+          : t('settings_local_only');
+    const statusSub = cloud?.error
+      ? _esc(cloud.error)
+      : (signedIn ? t('cloud_available') : t('cloud_not_signed_in'));
+    const errorHtml = cloud?.error
+      ? `<div class="settings-row-sub" style="color:var(--color-error);margin-top:var(--space-xs)">${_esc(cloud.error)}</div>`
+      : '';
+
+    const authControls = signedIn ? `
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+        <div>
+          <div class="settings-row-label">${t('cloud_account')}</div>
+          <div class="settings-row-sub">${_esc(accountText)}</div>
+          ${errorHtml}
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="App.Settings._cloudSignOut()"${disabled}>${t('cloud_sign_out')}</button>
+      </div>
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+        <div>
+          <div class="settings-row-label">${t('cloud_backup_now')}</div>
+          <div class="settings-row-sub">${t('cloud_last_backup')}: ${_formatDate(cloud.lastBackupAt)}</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="App.Settings._cloudBackup()"${disabled}>${t('cloud_backup_now')}</button>
+      </div>
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+        <div>
+          <div class="settings-row-label">${t('cloud_restore')}</div>
+          <div class="settings-row-sub">${t('cloud_last_restore')}: ${_formatDate(cloud.lastRestoreAt)}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="App.Settings._cloudRestore()"${disabled}>${t('cloud_restore')}</button>
+      </div>`
+      : `
+      <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+        <div>
+          <div class="settings-row-label">${t('cloud_account')}</div>
+          <div class="settings-row-sub">${_esc(statusSub)}</div>
+          ${errorHtml}
+        </div>
+        <input id="cloud-email" class="form-input" type="email" autocomplete="email"
+          placeholder="${t('cloud_email_ph')}" aria-label="${t('cloud_email')}">
+        <input id="cloud-password" class="form-input" type="password" autocomplete="current-password"
+          placeholder="${t('cloud_password_ph')}" aria-label="${t('cloud_password')}">
+        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" style="flex:1 1 130px" onclick="App.Settings._cloudSignIn()"${disabled}>${t('cloud_sign_in')}</button>
+          <button class="btn btn-secondary btn-sm" style="flex:1 1 130px" onclick="App.Settings._cloudCreateAccount()"${disabled}>${t('cloud_create_account')}</button>
+        </div>
+      </div>`;
+
+    return `
+      <div class="settings-row">
+        <div>
+          <div class="settings-row-label">${t('cloud_sync')}</div>
+          <div class="settings-row-sub">${_esc(statusSub)}</div>
+        </div>
+        <span class="chip">${_esc(chip)}</span>
+      </div>
+      ${authControls}`;
+  }
+
+
+  function _isStandalone() {
+    return window.navigator.standalone === true ||
+           window.matchMedia('(display-mode: standalone)').matches;
+  }
+
+  function _notifSection(s, t) {
+    const hasNotifAPI = 'Notification' in window;
+    const standalone  = _isStandalone();
+
+    // Embedded browser (no Notification API and not standalone)
+    if (!hasNotifAPI && !standalone) {
+      return `<div class="settings-row-sub" style="color:var(--color-text-muted)">${t('notif_embedded')}</div>`;
+    }
+
+    // Standalone but no Notification API (some browsers)
+    if (!hasNotifAPI) {
+      return `<div class="settings-row-sub" style="color:var(--color-text-muted)">${t('notif_not_supported')}</div>`;
+    }
+
+    const permState = App.Reminders?.getPermissionState?.() || 'unsupported';
+
+    // Standalone-installed but not yet granted â give clear guidance
+    if (!standalone && permState !== 'granted') {
+      return `<div class="settings-row-sub" style="color:var(--color-text-muted)">${t('notif_embedded')}</div>`;
+    }
+
+    const statusKey = permState === 'granted' ? 'notif_status_granted'
+                    : permState === 'denied'  ? 'notif_status_denied'
+                    : 'notif_status_default';
+    const statusColor = permState === 'granted' ? 'var(--color-success)'
+                      : permState === 'denied'  ? 'var(--color-error)' : '';
+    const pushConnected = permState === 'granted' && !!App.Push?.getSubscriptionId?.();
+    const pushStatus = permState === 'granted'
+      ? `<div class="settings-row-sub" style="color:${pushConnected ? 'var(--color-success)' : 'var(--color-warning)'}">${t(pushConnected ? 'notif_push_connected' : 'notif_push_not_connected')}</div>`
+      : '';
+    const reqBtn = permState !== 'granted'
+      ? `<button class="btn btn-primary btn-sm" onclick="App.Reminders.requestPermission()">${t('notif_request_perm')}</button>`
+      : '';
+    const reconnectBtn = permState === 'granted' && !pushConnected
+      ? `<button class="btn btn-primary btn-sm" onclick="App.Reminders.requestPermission()">${t('notif_reconnect_push')}</button>`
+      : '';
+    const testBtn = permState === 'granted'
+      ? `<button class="btn btn-secondary btn-sm" onclick="App.Reminders.sendTest()">${t('notif_test')}</button>`
+      : '';
+    return (
+      `<div class="settings-row-sub" style="color:${statusColor}">${t(statusKey)}</div>` +
+      pushStatus +
+      `<div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">${reqBtn}${reconnectBtn}${testBtn}</div>`
+    );
+  }
+
+
+  function _openComms() {
+    if (!App.Communication) return;
+    const html = `
+      <div id="comms-modal" class="modal-backdrop" onclick="if(event.target===this)this.remove()">
+        <div class="modal-sheet" style="max-height:80vh">
+          <div class="modal-handle"></div>
+          <div id="comms-modal-body"></div>
+          <div class="modal-actions sticky-actions">
+            <button class="btn btn-secondary" onclick="document.getElementById('comms-modal').remove()">${App.I18n.t('close')}</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    App.Communication.renderInto('comms-modal-body');
+  }
 
   function render() {
     const el = document.getElementById('pane-settings');
@@ -27,14 +188,16 @@
         <span class="section-title">${t('settings')}</span>
       </div>
 
-      <!-- Appearance -->
+      <!-- Profile -->
       <div class="settings-section">
-        <div class="settings-section-label">${t('settings_appearance')}</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label">${t('theme')}</div>
-          </div>
-          <div class="theme-toggle">${themeButtons}</div>
+        <div class="settings-section-label">${t('settings_profile')}</div>
+        <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+          <div class="settings-row-label">${t('username')}</div>
+          <input id="settings-username" class="form-input"
+            placeholder="${t('username_ph')}" value="${(s.username||'').replace(/"/g,'&quot;')}">
+          <button class="btn btn-primary btn-sm" onclick="App.Settings._saveUsername()">
+            ${t('save')}
+          </button>
         </div>
         <div class="settings-row">
           <div>
@@ -47,18 +210,11 @@
               onclick="App.Settings._setLanguage('es')">ES</button>
           </div>
         </div>
-      </div>
-
-      <!-- Profile -->
-      <div class="settings-section">
-        <div class="settings-section-label">${t('settings_profile')}</div>
-        <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
-          <div class="settings-row-label">${t('username')}</div>
-          <input id="settings-username" class="form-input"
-            placeholder="${t('username_ph')}" value="${(s.username||'').replace(/"/g,'&quot;')}">
-          <button class="btn btn-primary btn-sm" onclick="App.Settings._saveUsername()">
-            ${t('save')}
-          </button>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">${t('theme')}</div>
+          </div>
+          <div class="theme-toggle">${themeButtons}</div>
         </div>
       </div>
 
@@ -82,22 +238,54 @@
         </div>
       </div>
 
+
+      <!-- Weather -->
+      <div class="settings-section">
+        <div class="settings-section-label">${t('weather_enable')}</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">${t('weather_enable')}</div>
+            <div class="settings-row-sub" style="max-width:280px">${t('weather_disclosure')}</div>
+          </div>
+          <label class="toggle-switch" style="flex-shrink:0">
+            <input type="checkbox" id="settings-weather"${s.weatherEnabled ? ' checked' : ''}
+              onchange="App.Settings._saveWeather(this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
       <!-- Data -->
       <div class="settings-section">
         <div class="settings-section-label">${t('settings_data_sync')}</div>
-        <div class="settings-row">
-          <div>
-            <div class="settings-row-label">${t('cloud_sync')}</div>
-            <div class="settings-row-sub">${t('cloud_status')}</div>
-          </div>
-          <span class="chip">${t('settings_offline')}</span>
-        </div>
+        ${_cloudSection(state)}
         <div class="settings-row">
           <div>
             <div class="settings-row-label">${t('export_backup')}</div>
             <div class="settings-row-sub">${t('settings_count', {notes: noteCountStr, lists: listCountStr})}</div>
           </div>
           <button class="btn btn-secondary btn-sm" onclick="App.Storage.exportJSON()">${t('settings_export_btn')}</button>
+        </div>
+      </div>
+
+
+      <!-- Notifications -->
+      <div class="settings-section">
+        <div class="settings-section-label">${t('notif_settings_title')}</div>
+        <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
+          <div class="settings-row-sub" style="margin-bottom:var(--space-xs)">${t('notif_settings_sub')}</div>
+          ${_notifSection(s, t)}
+        </div>
+      </div>
+
+      <!-- Tools -->
+      <div class="settings-section">
+        <div class="settings-section-label">${t('settings_tools_title')}</div>
+        <div class="settings-row">
+          <div>
+            <div class="settings-row-label">${t('settings_comms_title')}</div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="App.Settings._openComms()">${t('open')}</button>
         </div>
       </div>
 
@@ -114,6 +302,11 @@
         </div>
       </div>
     `;
+
+    if (App.Cloud && !_cloudInitStarted) {
+      _cloudInitStarted = true;
+      App.Cloud.init().catch(() => {}).finally(() => _refreshCloudStatus());
+    }
   }
 
   function _setTheme(theme) {
@@ -141,11 +334,75 @@
     App.Storage.updateSettings({ defaultReminderTime: val });
   }
 
+  function _saveWeather(enabled) {
+    App.Storage.updateSettings({ weatherEnabled: !!enabled });
+    if (enabled) {
+      App.Dashboard?._fetchWeather?.();
+    } else {
+      App.Dashboard?._clearWeather?.();
+    }
+  }
+
   function _saveListDefault() {
     const val = document.getElementById('settings-list-default')?.value || 'reusable';
     App.Storage.updateSettings({ defaultListBehavior: val });
   }
 
-  App.Settings = { render, _setTheme, _setLanguage, _saveUsername, _saveReminder, _saveListDefault };
+  function _cloudCredentials() {
+    const email = document.getElementById('cloud-email')?.value.trim() || '';
+    const password = document.getElementById('cloud-password')?.value || '';
+    return { email, password };
+  }
+
+  function _cloudSignIn() {
+    const { email, password } = _cloudCredentials();
+    App.Cloud.signIn(email, password)
+      .then(() => App.showToast(App.I18n.t('toast_cloud_signed_in'), 'success'))
+      .catch(() => {})
+      .finally(() => render());
+  }
+
+  function _cloudCreateAccount() {
+    const { email, password } = _cloudCredentials();
+    App.Cloud.createAccount(email, password)
+      .then(() => App.showToast(App.I18n.t('toast_cloud_account_created'), 'success'))
+      .catch(() => {})
+      .finally(() => render());
+  }
+
+  function _cloudSignOut() {
+    App.Cloud.signOut()
+      .then(() => App.showToast(App.I18n.t('toast_cloud_signed_out'), 'success'))
+      .catch(() => {})
+      .finally(() => render());
+  }
+
+  function _cloudBackup() {
+    App.Cloud.backupNow()
+      .then(() => App.showToast(App.I18n.t('toast_cloud_backup'), 'success'))
+      .catch(() => {})
+      .finally(() => render());
+  }
+
+  function _cloudRestore() {
+    if (!confirm(App.I18n.t('cloud_restore_q'))) return;
+    App.Cloud.restoreFromCloud()
+      .then(() => {
+        App.showToast(App.I18n.t('toast_cloud_restore'), 'success');
+        App.refreshCurrentTab();
+      })
+      .catch(() => {})
+      .finally(() => render());
+  }
+
+  function _refreshCloudStatus() {
+    if (document.getElementById('pane-settings')?.classList.contains('active')) render();
+  }
+
+  App.Settings = {
+    render, _setTheme, _setLanguage, _saveUsername, _saveReminder, _saveListDefault,
+    _cloudSignIn, _cloudCreateAccount, _cloudSignOut, _cloudBackup, _cloudRestore,
+    _refreshCloudStatus, _openComms, _saveWeather,
+  };
 
 })(window.App = window.App || {});
