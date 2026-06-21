@@ -181,7 +181,7 @@
         ${n.priority ? `<span class="priority-badge priority-${n.priority}">${App.I18n.t('priority_'+n.priority)}</span>` : ''}
         ${n.dueTime  ? `<span class="task-chip-time">${_formatTime(n.dueTime)}</span>` : ''}
         <button type="button" class="bell-btn${n.reminderAt ? ' has-reminder' : ''}"
-          title="Set reminder"
+          title="${App.I18n.t('reminder_bell_title')}"
           onclick="event.stopPropagation();App.Reminders.openPickerForNote('${n.id}')">⏰</button>
       </button>
     `).join('');
