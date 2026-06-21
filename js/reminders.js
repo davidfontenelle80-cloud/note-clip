@@ -1,8 +1,8 @@
 /**
- * reminders.js â Note Clip PWA
+ * reminders.js — Note Clip PWA
  * Layer A: in-app reminder popup.
  * Layer B: browser Notification API.
- * Stage 10D â Part 2.
+ * Stage 10D — Part 2.
  */
 (function (App) {
   'use strict';
@@ -12,7 +12,7 @@
   let _checkTimer    = null;
   let _popupVisible  = false;
 
-  // ââ Persistence helpers ââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Persistence helpers ────────────────────────────────────────────
   function _getNotified() {
     try { return JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '{}'); } catch(e) { return {}; }
   }
@@ -26,7 +26,7 @@
     try { localStorage.setItem(SNOOZED_KEY, JSON.stringify(map)); } catch(e) {}
   }
 
-  // ââ Reminder timing ââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Reminder timing ────────────────────────────────────────────────
   function _reminderSig(n) {
     return `${n.dueDate||''}_${n.dueTime||''}_${n.reminder||''}_${n.reminderAt||''}`;
   }
@@ -46,11 +46,11 @@
       const base = new Date(y, m-1, d, hh, mm, 0).getTime();
       return base - (n.reminder === '1h_before' ? 3600000 : 7200000);
     }
-    // Fallback: reminder set but no time â fire at 8am on due date
+    // Fallback: reminder set but no time — fire at 8am on due date
     return new Date(y, m-1, d, 8, 0, 0).getTime();
   }
 
-  // ââ Check which notes need a popup ââââââââââââââââââââââââââââââââ
+  // ── Check which notes need a popup ────────────────────────────────
   function _duePending() {
     const now      = Date.now();
     const notified = _getNotified();
@@ -93,7 +93,7 @@
     return [...notesPending, ...listsPending];
   }
 
-  // ââ In-app popup (Layer A) âââââââââââââââââââââââââââââââââââââââââ
+  // ── In-app popup (Layer A) ─────────────────────────────────────────
   function _removePopup() {
     document.getElementById('reminder-popup-bar')?.remove();
     _popupVisible = false;
@@ -110,7 +110,7 @@
     bar.id = 'reminder-popup-bar';
     bar.className = 'reminder-popup-bar';
     bar.innerHTML = `
-      <div class="rem-icon">ð</div>
+      <div class="rem-icon">🔔</div>
       <div class="rem-body">
         <div class="rem-title">${App.I18n.t('reminder_popup_title')}${more}</div>
         <div class="rem-note">${_esc(n.title || App.I18n.t('no_notes'))}</div>
@@ -118,7 +118,7 @@
       <div class="rem-actions">
         <button class="rem-btn rem-open" onclick="App.Reminders._open('${n.id}')">${App.I18n.t('reminder_open')}</button>
         <button class="rem-btn rem-snooze" onclick="App.Reminders._snooze('${n.id}')">${App.I18n.t('reminder_snooze')}</button>
-        <button class="rem-btn rem-dismiss" onclick="App.Reminders._dismiss('${n.id}')">â</button>
+        <button class="rem-btn rem-dismiss" onclick="App.Reminders._dismiss('${n.id}')">✕</button>
       </div>`;
     document.body.appendChild(bar);
     _popupVisible = true;
@@ -128,7 +128,7 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // ââ Popup actions âââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Popup actions ─────────────────────────────────────────────────
   function _open(id) {
     _dismiss(id);
     App.showTab?.('notes');
@@ -168,7 +168,7 @@
     if (pending.length) setTimeout(() => _showPopup(pending), 400);
   }
 
-  // ââ Browser notification (Layer B) ââââââââââââââââââââââââââââââââ
+  // ── Browser notification (Layer B) ────────────────────────────────
   function _canNotify() {
     return 'Notification' in window && Notification.permission === 'granted';
   }
@@ -182,7 +182,7 @@
       const n = new Notification(title, { body, icon: './icons/icon-192.png', tag: 'note-clip-' + note.id });
       n.onclick = () => { window.focus(); _open(note.id); };
     } catch(e) {
-      // Silently ignore â Layer A popup already shown
+      // Silently ignore — Layer A popup already shown
     }
   }
 
@@ -236,7 +236,7 @@
     }
   }
 
-  // ââ Main check ââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Main check ────────────────────────────────────────────────────
   function checkReminders() {
     if (_popupVisible) return;
     const pending = _duePending();
@@ -256,7 +256,7 @@
     }
   }
 
-  // ââ Init ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Init ──────────────────────────────────────────────────────────
   function init() {
     checkReminders();
     // Check every 60 seconds
@@ -267,7 +267,7 @@
     });
   }
 
-  // ââ Reminder bell picker ââââââââââââââââââââââââââââââââââââââââââ
+  // ── Reminder bell picker ──────────────────────────────────────────
   function openPickerForNote(noteId) {
     const state = App.Storage.getState();
     const note = state.notes.find(n => n.id === noteId);
@@ -283,7 +283,7 @@
       <div id="reminder-picker-modal" class="modal-backdrop" onclick="if(event.target===this)document.getElementById('reminder-picker-modal').remove()">
         <div class="modal-sheet" style="max-height:65vh">
           <div class="modal-handle"></div>
-          <div class="modal-title">â° ${_esc(t('reminder_bell_title'))}</div>
+          <div class="modal-title">⏰ ${_esc(t('reminder_bell_title'))}</div>
           <div class="form-row">
             <div class="form-group" style="flex:1">
               <label class="form-label">${_esc(t('note_due'))}</label>
@@ -322,7 +322,7 @@
 
   function _clearNoteBell(noteId) {
     document.getElementById('reminder-picker-modal')?.remove();
-    App.Storage.updateNote(noteId, { reminderAt: '', reminder: '' });
+    App.Storage.updateNote(noteId, { reminderAt: '' });
     App.Push?.clearReminder?.('note', noteId);
     App.showToast?.(App.I18n.t('reminder_removed'), 'success');
     if (document.getElementById('pane-notes')?.classList.contains('active')) App.Notes?.render?.();
@@ -346,7 +346,7 @@
       <div id="reminder-picker-modal" class="modal-backdrop" onclick="if(event.target===this)document.getElementById('reminder-picker-modal').remove()">
         <div class="modal-sheet" style="max-height:65vh">
           <div class="modal-handle"></div>
-          <div class="modal-title">â° ${_esc(t('reminder_bell_title'))}</div>
+          <div class="modal-title">⏰ ${_esc(t('reminder_bell_title'))}</div>
           <div style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-sm)">${label}</div>
           <div class="form-row">
             <div class="form-group" style="flex:1">
