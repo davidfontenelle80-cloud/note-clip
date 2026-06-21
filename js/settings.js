@@ -1,5 +1,5 @@
 /**
- * settings.js â Note Clip PWA
+ * settings.js — Note Clip PWA
  * Settings tab: theme, language, username, reminders, export.
  */
 (function (App) {
@@ -119,7 +119,7 @@
 
     const permState = App.Reminders?.getPermissionState?.() || 'unsupported';
 
-    // Standalone-installed but not yet granted â give clear guidance
+    // Standalone-installed but not yet granted — give clear guidance
     if (!standalone && permState !== 'granted') {
       return `<div class="settings-row-sub" style="color:var(--color-text-muted)">${t('notif_embedded')}</div>`;
     }
