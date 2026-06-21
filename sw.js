@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v44';
+const CACHE_VERSION = 'note-clip-v45';
 
 const PRECACHE_URLS = [
   './',
@@ -52,7 +52,7 @@ self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
-// ââ Background push notifications ââââââââââââââââââââââââââââââââââââââââââââ
+// ── Background push notifications ────────────────────────────────────────────
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
   event.waitUntil(
