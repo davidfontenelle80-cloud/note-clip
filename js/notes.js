@@ -1,5 +1,5 @@
 /**
- * notes.js — Note Clip PWA
+ * notes.js â Note Clip PWA
  * Notes + Categories tab. Full CRUD. Pastel cards. Delete visible on card.
  */
 (function (App) {
@@ -14,7 +14,12 @@
   let _editingCatId  = null;
 
   function _esc(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(s || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
   }
 
   // Render icon: PNG img if ic_ filename, else emoji/text fallback
@@ -26,7 +31,111 @@
     return _esc(icon);
   }
 
-  // ── Status Tabs ───────────────────────────────────────────────────
+  const CATEGORY_ICON_OPTIONS = [
+    { value: '\u{1F4BC}', name: 'Work', terms: 'work office briefcase job business' },
+    { value: '\u{1FA7A}', name: 'Medical', terms: 'medical health first aid doctor' },
+    { value: '\u{1F464}', name: 'Personal', terms: 'personal person profile user' },
+    { value: '\u{1F3E0}', name: 'House', terms: 'house home residence' },
+    { value: '\u{1F4C4}', name: 'Documents', terms: 'documents paper file form' },
+    { value: '\u{1F514}', name: 'Reminder', terms: 'reminder bell follow up alert' },
+    { value: '\u{1F4E6}', name: 'Package', terms: 'package orders shipping delivery box' },
+    { value: '\u{1F4A1}', name: 'Ideas', terms: 'ideas idea light bulb' },
+    { value: '\u{1F4C5}', name: 'Calendar', terms: 'calendar date appointment schedule' },
+    { value: '\u{260E}\u{FE0F}', name: 'Phone', terms: 'phone call contact communication' },
+    { value: '\u{1F4CD}', name: 'Location', terms: 'location pin map address place' },
+    { value: '\u{1F697}', name: 'Car', terms: 'car auto vehicle travel' },
+    { value: '\u{1F6D2}', name: 'Shopping', terms: 'shopping cart store groceries' },
+    { value: '\u{1F4B5}', name: 'Money', terms: 'money cash budget finance' },
+    { value: '\u{2B50}', name: 'Important', terms: 'important star favorite priority' },
+    { value: '\u{2705}', name: 'Checklist', terms: 'checklist check done task' },
+    { value: '\u{1F4DA}', name: 'Books', terms: 'books reading study library' },
+    { value: '\u{2708}\u{FE0F}', name: 'Travel', terms: 'travel plane trip flight' },
+    { value: '\u{1F37D}\u{FE0F}', name: 'Meals', terms: 'meals food restaurant dinner' },
+    { value: '\u{1F4DD}', name: 'Notes', terms: 'notes memo writing note' },
+  ];
+
+  let _selectedCatIcon = CATEGORY_ICON_OPTIONS[2].value;
+
+  function _catIconOption(value) {
+    return CATEGORY_ICON_OPTIONS.find(opt => opt.value === value) || null;
+  }
+
+  function _catIconLabel(value) {
+    return _catIconOption(value)?.name || 'Custom emoji';
+  }
+
+  function _categoryIconPickerHtml(selected) {
+    _selectedCatIcon = selected || CATEGORY_ICON_OPTIONS[2].value;
+    const selectedOption = _catIconOption(_selectedCatIcon);
+    const customValue = selectedOption ? '' : _selectedCatIcon;
+    const buttons = CATEGORY_ICON_OPTIONS.map(opt => `
+      <button type="button"
+        class="cat-icon-option${opt.value === _selectedCatIcon ? ' selected' : ''}"
+        data-icon="${_esc(opt.value)}"
+        data-icon-name="${_esc(opt.name)}"
+        data-icon-search="${_esc((opt.name + ' ' + opt.terms).toLowerCase())}"
+        onclick="App.Notes._setCatIcon(this.dataset.icon)">
+        <span class="cat-icon-picture">${_iconHtml(opt.value)}</span>
+        <span class="cat-icon-label">${_esc(opt.name)}</span>
+      </button>`).join('');
+
+    return `
+      <input id="cat-icon" type="hidden" value="${_esc(_selectedCatIcon)}">
+      <div class="cat-icon-selected">
+        <div id="cat-icon-selected-preview" class="cat-icon-selected-preview">${_iconHtml(_selectedCatIcon)}</div>
+        <div>
+          <div class="cat-icon-selected-label">${App.I18n.t('cat_icon_selected')}</div>
+          <div id="cat-icon-selected-name" class="cat-icon-selected-name">${_esc(_catIconLabel(_selectedCatIcon))}</div>
+        </div>
+      </div>
+      <div class="cat-icon-picker">
+        <input id="cat-icon-search" class="form-input cat-icon-search" autocomplete="off" autocorrect="off"
+          placeholder="Search iconsâ¦" oninput="App.Notes._filterCatIcons(this.value)">
+        <div id="cat-icon-grid" class="cat-icon-grid">${buttons}</div>
+        <div id="cat-icon-empty" class="cat-icon-empty" hidden>No matching icons</div>
+        <details class="cat-custom-fallback">
+          <summary>Use custom emoji</summary>
+          <div class="cat-custom-row">
+            <input id="cat-custom-emoji" class="form-input" autocomplete="off" autocorrect="off"
+              placeholder="Emoji" value="${_esc(customValue)}" maxlength="8" oninput="App.Notes._applyCustomCatEmoji()">
+          </div>
+        </details>
+      </div>`;
+  }
+
+  function _setCatIcon(icon) {
+    _selectedCatIcon = icon || CATEGORY_ICON_OPTIONS[2].value;
+    const hidden = document.getElementById('cat-icon');
+    if (hidden) hidden.value = _selectedCatIcon;
+    document.querySelectorAll('#cat-icon-grid .cat-icon-option').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.icon === _selectedCatIcon);
+    });
+    const preview = document.getElementById('cat-icon-selected-preview');
+    if (preview) preview.innerHTML = _iconHtml(_selectedCatIcon);
+    const name = document.getElementById('cat-icon-selected-name');
+    if (name) name.textContent = _catIconLabel(_selectedCatIcon);
+    const custom = document.getElementById('cat-custom-emoji');
+    if (custom && _catIconOption(_selectedCatIcon)) custom.value = '';
+  }
+
+  function _filterCatIcons(query) {
+    const q = String(query || '').trim().toLowerCase();
+    let shown = 0;
+    document.querySelectorAll('#cat-icon-grid .cat-icon-option').forEach(btn => {
+      const match = !q || (btn.dataset.iconSearch || '').includes(q);
+      btn.hidden = !match;
+      if (match) shown += 1;
+    });
+    const empty = document.getElementById('cat-icon-empty');
+    if (empty) empty.hidden = shown > 0;
+  }
+
+  function _applyCustomCatEmoji() {
+    const value = document.getElementById('cat-custom-emoji')?.value.trim() || '';
+    if (value) _setCatIcon(value);
+  }
+
+  // ââ Status Tabs âââââââââââââââââââââââââââââââââââââââââââââââââââ
   function buildStatusTabs() {
     const statuses = ['active','awaiting','followup','hold','toread','completed','archived'];
     return `<div class="status-tabs">
@@ -38,7 +147,7 @@
     </div>`;
   }
 
-  // ── Category Grid ─────────────────────────────────────────────────
+  // ââ Category Grid âââââââââââââââââââââââââââââââââââââââââââââââââ
   function buildCategoryGrid(state) {
     if (!state.categories.length) {
       return `<div class="empty-state">
@@ -54,9 +163,9 @@
           <div class="category-icon-wrap">${_iconHtml(cat.icon)}</div>
           <div style="display:flex;gap:4px;flex-shrink:0">
             <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">✎</button>
+              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">â</button>
             <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">×</button>
+              onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">Ã</button>
           </div>
         </div>
         <div class="category-name">${_esc(cat.name)}</div>
@@ -66,7 +175,7 @@
     return `<div class="category-grid">${cards}</div>`;
   }
 
-  // ── Note Card ─────────────────────────────────────────────────────
+  // ââ Note Card âââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function buildNoteCard(note, state) {
     const cat = state.categories.find(c => c.id === note.categoryId);
     const title = note.title || note.body.slice(0, 50);
@@ -84,9 +193,9 @@
       <div class="note-card-header">
         <div class="note-card-title">${_esc(title)}</div>
         <button class="card-delete-btn"
-          onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="Delete">×</button>
+          onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="Delete">Ã</button>
       </div>
-      ${body ? `<div class="note-card-body">${_esc(body.slice(0,120))}${body.length>120?'…':''}</div>` : ''}
+      ${body ? `<div class="note-card-body">${_esc(body.slice(0,120))}${body.length>120?'â¦':''}</div>` : ''}
       <div class="note-card-footer">
         <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
           ${note.priority !== 'medium' ? `<span class="priority-badge ${pClass}">${App.I18n.t('priority_'+note.priority)}</span>` : ''}
@@ -97,13 +206,16 @@
           ${note.status !== 'active'
             ? `<span class="chip" style="font-size:0.65rem">${App.I18n.t('status_'+note.status)}</span>`
             : ''}
+          <button class="bell-btn${note.reminderAt ? ' has-reminder' : ''}"
+            title="Set reminder"
+            onclick="event.stopPropagation();App.Reminders.openPickerForNote('${note.id}')">â°</button>
         </div>
       </div>
       ${note.address ? `<div style="font-size:var(--text-xs);color:rgba(0,0,0,.5);margin-top:4px">${_esc(note.locationName || note.address)}</div>` : ''}
     </div>`;
   }
 
-  // ── Notes Grid View ───────────────────────────────────────────────
+  // ââ Notes Grid View âââââââââââââââââââââââââââââââââââââââââââââââ
   function buildNotesGrid(state) {
     let notes = state.notes;
     if (_filterCatId) notes = notes.filter(n => n.categoryId === _filterCatId);
@@ -131,7 +243,7 @@
       );
     }
 
-    // Sort: overdue → today → future (date asc) → no-date; then priority, then newest
+    // Sort: overdue â today â future (date asc) â no-date; then priority, then newest
     const today = new Date().toISOString().slice(0, 10);
     const _priOrder = { critical:0, urgent:0, high:1, medium:2, low:3, optional:4 };
     notes = [...notes].sort((a, b) => {
@@ -157,13 +269,13 @@
       return searchBar + `<div class="empty-state">
         <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
         <div class="empty-state-text">${App.I18n.t('no_notes')}</div>
-        <div class="empty-state-sub">${_searchQuery ? 'No results — try a different search' : App.I18n.t('tap_plus')}</div>
+        <div class="empty-state-sub">${_searchQuery ? 'No results â try a different search' : App.I18n.t('tap_plus')}</div>
       </div>`;
     }
     return searchBar + `<div class="notes-grid">${notes.map(n => buildNoteCard(n, state)).join('')}</div>`;
   }
 
-  // ── Main Render ───────────────────────────────────────────────────
+  // ââ Main Render âââââââââââââââââââââââââââââââââââââââââââââââââââ
   function render() {
     const el = document.getElementById('pane-notes');
     if (!el) return;
@@ -190,7 +302,7 @@
       // Notes for a specific category
       content = `
         <button class="btn btn-secondary btn-sm" onclick="App.Notes._setView('categories')" style="margin-bottom:var(--space-md)">
-          ← ${App.I18n.t('categories')}
+          â ${App.I18n.t('categories')}
         </button>
         <div class="section-header">
           <span class="section-title">${_esc(catName)}</span>
@@ -208,7 +320,7 @@
     `;
   }
 
-  // ── Navigation ────────────────────────────────────────────────────
+  // ââ Navigation ââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function _setView(v) {
     _view = v;
     if (v !== 'note-list') _filterCatId = null;
@@ -235,7 +347,7 @@
     render();
   }
 
-  // ── Note Modal ────────────────────────────────────────────────────
+  // ââ Note Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function _openNoteModal(note) {
     const state = App.Storage.getState();
     const isEdit = !!note;
@@ -280,11 +392,11 @@
 
           <div class="form-group">
             <label class="form-label">${App.I18n.t('note_title')}</label>
-            <input id="note-title" class="form-input" placeholder="${App.I18n.t('note_title_ph')}" value="${_esc(n.title)}">
+            <input id="note-title" class="form-input" autocomplete="off" autocorrect="off" placeholder="${App.I18n.t('note_title_ph')}" value="${_esc(n.title)}">
           </div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('note_body')}</label>
-            <textarea id="note-body" class="form-textarea" placeholder="${App.I18n.t('note_body_ph')}">${_esc(n.body)}</textarea>
+            <textarea id="note-body" class="form-textarea" autocomplete="off" autocorrect="off" placeholder="${App.I18n.t('note_body_ph')}">${_esc(n.body)}</textarea>
           </div>
 
           <div class="form-row">
@@ -301,7 +413,7 @@
           <div class="form-group">
             <label class="form-label">Category</label>
             <select id="note-cat" class="form-select">
-              <option value="">— none —</option>
+              <option value="">â none â</option>
               ${catOptions}
             </select>
           </div>
@@ -328,13 +440,28 @@
               </div>
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_reminder')}</label>
-                <select id="note-reminder" class="form-select">
-                  <option value="">— none —</option>
+                <select id="note-reminder" class="form-select" onchange="App.Notes._toggleCustomReminder()">
+                  <option value="">â none â</option>
                   <option value="same_day"${n.reminder==='same_day'?' selected':''}>Same day (8am)</option>
                   <option value="day_before"${n.reminder==='day_before'?' selected':''}>Day before</option>
                   <option value="1h_before"${n.reminder==='1h_before'?' selected':''}>1 hour before</option>
                   <option value="2h_before"${n.reminder==='2h_before'?' selected':''}>2 hours before</option>
+                  <option value="custom"${n.reminderAt && !n.reminder ? ' selected' : ''}>Customâ¦</option>
                 </select>
+              </div>
+              <div id="note-reminder-custom" style="display:${n.reminderAt && !n.reminder ? '' : 'none'};padding-top:var(--space-sm)">
+                <div class="form-row">
+                  <div class="form-group" style="flex:1">
+                    <label class="form-label">${App.I18n.t('note_due')}</label>
+                    <input type="date" id="note-reminder-custom-date" class="form-input"
+                      value="${_esc(n.reminderAt ? n.reminderAt.slice(0,10) : '')}">
+                  </div>
+                  <div class="form-group" style="flex:1">
+                    <label class="form-label">${App.I18n.t('note_due_time')}</label>
+                    <input type="time" id="note-reminder-custom-time" class="form-input"
+                      value="${_esc(n.reminderAt ? n.reminderAt.slice(11,16) : '08:00')}">
+                  </div>
+                </div>
               </div>
             </div>
           </details>
@@ -346,7 +473,7 @@
             <div style="padding-top:var(--space-sm)">
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_appt')}</label>
-                <input id="note-appt-name" class="form-input" placeholder="Appointment name…" value="${_esc(n.appointmentName)}">
+                <input id="note-appt-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Appointment nameâ¦" value="${_esc(n.appointmentName)}">
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -360,11 +487,11 @@
               </div>
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_location')}</label>
-                <input id="note-location" class="form-input" placeholder="Location name…" value="${_esc(n.locationName)}">
+                <input id="note-location" class="form-input" autocomplete="off" autocorrect="off" placeholder="Location nameâ¦" value="${_esc(n.locationName)}">
               </div>
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_address')}</label>
-                <input id="note-address" class="form-input" placeholder="Full address…" value="${_esc(n.address)}">
+                <input id="note-address" class="form-input" autocomplete="off" autocorrect="off" placeholder="Full addressâ¦" value="${_esc(n.address)}">
               </div>
               ${mapsBlock}
             </div>
@@ -376,14 +503,14 @@
                 ${App.I18n.t('delete')}
               </button>
               ${n.completed
-                ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._reopenNote('${n.id}')">↩ Reopen</button>`
-                : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">✓</button>`}
+                ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._reopenNote('${n.id}')">â© Reopen</button>`
+                : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">â</button>`}
               ${n.archived
                 ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._restoreNote('${n.id}')">${App.I18n.t('restore')}</button>`
                 : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">${App.I18n.t('archive')}</button>`}
             ` : ''}
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
-            <button class="btn btn-primary" onclick="App.Notes._saveNote('${isEdit ? n.id : ''}')">${App.I18n.t('save')}</button>
+            <button id="note-save-btn" class="btn btn-primary" onclick="App.Notes._saveNote('${isEdit ? n.id : ''}')">${App.I18n.t('save')}</button>
           </div>
         </div>
       </div>`;
@@ -394,6 +521,7 @@
   }
 
   let _selectedNoteColor = 'yellow';
+  let _saving = false;
 
   function _pickColor(c) {
     _selectedNoteColor = c;
@@ -402,41 +530,109 @@
     });
   }
 
-  function _saveNote(id) {
-    const title    = document.getElementById('note-title')?.value.trim() || '';
-    const body     = document.getElementById('note-body')?.value.trim()  || '';
-    const priority = document.getElementById('note-priority')?.value || 'medium';
-    const status   = document.getElementById('note-status')?.value   || 'active';
-    const catId    = document.getElementById('note-cat')?.value       || null;
-    const dueDate  = document.getElementById('note-due')?.value       || '';
-    const dueTime  = document.getElementById('note-due-time')?.value  || '';
-    const reminder = document.getElementById('note-reminder')?.value  || '';
-    const apptName = document.getElementById('note-appt-name')?.value || '';
-    const apptDt   = document.getElementById('note-appt-dt')?.value   || '';
-    const leaveBy  = document.getElementById('note-leave')?.value     || '';
-    const locName  = document.getElementById('note-location')?.value  || '';
-    const address  = document.getElementById('note-address')?.value   || '';
-
-    if (!title && !body) { App.showToast(App.I18n.t('toast_enter_title'), 'error'); return; }
-
-    const patch = {
-      title, body, priority, status, color: _selectedNoteColor,
-      categoryId: catId || null,
-      dueDate, dueTime, reminder, appointmentName: apptName,
-      appointmentDatetime: apptDt, leaveBy, locationName: locName, address,
-    };
-
-    if (id) {
-      App.Storage.updateNote(id, patch);
-      App.showToast(App.I18n.t('toast_note_updated'), 'success');
-    } else {
-      App.Storage.addNote(patch);
-      App.showToast(App.I18n.t('toast_note_saved'), 'success');
+  function _noteReminderTime(note) {
+    if (!note || note.completed || note.archived) return null;
+    if (note.reminderAt) {
+      const t = new Date(note.reminderAt).getTime();
+      return isNaN(t) ? null : t;
     }
-    _closeModal();
-    render();
-    // Refresh dashboard reminders if visible
-    if (document.getElementById('reminders-wrap')) App.Dashboard.render();
+    if (!note.dueDate || !note.reminder) return null;
+    const [y, m, d] = note.dueDate.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    if (note.reminder === 'same_day') return new Date(y, m - 1, d, 8, 0, 0).getTime();
+    if (note.reminder === 'day_before') return new Date(y, m - 1, d - 1, 8, 0, 0).getTime();
+    if (note.dueTime && (note.reminder === '1h_before' || note.reminder === '2h_before')) {
+      const [hh, mm] = note.dueTime.split(':').map(Number);
+      if (Number.isFinite(hh) && Number.isFinite(mm)) {
+        const base = new Date(y, m - 1, d, hh, mm, 0).getTime();
+        return base - (note.reminder === '1h_before' ? 3600000 : 7200000);
+      }
+    }
+    return new Date(y, m - 1, d, 8, 0, 0).getTime();
+  }
+
+  function _syncNotePushReminder(note) {
+    if (!note || !note.id) return;
+    const fireMs = _noteReminderTime(note);
+    if (fireMs) {
+      App.Push?.syncReminder?.(
+        'note',
+        note.id,
+        note.title || 'Reminder',
+        note.body || '',
+        Math.floor(fireMs / 1000)
+      );
+    } else {
+      App.Push?.clearReminder?.('note', note.id);
+    }
+  }
+
+  function _clearNotePushReminder(id) {
+    if (id) App.Push?.clearReminder?.('note', id);
+  }
+
+  function _saveNote(id) {
+    if (_saving) return;
+    _saving = true;
+    const saveBtn = document.getElementById('note-save-btn');
+    if (saveBtn) saveBtn.disabled = true;
+
+    try {
+      const title    = document.getElementById('note-title')?.value.trim() || '';
+      const body     = document.getElementById('note-body')?.value.trim()  || '';
+      const priority = document.getElementById('note-priority')?.value || 'medium';
+      const status   = document.getElementById('note-status')?.value   || 'active';
+      const catId    = document.getElementById('note-cat')?.value       || null;
+      const dueDate  = document.getElementById('note-due')?.value       || '';
+      const dueTime  = document.getElementById('note-due-time')?.value  || '';
+      let reminder = document.getElementById('note-reminder')?.value  || '';
+      let reminderAt = '';
+      if (reminder === 'custom') {
+        const cd = document.getElementById('note-reminder-custom-date')?.value || '';
+        const ct = document.getElementById('note-reminder-custom-time')?.value || '08:00';
+        if (cd) { reminderAt = `${cd}T${ct}:00`; reminder = ''; }
+        else { reminder = ''; reminderAt = ''; }
+      } else {
+        reminderAt = '';
+      }
+      const apptName = document.getElementById('note-appt-name')?.value || '';
+      const apptDt   = document.getElementById('note-appt-dt')?.value   || '';
+      const leaveBy  = document.getElementById('note-leave')?.value     || '';
+      const locName  = document.getElementById('note-location')?.value  || '';
+      const address  = document.getElementById('note-address')?.value   || '';
+
+      if (!title && !body) { App.showToast(App.I18n.t('toast_enter_title'), 'error'); return; }
+
+      const patch = {
+        title, body, priority, status, color: _selectedNoteColor,
+        categoryId: catId || null,
+        dueDate, dueTime, reminder, reminderAt, appointmentName: apptName,
+        appointmentDatetime: apptDt, leaveBy, locationName: locName, address,
+      };
+
+      let savedNote = null;
+      if (id) {
+        savedNote = App.Storage.updateNote(id, patch);
+        App.showToast(App.I18n.t('toast_note_updated'), 'success');
+      } else {
+        savedNote = App.Storage.addNote(patch);
+        App.showToast(App.I18n.t('toast_note_saved'), 'success');
+      }
+      _syncNotePushReminder(savedNote);
+      _closeModal();
+      render();
+      // Refresh dashboard reminders if visible
+      if (document.getElementById('reminders-wrap')) App.Dashboard.render();
+    } finally {
+      _saving = false;
+      if (saveBtn && document.contains(saveBtn)) saveBtn.disabled = false;
+    }
+  }
+
+  function _toggleCustomReminder() {
+    const sel = document.getElementById('note-reminder');
+    const box = document.getElementById('note-reminder-custom');
+    if (box) box.style.display = (sel && sel.value === 'custom') ? '' : 'none';
   }
 
   function _editNote(id) {
@@ -449,6 +645,7 @@
 
   function _deleteNote(id, fromModal) {
     if (!confirm('Delete this note?')) return;
+    _clearNotePushReminder(id);
     App.Storage.deleteNote(id);
     if (fromModal) _closeModal();
     App.showToast(App.I18n.t('toast_note_deleted'), 'success');
@@ -456,14 +653,16 @@
   }
 
   function _completeNote(id) {
-    App.Storage.updateNote(id, { completed: true, status: 'completed' });
+    App.Storage.updateNote(id, { completed: true, status: 'completed', reminder: '', reminderAt: '' });
+    _clearNotePushReminder(id);
     _closeModal();
     App.showToast(App.I18n.t('toast_note_completed'), 'success');
     render();
   }
 
   function _archiveNote(id) {
-    App.Storage.updateNote(id, { archived: true });
+    App.Storage.updateNote(id, { archived: true, reminder: '', reminderAt: '' });
+    _clearNotePushReminder(id);
     _closeModal();
     App.showToast(App.I18n.t('toast_note_archived'), 'success');
     render();
@@ -506,23 +705,23 @@
     _editingCatId  = null;
   }
 
-  // ── Category Modal ────────────────────────────────────────────────
+  // ââ Category Modal ââââââââââââââââââââââââââââââââââââââââââââââââ
   function _openCatModal(cat) {
     const isEdit = !!cat;
-    const c = cat || { name: '', icon: 'ic_cat_personal', color: '#F7F0B6' };
+    const c = cat || { name: '', icon: CATEGORY_ICON_OPTIONS[2].value, color: '#F7F0B6' };
 
     const html = `
       <div id="cat-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
-        <div class="modal-sheet">
+        <div class="modal-sheet cat-modal-sheet">
           <div class="modal-handle"></div>
           <div class="modal-title">${isEdit ? App.I18n.t('edit_category') : App.I18n.t('add_category')}</div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_name')}</label>
-            <input id="cat-name" class="form-input" placeholder="Category name…" value="${_esc(c.name)}">
+            <input id="cat-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Category nameâ¦" value="${_esc(c.name)}">
           </div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_icon')}</label>
-            <input id="cat-icon" class="form-input" placeholder="ic_cat_personal" value="${_esc(c.icon)}" maxlength="40" style="font-size:.85rem">
+            ${_categoryIconPickerHtml(c.icon)}
           </div>
           <div class="modal-actions">
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
@@ -544,7 +743,7 @@
 
   function _saveCat(id) {
     const name = document.getElementById('cat-name')?.value.trim() || '';
-    const icon = document.getElementById('cat-icon')?.value.trim() || 'ic_cat_personal';
+    const icon = document.getElementById('cat-icon')?.value.trim() || CATEGORY_ICON_OPTIONS[2].value;
     if (!name) { App.showToast(App.I18n.t('toast_cat_name_req'), 'error'); return; }
     if (id) {
       App.Storage.updateCategory(id, { name, icon });
@@ -589,13 +788,18 @@
   }
 
   function _confirmDeleteCat(id, deleteNotes) {
+    if (deleteNotes) {
+      App.Storage.getState().notes
+        .filter(n => n.categoryId === id)
+        .forEach(n => _clearNotePushReminder(n.id));
+    }
     App.Storage.deleteCategory(id, deleteNotes);
     App.showToast(App.I18n.t('toast_cat_deleted'), 'success');
     _closeModal();
     render();
   }
 
-  // ── FAB handler (called by app.js) ─────────
+  // ââ FAB handler (called by app.js) âââââââââ
   function onFab() {
     if (_view === 'categories') {
       _openCatModal(null);
@@ -604,7 +808,7 @@
     }
   }
 
-  // ── Date filter (called from calendar date tap) ───────────────────
+  // ââ Date filter (called from calendar date tap) âââââââââââââââââââ
   function filterByDate(dateStr) {
     _dateFilter = dateStr || null;
     _view = 'notes';
@@ -623,7 +827,8 @@
     _setView, _viewCat, _setStatus, _setSearch,
     _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
     _openNoteModal, _closeModal, _saveNote, _pickColor,
-    _editCat, _saveCat, _deleteCat, _confirmDeleteCat,
+    _editCat, _saveCat, _deleteCat, _confirmDeleteCat, _toggleCustomReminder,
+    _setCatIcon, _filterCatIcons, _applyCustomCatEmoji,
     _openAppleMaps, _openGoogleMaps, _copyAddress,
   };
 
