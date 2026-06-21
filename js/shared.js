@@ -101,8 +101,8 @@
             <label class="form-label" style="margin-bottom:5px">${t('shared_pick_label')}</label>
             <select id="share-select" class="form-select">
               <option value="">— ${t('shared_choose')} —</option>
-              ${noteOptions ? `<optgroup label="Notes">${noteOptions}</optgroup>` : ''}
-              ${listOptions ? `<optgroup label="Lists">${listOptions}</optgroup>` : ''}
+              ${noteOptions ? `<optgroup label="${t('tab_notes')}">${noteOptions}</optgroup>` : ''}
+              ${listOptions ? `<optgroup label="${t('tab_lists')}">${listOptions}</optgroup>` : ''}
             </select>
           </div>
           <div style="display:flex;gap:8px;flex-direction:column">
@@ -164,7 +164,7 @@
   }
 
   function _delete(id) {
-    if (!confirm('Remove from Shared?')) return;
+    if (!confirm(App.I18n.t('confirm_remove_shared'))) return;
     App.Storage.deleteShared(id);
     App.showToast(App.I18n.t('toast_removed'), 'success');
     render();
