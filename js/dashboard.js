@@ -297,4 +297,6 @@
     _showQuickNoteCategory, _assignQuickCat, _dismissCatPicker,
     _openTask,
     _fetchWeather, _clearWeather,
- 
+  };
+
+})(window.App = window.App || {});
