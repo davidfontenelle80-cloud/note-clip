@@ -1,5 +1,5 @@
 /**
- * notes.js â Note Clip PWA
+ * notes.js — Note Clip PWA
  * Notes + Categories tab. Full CRUD. Pastel cards. Delete visible on card.
  */
 (function (App) {
@@ -90,7 +90,7 @@
       </div>
       <div class="cat-icon-picker">
         <input id="cat-icon-search" class="form-input cat-icon-search" autocomplete="off" autocorrect="off"
-          placeholder="Search iconsâ¦" oninput="App.Notes._filterCatIcons(this.value)">
+          placeholder="Search icons…" oninput="App.Notes._filterCatIcons(this.value)">
         <div id="cat-icon-grid" class="cat-icon-grid">${buttons}</div>
         <div id="cat-icon-empty" class="cat-icon-empty" hidden>No matching icons</div>
         <details class="cat-custom-fallback">
@@ -135,7 +135,7 @@
     if (value) _setCatIcon(value);
   }
 
-  // ââ Status Tabs âââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Status Tabs ───────────────────────────────────────────────────
   function buildStatusTabs() {
     const statuses = ['active','awaiting','followup','hold','toread','completed','archived'];
     return `<div class="status-tabs">
@@ -147,7 +147,7 @@
     </div>`;
   }
 
-  // ââ Category Grid âââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Category Grid ─────────────────────────────────────────────────
   function buildCategoryGrid(state) {
     if (!state.categories.length) {
       return `<div class="empty-state">
@@ -163,9 +163,9 @@
           <div class="category-icon-wrap">${_iconHtml(cat.icon)}</div>
           <div style="display:flex;gap:4px;flex-shrink:0">
             <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">â</button>
+              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">✎</button>
             <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">Ã</button>
+              onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">×</button>
           </div>
         </div>
         <div class="category-name">${_esc(cat.name)}</div>
@@ -175,7 +175,7 @@
     return `<div class="category-grid">${cards}</div>`;
   }
 
-  // ââ Note Card âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Note Card ─────────────────────────────────────────────────────
   function buildNoteCard(note, state) {
     const cat = state.categories.find(c => c.id === note.categoryId);
     const title = note.title || note.body.slice(0, 50);
@@ -193,9 +193,9 @@
       <div class="note-card-header">
         <div class="note-card-title">${_esc(title)}</div>
         <button class="card-delete-btn"
-          onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="Delete">Ã</button>
+          onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="Delete">×</button>
       </div>
-      ${body ? `<div class="note-card-body">${_esc(body.slice(0,120))}${body.length>120?'â¦':''}</div>` : ''}
+      ${body ? `<div class="note-card-body">${_esc(body.slice(0,120))}${body.length>120?'…':''}</div>` : ''}
       <div class="note-card-footer">
         <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
           ${note.priority !== 'medium' ? `<span class="priority-badge ${pClass}">${App.I18n.t('priority_'+note.priority)}</span>` : ''}
@@ -208,14 +208,14 @@
             : ''}
           <button class="bell-btn${note.reminderAt ? ' has-reminder' : ''}"
             title="Set reminder"
-            onclick="event.stopPropagation();App.Reminders.openPickerForNote('${note.id}')">â°</button>
+            onclick="event.stopPropagation();App.Reminders.openPickerForNote('${note.id}')">⏰</button>
         </div>
       </div>
       ${note.address ? `<div style="font-size:var(--text-xs);color:rgba(0,0,0,.5);margin-top:4px">${_esc(note.locationName || note.address)}</div>` : ''}
     </div>`;
   }
 
-  // ââ Notes Grid View âââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Notes Grid View ───────────────────────────────────────────────
   function buildNotesGrid(state) {
     let notes = state.notes;
     if (_filterCatId) notes = notes.filter(n => n.categoryId === _filterCatId);
@@ -243,7 +243,7 @@
       );
     }
 
-    // Sort: overdue â today â future (date asc) â no-date; then priority, then newest
+    // Sort: overdue → today → future (date asc) → no-date; then priority, then newest
     const today = new Date().toISOString().slice(0, 10);
     const _priOrder = { critical:0, urgent:0, high:1, medium:2, low:3, optional:4 };
     notes = [...notes].sort((a, b) => {
@@ -269,13 +269,13 @@
       return searchBar + `<div class="empty-state">
         <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
         <div class="empty-state-text">${App.I18n.t('no_notes')}</div>
-        <div class="empty-state-sub">${_searchQuery ? 'No results â try a different search' : App.I18n.t('tap_plus')}</div>
+        <div class="empty-state-sub">${_searchQuery ? 'No results — try a different search' : App.I18n.t('tap_plus')}</div>
       </div>`;
     }
     return searchBar + `<div class="notes-grid">${notes.map(n => buildNoteCard(n, state)).join('')}</div>`;
   }
 
-  // ââ Main Render âââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Main Render ───────────────────────────────────────────────────
   function render() {
     const el = document.getElementById('pane-notes');
     if (!el) return;
@@ -302,7 +302,7 @@
       // Notes for a specific category
       content = `
         <button class="btn btn-secondary btn-sm" onclick="App.Notes._setView('categories')" style="margin-bottom:var(--space-md)">
-          â ${App.I18n.t('categories')}
+          ← ${App.I18n.t('categories')}
         </button>
         <div class="section-header">
           <span class="section-title">${_esc(catName)}</span>
@@ -320,7 +320,7 @@
     `;
   }
 
-  // ââ Navigation ââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Navigation ────────────────────────────────────────────────────
   function _setView(v) {
     _view = v;
     if (v !== 'note-list') _filterCatId = null;
@@ -347,7 +347,7 @@
     render();
   }
 
-  // ââ Note Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Note Modal ────────────────────────────────────────────────────
   function _openNoteModal(note) {
     const state = App.Storage.getState();
     const isEdit = !!note;
@@ -413,7 +413,7 @@
           <div class="form-group">
             <label class="form-label">Category</label>
             <select id="note-cat" class="form-select">
-              <option value="">â none â</option>
+              <option value="">— none —</option>
               ${catOptions}
             </select>
           </div>
@@ -441,12 +441,12 @@
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_reminder')}</label>
                 <select id="note-reminder" class="form-select" onchange="App.Notes._toggleCustomReminder()">
-                  <option value="">â none â</option>
+                  <option value="">— none —</option>
                   <option value="same_day"${n.reminder==='same_day'?' selected':''}>Same day (8am)</option>
                   <option value="day_before"${n.reminder==='day_before'?' selected':''}>Day before</option>
                   <option value="1h_before"${n.reminder==='1h_before'?' selected':''}>1 hour before</option>
                   <option value="2h_before"${n.reminder==='2h_before'?' selected':''}>2 hours before</option>
-                  <option value="custom"${n.reminderAt && !n.reminder ? ' selected' : ''}>Customâ¦</option>
+                  <option value="custom"${n.reminderAt && !n.reminder ? ' selected' : ''}>Custom…</option>
                 </select>
               </div>
               <div id="note-reminder-custom" style="display:${n.reminderAt && !n.reminder ? '' : 'none'};padding-top:var(--space-sm)">
@@ -473,7 +473,7 @@
             <div style="padding-top:var(--space-sm)">
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_appt')}</label>
-                <input id="note-appt-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Appointment nameâ¦" value="${_esc(n.appointmentName)}">
+                <input id="note-appt-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Appointment name…" value="${_esc(n.appointmentName)}">
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -487,11 +487,11 @@
               </div>
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_location')}</label>
-                <input id="note-location" class="form-input" autocomplete="off" autocorrect="off" placeholder="Location nameâ¦" value="${_esc(n.locationName)}">
+                <input id="note-location" class="form-input" autocomplete="off" autocorrect="off" placeholder="Location name…" value="${_esc(n.locationName)}">
               </div>
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_address')}</label>
-                <input id="note-address" class="form-input" autocomplete="off" autocorrect="off" placeholder="Full addressâ¦" value="${_esc(n.address)}">
+                <input id="note-address" class="form-input" autocomplete="off" autocorrect="off" placeholder="Full address…" value="${_esc(n.address)}">
               </div>
               ${mapsBlock}
             </div>
@@ -503,8 +503,8 @@
                 ${App.I18n.t('delete')}
               </button>
               ${n.completed
-                ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._reopenNote('${n.id}')">â© Reopen</button>`
-                : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">â</button>`}
+                ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._reopenNote('${n.id}')">↩ Reopen</button>`
+                : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">✓</button>`}
               ${n.archived
                 ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._restoreNote('${n.id}')">${App.I18n.t('restore')}</button>`
                 : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">${App.I18n.t('archive')}</button>`}
@@ -705,7 +705,7 @@
     _editingCatId  = null;
   }
 
-  // ââ Category Modal ââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Category Modal ────────────────────────────────────────────────
   function _openCatModal(cat) {
     const isEdit = !!cat;
     const c = cat || { name: '', icon: CATEGORY_ICON_OPTIONS[2].value, color: '#F7F0B6' };
@@ -717,7 +717,7 @@
           <div class="modal-title">${isEdit ? App.I18n.t('edit_category') : App.I18n.t('add_category')}</div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_name')}</label>
-            <input id="cat-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Category nameâ¦" value="${_esc(c.name)}">
+            <input id="cat-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Category name…" value="${_esc(c.name)}">
           </div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_icon')}</label>
@@ -799,7 +799,7 @@
     render();
   }
 
-  // ââ FAB handler (called by app.js) âââââââââ
+  // ── FAB handler (called by app.js) ─────────
   function onFab() {
     if (_view === 'categories') {
       _openCatModal(null);
@@ -808,7 +808,7 @@
     }
   }
 
-  // ââ Date filter (called from calendar date tap) âââââââââââââââââââ
+  // ── Date filter (called from calendar date tap) ───────────────────
   function filterByDate(dateStr) {
     _dateFilter = dateStr || null;
     _view = 'notes';
