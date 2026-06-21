@@ -161,15 +161,15 @@
       ${_buildCalendar()}
       <section class="dash-section calendar-section">
         <h3 class="dash-section-title">${_esc(selectedLabel)}</h3>
-        <div>${_noteRows(dayNotes, 'calendar_no_items')}</div>
+        <div>${_noteRows(dayNotes, 'cal_no_notes_day')}</div>
       </section>
       <section class="dash-section calendar-section">
-        <h3 class="dash-section-title">${App.I18n.t('calendar_overdue')}</h3>
-        <div>${_noteRows(_overdueNotes(), 'calendar_no_overdue')}</div>
+        <h3 class="dash-section-title">${App.I18n.t('cal_overdue')}</h3>
+        <div>${_noteRows(_overdueNotes(), 'cal_no_overdue')}</div>
       </section>
       <section class="dash-section calendar-section calendar-last-section">
-        <h3 class="dash-section-title">${App.I18n.t('calendar_upcoming')}</h3>
-        <div>${_noteRows(_upcomingNotes(), 'calendar_no_upcoming')}</div>
+        <h3 class="dash-section-title">${App.I18n.t('cal_upcoming')}</h3>
+        <div>${_noteRows(_upcomingNotes(), 'cal_nothing_due')}</div>
       </section>`;
   }
 
