@@ -1,11 +1,11 @@
 /**
- * firebase-config.js — Note Clip PWA
- * Firebase initialization — lazy loaded, optional.
+ * firebase-config.js â Note Clip PWA
+ * Firebase initialization â lazy loaded, optional.
  * Uses shared khub-apps project (same as finance-tracker).
  * Activate by setting settings.cloudSync = true in app settings.
  *
  * SECURITY NOTE: The apiKey below is a Firebase Web API Key.
- * Firebase Web API Keys are intentionally public and client-side —
+ * Firebase Web API Keys are intentionally public and client-side â
  * they identify the app to Firebase, NOT grant admin access.
  * Real security is enforced by Firestore security rules.
  * See: https://firebase.google.com/docs/projects/api-keys
@@ -32,4 +32,17 @@
       return;
     }
     try {
-      const fbApp = firebase.apps?.length ? firebase.app() : firebase.init
+      const fbApp = firebase.apps?.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+      const db   = firebase.firestore();
+      const auth = firebase.auth();
+      App.Firebase = { app: fbApp, db, auth };
+      _initialized = true;
+      console.log('[NoteClip.Firebase] Initialized.');
+    } catch (err) {
+      console.error('[NoteClip.Firebase] Init failed:', err);
+    }
+  }
+
+  App.Firebase = { init };
+
+})(window.App = window.App || {});
