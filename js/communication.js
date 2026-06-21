@@ -1,5 +1,5 @@
 /**
- * communication.js — Note Clip PWA
+ * communication.js â Note Clip PWA
  * Communication tab: draft messages, emails, WhatsApp text. EN/ES support.
  */
 (function (App) {
@@ -14,11 +14,11 @@
     const isEs = lang === 'es';
     if (type === 'whatsapp') {
       return isEs
-        ? `Hola! Quería comunicarme contigo sobre lo siguiente:\n\n${context}\n\nQuedo en espera de tu respuesta. Saludos.`
+        ? `Hola! QuerÃ­a comunicarme contigo sobre lo siguiente:\n\n${context}\n\nQuedo en espera de tu respuesta. Saludos.`
         : `Hi! I wanted to reach out about the following:\n\n${context}\n\nLooking forward to your reply. Thanks!`;
     } else if (type === 'email') {
       return isEs
-        ? `Asunto: [Asunto aquí]\n\nEstimado/a,\n\nEspero que estés bien. Le escribo con respecto a:\n\n${context}\n\nQuedo a su disposición para cualquier pregunta.\n\nAtentamente,\n${App.Storage.getState().settings.username || '[Tu nombre]'}`
+        ? `Asunto: [Asunto aquÃ­]\n\nEstimado/a,\n\nEspero que estÃ©s bien. Le escribo con respecto a:\n\n${context}\n\nQuedo a su disposiciÃ³n para cualquier pregunta.\n\nAtentamente,\n${App.Storage.getState().settings.username || '[Tu nombre]'}`
         : `Subject: [Subject here]\n\nHi,\n\nI hope this message finds you well. I'm writing regarding:\n\n${context}\n\nPlease don't hesitate to reach out with any questions.\n\nBest regards,\n${App.Storage.getState().settings.username || '[Your name]'}`;
     } else {
       // Generic message
@@ -38,11 +38,11 @@
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-sm)">
         <div style="flex:1">
           <div style="font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:4px">
-            ${t('draft_'+draft.type)} · ${date} · ${draft.language.toUpperCase()}
+            ${t('draft_'+draft.type)} Â· ${date} Â· ${draft.language.toUpperCase()}
           </div>
-          <div style="font-size:var(--text-sm);white-space:pre-wrap;line-height:1.5">${_esc(draft.content.slice(0,200))}${draft.content.length>200?'…':''}</div>
+          <div style="font-size:var(--text-sm);white-space:pre-wrap;line-height:1.5">${_esc(draft.content.slice(0,200))}${draft.content.length>200?'â¦':''}</div>
         </div>
-        <button class="card-delete-btn" onclick="App.Communication._deleteDraft('${draft.id}')">×</button>
+        <button class="card-delete-btn" onclick="App.Communication._deleteDraft('${draft.id}')">Ã</button>
       </div>
       <div class="share-actions">
         <button class="share-btn copy" onclick="App.Communication._copyDraft('${draft.id}')">
@@ -89,10 +89,10 @@
         </div>
         <div style="display:flex;gap:var(--space-sm)">
           <button class="btn btn-secondary" onclick="App.Communication._generate('en')" style="flex:1">
-            Generate EN
+            Generate (EN)
           </button>
           <button class="btn btn-secondary" onclick="App.Communication._generate('es')" style="flex:1">
-            Generar ES
+            Generar (ES)
           </button>
         </div>
         <div id="draft-output" class="draft-output hidden"></div>
@@ -120,8 +120,9 @@
 
   function _copyOutput() {
     if (_currentDraft.content) {
-      navigator.clipboard.writeText(_currentDraft.content)
-        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'));
+      _copyText(_currentDraft.content)
+        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'))
+        .catch(() => App.showToast(App.I18n.t('toast_copy_failed'), 'error'));
     }
   }
 
@@ -143,13 +144,34 @@
     const state = App.Storage.getState();
     const draft = state.drafts.find(d => d.id === id);
     if (draft) {
-      navigator.clipboard.writeText(draft.content)
-        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'));
+      _copyText(draft.content)
+        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'))
+        .catch(() => App.showToast(App.I18n.t('toast_copy_failed'), 'error'));
     }
+  }
+
+  function _copyText(text) {
+    if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+    return new Promise((resolve, reject) => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy') ? resolve() : reject(new Error('copy failed'));
+      } catch (err) {
+        reject(err);
+      } finally {
+        ta.remove();
+      }
+    });
   }
 
   function onFab() { document.getElementById('comm-context')?.focus(); }
 
-  App.Communication = { render, onFab, _generate, _copyOutput, _saveOutput, _deleteDraft, _copyDraft };
+  App.Communication = { render, onFab, _generate, _copyOutput, _saveOutput, _deleteDraft, _copyDraft, _copyText };
 
 })(window.App = window.App || {});
