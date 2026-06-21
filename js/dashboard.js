@@ -70,30 +70,57 @@
     </div>`;
   }
 
+  function _fetchWeatherForCoords(lat, lon) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        const cw = data.current_weather;
+        if (!cw) return;
+        _weatherCache = {
+          icon: _weatherIcon(cw.weathercode),
+          temp: Math.round(cw.temperature),
+          fetchedAt: Date.now(),
+        };
+        _weatherFetching = false;
+        _renderWeatherChip();
+      })
+      .catch(() => { _weatherFetching = false; });
+  }
+
   function _fetchWeather() {
     const state = App.Storage.getState();
     if (!state.settings.weatherEnabled) return;
     if (_weatherFetching) return;
-    // Only call geolocation once per session (or on first toggle-ON)
     _weatherFetching = true;
+
+    const CACHE_KEY = 'noteClip_geo_cache';
+    const TTL = 30 * 60 * 1000; // 30 minutes
+
+    const cached = (() => {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        const obj = JSON.parse(raw);
+        if (Date.now() - obj.ts > TTL) return null; // stale
+        return obj;
+      } catch (e) { return null; }
+    })();
+
+    if (cached) {
+      // Use cached coords — no location dialog
+      _fetchWeatherForCoords(cached.lat, cached.lon);
+      return;
+    }
+
+    // No valid cache — request fresh location
     navigator.geolocation.getCurrentPosition(
       pos => {
         const { latitude: lat, longitude: lon } = pos.coords;
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
-        fetch(url)
-          .then(r => r.json())
-          .then(data => {
-            const cw = data.current_weather;
-            if (!cw) return;
-            _weatherCache = {
-              icon: _weatherIcon(cw.weathercode),
-              temp: Math.round(cw.temperature),
-              fetchedAt: Date.now(),
-            };
-            _weatherFetching = false;
-            _renderWeatherChip();
-          })
-          .catch(() => { _weatherFetching = false; });
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ lat, lon, ts: Date.now() }));
+        } catch (e) {}
+        _fetchWeatherForCoords(lat, lon);
       },
       () => { _weatherFetching = false; } // denied / error — hide silently
     );
@@ -181,7 +208,7 @@
         ${n.priority ? `<span class="priority-badge priority-${n.priority}">${App.I18n.t('priority_'+n.priority)}</span>` : ''}
         ${n.dueTime  ? `<span class="task-chip-time">${_formatTime(n.dueTime)}</span>` : ''}
         <button type="button" class="bell-btn${n.reminderAt ? ' has-reminder' : ''}"
-          title="${App.I18n.t('reminder_bell_title')}"
+          title="Set reminder"
           onclick="event.stopPropagation();App.Reminders.openPickerForNote('${n.id}')">⏰</button>
       </button>
     `).join('');
@@ -242,7 +269,7 @@
       <div class="section-header" style="margin-bottom:var(--space-sm)">
         <span class="section-title" data-i18n="quick_note">${App.I18n.t('quick_note')}</span>
       </div>
-      <div class="quick-note-wrap quick-note-card" style="margin-bottom:var(--space-lg)">
+      <div class="quick-note-wrap" style="margin-bottom:var(--space-lg)">
         <span class="quick-note-clip" aria-hidden="true"></span>
         <textarea id="quick-note-ta" class="quick-note-input"
           placeholder="${App.I18n.t('quick_note_ph')}" rows="3"></textarea>
