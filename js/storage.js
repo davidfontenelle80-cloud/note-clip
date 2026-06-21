@@ -1,5 +1,5 @@
 /**
- * storage.js — Note Clip PWA
+ * storage.js â Note Clip PWA
  * Single localStorage key. State shape. CRUD helpers.
  * Everything that touches localStorage lives here.
  */
@@ -11,14 +11,14 @@
   const NOTE_COLORS = ['yellow','lavender','sky','mint','coral','peach'];
 
   const DEFAULT_CATEGORIES = [
-    { id: 'cat_work',    name: 'Work',       icon: 'ic_cat_work',      color: '#BDD5EA' },
-    { id: 'cat_medical', name: 'Medical',     icon: 'ic_cat_medical',   color: '#C5E2C5' },
-    { id: 'cat_personal',name: 'Personal',    icon: 'ic_cat_personal',  color: '#D4C5E2' },
-    { id: 'cat_home',    name: 'Home',        icon: 'ic_cat_home',      color: '#F7D9B0' },
-    { id: 'cat_docs',    name: 'Documents',   icon: 'ic_cat_documents', color: '#F7F0B6' },
-    { id: 'cat_followup',name: 'Follow-Up',   icon: 'ic_cat_followup',  color: '#F2C4B0' },
-    { id: 'cat_orders',  name: 'Orders',      icon: 'ic_cat_orders',    color: '#BDD5EA' },
-    { id: 'cat_ideas',   name: 'Ideas',       icon: 'ic_cat_ideas',     color: '#F7F0B6' },
+    { id: 'cat_work',    name: 'Work',       icon: 'ð¼', color: '#BDD5EA' },
+    { id: 'cat_medical', name: 'Medical',     icon: 'ð©º', color: '#C5E2C5' },
+    { id: 'cat_personal',name: 'Personal',    icon: 'ð¤', color: '#D4C5E2' },
+    { id: 'cat_home',    name: 'Home',        icon: 'ð ', color: '#F7D9B0' },
+    { id: 'cat_docs',    name: 'Documents',   icon: 'ð', color: '#F7F0B6' },
+    { id: 'cat_followup',name: 'Follow-Up',   icon: 'ð', color: '#F2C4B0' },
+    { id: 'cat_orders',  name: 'Orders',      icon: 'ð¦', color: '#BDD5EA' },
+    { id: 'cat_ideas',   name: 'Ideas',       icon: 'ð¡', color: '#F7F0B6' },
   ];
 
   const DEFAULT_STATE = {
@@ -31,6 +31,7 @@
       defaultListBehavior: 'reusable',
       cloudSync: false,
       todayFocus: '',
+      weatherEnabled: false,
     },
     categories: DEFAULT_CATEGORIES,
     notes: [],
@@ -40,12 +41,12 @@
     quickNotes: [],
   };
 
-  // ── ID generator ────────────────────────────────────────────────
+  // ââ ID generator ââââââââââââââââââââââââââââââââââââââââââââââââ
   function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
 
-  // ── Read / Write ─────────────────────────────────────────────────
+  // ââ Read / Write âââââââââââââââââââââââââââââââââââââââââââââââââ
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
@@ -69,7 +70,7 @@
     }
   }
 
-  // ── In-memory state ──────────────────────────────────────────────
+  // ââ In-memory state ââââââââââââââââââââââââââââââââââââââââââââââ
   let _state = load();
 
   function getState() {
@@ -87,11 +88,7 @@
     return getState();
   }
 
-  // ── Convenience getters ──────────────────────────────────────────
-  function getNotes() { return JSON.parse(JSON.stringify(_state.notes)); }
-  function getLists() { return JSON.parse(JSON.stringify(_state.lists)); }
-
-  // ── Note helpers ─────────────────────────────────────────────────
+  // ââ Note helpers âââââââââââââââââââââââââââââââââââââââââââââââââ
   function nextColor() {
     // Cycle through note colors based on count
     return NOTE_COLORS[_state.notes.length % NOTE_COLORS.length];
@@ -138,12 +135,12 @@
     save(_state);
   }
 
-  // ── Category helpers ─────────────────────────────────────────────
+  // ââ Category helpers âââââââââââââââââââââââââââââââââââââââââââââ
   function addCategory(data) {
     const cat = Object.assign({
       id:   generateId(),
       name: '',
-      icon: '📝',
+      icon: 'ð',
       color:'#F7F0B6',
     }, data);
     cat.id = cat.id || generateId();
@@ -170,7 +167,7 @@
     save(_state);
   }
 
-  // ── List helpers ─────────────────────────────────────────────────
+  // ââ List helpers âââââââââââââââââââââââââââââââââââââââââââââââââ
   function addList(data) {
     const list = Object.assign({
       id:        generateId(),
@@ -229,14 +226,7 @@
     save(_state);
   }
 
-  function updateListItem(listId, itemId, text) {
-    const list = _state.lists.find(l => l.id === listId);
-    if (!list) return;
-    const item = list.items.find(i => i.id === itemId);
-    if (item) { item.text = text; save(_state); }
-  }
-
-  // ── Draft helpers ─────────────────────────────────────────────────
+  // ââ Draft helpers âââââââââââââââââââââââââââââââââââââââââââââââââ
   function addDraft(data) {
     const draft = Object.assign({
       id:        generateId(),
@@ -256,7 +246,7 @@
     save(_state);
   }
 
-  // ── Shared helpers ────────────────────────────────────────────────
+  // ââ Shared helpers ââââââââââââââââââââââââââââââââââââââââââââââââ
   function addShared(data) {
     const item = Object.assign({
       id:        generateId(),
@@ -274,7 +264,7 @@
     save(_state);
   }
 
-  // ── Export ────────────────────────────────────────────────────────
+  // ââ Export ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function exportJSON() {
     const data = getState();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -285,15 +275,43 @@
     URL.revokeObjectURL(a.href);
   }
 
+  // ââ getNotes helper âââââââââââââââââââââââââââââââââââââââââââââ
+  function getNotes() {
+    return JSON.parse(JSON.stringify(_state.notes));
+  }
+
+  // ââ updateListItem helper ââââââââââââââââââââââââââââââââââââââââ
+  function updateListItem(listId, itemId, text) {
+    const list = _state.lists.find(l => l.id === listId);
+    if (!list) return null;
+    const item = list.items.find(i => i.id === itemId);
+    if (!item) return null;
+    item.text = text;
+    save(_state);
+    return item;
+  }
+
+  // ââ updateListItemReminder ââââââââââââââââââââââââââââââââââââââââ
+  function updateListItemReminder(listId, itemId, reminderAt) {
+    const list = _state.lists.find(l => l.id === listId);
+    if (!list) return null;
+    const item = list.items.find(i => i.id === itemId);
+    if (!item) return null;
+    item.reminderAt = reminderAt || '';
+    save(_state);
+    return item;
+  }
+
   App.Storage = {
-    generateId, getState, getNotes, getLists, setState, updateSettings,
+    generateId, getState, setState, updateSettings,
     addNote, updateNote, deleteNote,
     addCategory, updateCategory, deleteCategory,
-    addList, updateList, deleteList, addListItem, toggleListItem, deleteListItem, resetList, updateListItem,
+    addList, updateList, deleteList, addListItem, toggleListItem, deleteListItem, resetList,
     addDraft, deleteDraft,
     addShared, deleteShared,
     exportJSON,
     NOTE_COLORS,
+    getNotes, updateListItem, updateListItemReminder,
   };
 
 })(window.App = window.App || {});
