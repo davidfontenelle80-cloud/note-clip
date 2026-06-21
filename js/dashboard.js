@@ -208,7 +208,7 @@
         ${n.priority ? `<span class="priority-badge priority-${n.priority}">${App.I18n.t('priority_'+n.priority)}</span>` : ''}
         ${n.dueTime  ? `<span class="task-chip-time">${_formatTime(n.dueTime)}</span>` : ''}
         <button type="button" class="bell-btn${n.reminderAt ? ' has-reminder' : ''}"
-          title="Set reminder"
+          title="${App.I18n.t('reminder_bell_title')}"
           onclick="event.stopPropagation();App.Reminders.openPickerForNote('${n.id}')">⏰</button>
       </button>
     `).join('');
@@ -269,7 +269,7 @@
       <div class="section-header" style="margin-bottom:var(--space-sm)">
         <span class="section-title" data-i18n="quick_note">${App.I18n.t('quick_note')}</span>
       </div>
-      <div class="quick-note-wrap" style="margin-bottom:var(--space-lg)">
+      <div class="quick-note-wrap quick-note-card" style="margin-bottom:var(--space-lg)">
         <span class="quick-note-clip" aria-hidden="true"></span>
         <textarea id="quick-note-ta" class="quick-note-input"
           placeholder="${App.I18n.t('quick_note_ph')}" rows="3"></textarea>
@@ -297,6 +297,4 @@
     _showQuickNoteCategory, _assignQuickCat, _dismissCatPicker,
     _openTask,
     _fetchWeather, _clearWeather,
-  };
-
-})(window.App = window.App || {});
+ 
