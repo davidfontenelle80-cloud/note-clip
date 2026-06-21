@@ -58,7 +58,7 @@
           placeholder="${t('onboard_name_ph')}" value="${_esc(_draft.username)}">
         <div class="onboard-options" aria-label="${t('language')}">
           <button class="theme-btn${_draft.language === 'en' ? ' active' : ''}" onclick="App.Onboarding._setDraft({language:'en'})">English</button>
-          <button class="theme-btn${_draft.language === 'es' ? ' active' : ''}" onclick="App.Onboarding._setDraft({language:'es'})">EspaÃ±ol</button>
+          <button class="theme-btn${_draft.language === 'es' ? ' active' : ''}" onclick="App.Onboarding._setDraft({language:'es'})">Español</button>
         </div>
         <div class="onboard-options" aria-label="${t('theme')}">
           ${['light','dark','system'].map(theme => `
