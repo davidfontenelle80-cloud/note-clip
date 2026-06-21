@@ -1,7 +1,7 @@
 /**
- * shared.js â Note Clip PWA
- * Shared tab redesign â Stage 2 Item E.
- * Header Â· compact recent-shares cards Â· inline create form Â· empty state.
+ * shared.js — Note Clip PWA
+ * Shared tab redesign — Stage 2 Item E.
+ * Header · compact recent-shares cards · inline create form · empty state.
  */
 (function (App) {
   'use strict';
@@ -10,7 +10,7 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // ââ Single shared item card âââââââââââââââââââââââââââââââââââââââ
+  // ── Single shared item card ───────────────────────────────────────
   function buildSharedCard(item) {
     const t    = App.I18n.t.bind(App.I18n);
     const lang = App.I18n.current();
@@ -30,13 +30,13 @@
             ${_esc(item.title)}
           </div>
           <div style="font-size:var(--text-xs);color:var(--color-text-3);margin-bottom:6px">
-            ${date} &nbsp;Â·&nbsp; ${typeBadge}
+            ${date} &nbsp;·&nbsp; ${typeBadge}
           </div>
           <div style="font-size:var(--text-sm);color:var(--color-text-2);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
-            ${_esc(item.content.slice(0, 120))}${item.content.length > 120 ? 'â¦' : ''}
+            ${_esc(item.content.slice(0, 120))}${item.content.length > 120 ? '…' : ''}
           </div>
         </div>
-        <button class="card-delete-btn" onclick="App.Shared._delete('${item.id}')" title="${t('delete')}">Ã</button>
+        <button class="card-delete-btn" onclick="App.Shared._delete('${item.id}')" title="${t('delete')}">×</button>
       </div>
       <div class="shared-card-actions">
         <a class="btn btn-sm btn-secondary share-btn whatsapp"
@@ -54,7 +54,7 @@
     </div>`;
   }
 
-  // ââ Render ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Render ────────────────────────────────────────────────────────
   function render() {
     const el = document.getElementById('pane-shared');
     if (!el) return;
@@ -100,7 +100,7 @@
           <div class="form-group" style="margin-bottom:10px">
             <label class="form-label" style="margin-bottom:5px">${t('shared_pick_label')}</label>
             <select id="share-select" class="form-select">
-              <option value="">â ${t('shared_choose')} â</option>
+              <option value="">— ${t('shared_choose')} —</option>
               ${noteOptions ? `<optgroup label="Notes">${noteOptions}</optgroup>` : ''}
               ${listOptions ? `<optgroup label="Lists">${listOptions}</optgroup>` : ''}
             </select>
