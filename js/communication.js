@@ -1,5 +1,5 @@
 /**
- * communication.js â Note Clip PWA
+ * communication.js — Note Clip PWA
  * Communication tab: draft messages, emails, WhatsApp text. EN/ES support.
  */
 (function (App) {
@@ -14,11 +14,11 @@
     const isEs = lang === 'es';
     if (type === 'whatsapp') {
       return isEs
-        ? `Hola! QuerÃ­a comunicarme contigo sobre lo siguiente:\n\n${context}\n\nQuedo en espera de tu respuesta. Saludos.`
+        ? `Hola! Quería comunicarme contigo sobre lo siguiente:\n\n${context}\n\nQuedo en espera de tu respuesta. Saludos.`
         : `Hi! I wanted to reach out about the following:\n\n${context}\n\nLooking forward to your reply. Thanks!`;
     } else if (type === 'email') {
       return isEs
-        ? `Asunto: [Asunto aquÃ­]\n\nEstimado/a,\n\nEspero que estÃ©s bien. Le escribo con respecto a:\n\n${context}\n\nQuedo a su disposiciÃ³n para cualquier pregunta.\n\nAtentamente,\n${App.Storage.getState().settings.username || '[Tu nombre]'}`
+        ? `Asunto: [Asunto aquí]\n\nEstimado/a,\n\nEspero que estés bien. Le escribo con respecto a:\n\n${context}\n\nQuedo a su disposición para cualquier pregunta.\n\nAtentamente,\n${App.Storage.getState().settings.username || '[Tu nombre]'}`
         : `Subject: [Subject here]\n\nHi,\n\nI hope this message finds you well. I'm writing regarding:\n\n${context}\n\nPlease don't hesitate to reach out with any questions.\n\nBest regards,\n${App.Storage.getState().settings.username || '[Your name]'}`;
     } else {
       // Generic message
@@ -38,11 +38,11 @@
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-sm)">
         <div style="flex:1">
           <div style="font-size:var(--text-xs);color:var(--color-text-muted);margin-bottom:4px">
-            ${t('draft_'+draft.type)} Â· ${date} Â· ${draft.language.toUpperCase()}
+            ${t('draft_'+draft.type)} · ${date} · ${draft.language.toUpperCase()}
           </div>
-          <div style="font-size:var(--text-sm);white-space:pre-wrap;line-height:1.5">${_esc(draft.content.slice(0,200))}${draft.content.length>200?'â¦':''}</div>
+          <div style="font-size:var(--text-sm);white-space:pre-wrap;line-height:1.5">${_esc(draft.content.slice(0,200))}${draft.content.length>200?'…':''}</div>
         </div>
-        <button class="card-delete-btn" onclick="App.Communication._deleteDraft('${draft.id}')">Ã</button>
+        <button class="card-delete-btn" onclick="App.Communication._deleteDraft('${draft.id}')">×</button>
       </div>
       <div class="share-actions">
         <button class="share-btn copy" onclick="App.Communication._copyDraft('${draft.id}')">
