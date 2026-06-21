@@ -1,7 +1,7 @@
 /**
- * shared.js — Note Clip PWA
- * Shared tab redesign — Stage 2 Item E.
- * Header · compact recent-shares cards · inline create form · empty state.
+ * shared.js â Note Clip PWA
+ * Shared tab redesign â Stage 2 Item E.
+ * Header Â· compact recent-shares cards Â· inline create form Â· empty state.
  */
 (function (App) {
   'use strict';
@@ -10,7 +10,7 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // ── Single shared item card ───────────────────────────────────────
+  // ââ Single shared item card âââââââââââââââââââââââââââââââââââââââ
   function buildSharedCard(item) {
     const t    = App.I18n.t.bind(App.I18n);
     const lang = App.I18n.current();
@@ -30,13 +30,13 @@
             ${_esc(item.title)}
           </div>
           <div style="font-size:var(--text-xs);color:var(--color-text-3);margin-bottom:6px">
-            ${date} &nbsp;·&nbsp; ${typeBadge}
+            ${date} &nbsp;Â·&nbsp; ${typeBadge}
           </div>
           <div style="font-size:var(--text-sm);color:var(--color-text-2);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">
-            ${_esc(item.content.slice(0, 120))}${item.content.length > 120 ? '…' : ''}
+            ${_esc(item.content.slice(0, 120))}${item.content.length > 120 ? 'â¦' : ''}
           </div>
         </div>
-        <button class="card-delete-btn" onclick="App.Shared._delete('${item.id}')" title="${t('delete')}">×</button>
+        <button class="card-delete-btn" onclick="App.Shared._delete('${item.id}')" title="${t('delete')}">Ã</button>
       </div>
       <div class="shared-card-actions">
         <a class="btn btn-sm btn-secondary share-btn whatsapp"
@@ -54,7 +54,7 @@
     </div>`;
   }
 
-  // ── Render ────────────────────────────────────────────────────────
+  // ââ Render ââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function render() {
     const el = document.getElementById('pane-shared');
     if (!el) return;
@@ -94,25 +94,25 @@
       </section>
 
       <!-- Share Something -->
-      <section class="dash-section">
+      <section class="dash-section" id="share-workflow">
         <h3 class="dash-section-title">${t('shared_share_something')}</h3>
         <div class="share-form">
           <div class="form-group" style="margin-bottom:10px">
             <label class="form-label" style="margin-bottom:5px">${t('shared_pick_label')}</label>
             <select id="share-select" class="form-select">
-              <option value="">— ${t('shared_choose')} —</option>
+              <option value="">â ${t('shared_choose')} â</option>
               ${noteOptions ? `<optgroup label="Notes">${noteOptions}</optgroup>` : ''}
               ${listOptions ? `<optgroup label="Lists">${listOptions}</optgroup>` : ''}
             </select>
           </div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-primary" style="flex:1" onclick="App.Shared._createShare('copy')">
+          <div style="display:flex;gap:8px;flex-direction:column">
+            <button class="btn btn-primary w-full" onclick="App.Shared._createShare('copy')">
               ${t('share_copy')}
             </button>
-            <button class="btn btn-secondary" style="flex:1" onclick="App.Shared._createShare('whatsapp')">
+            <button class="btn btn-secondary w-full" onclick="App.Shared._createShare('whatsapp')">
               WhatsApp
             </button>
-            <button class="btn btn-secondary" style="flex:1" onclick="App.Shared._createShare('email')">
+            <button class="btn btn-secondary w-full" onclick="App.Shared._createShare('email')">
               ${t('share_email')}
             </button>
           </div>
@@ -140,20 +140,27 @@
       content = list.items.map(i => `${i.checked ? '[x]' : '[ ]'} ${i.text}`).join('\n');
     }
 
-    App.Storage.addShared({ title, content, type });
-
-    const text = encodeURIComponent(`${title}\n\n${content}`);
+    const rawText = `${title}\n\n${content}`;
+    const text = encodeURIComponent(rawText);
     if (via === 'whatsapp') {
+      App.Storage.addShared({ title, content, type });
       window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener');
+      App.showToast(App.I18n.t('toast_shared_added'), 'success');
+      render();
     } else if (via === 'email') {
+      App.Storage.addShared({ title, content, type });
       window.open(`mailto:?subject=${encodeURIComponent(title)}&body=${text}`, '_blank', 'noopener');
+      App.showToast(App.I18n.t('toast_shared_added'), 'success');
+      render();
     } else {
-      navigator.clipboard.writeText(`${title}\n\n${content}`)
-        .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'));
+      _copyText(rawText)
+        .then(() => {
+          App.Storage.addShared({ title, content, type });
+          App.showToast(App.I18n.t('toast_copied'), 'success');
+          render();
+        })
+        .catch(() => App.showToast(App.I18n.t('toast_copy_failed'), 'error'));
     }
-
-    App.showToast(App.I18n.t('toast_shared_added'), 'success');
-    render();
   }
 
   function _delete(id) {
@@ -167,10 +174,44 @@
     const state = App.Storage.getState();
     const item  = state.sharedItems.find(s => s.id === id);
     if (!item) return;
-    navigator.clipboard.writeText(`${item.title}\n\n${item.content}`)
-      .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'));
+    _copyText(`${item.title}\n\n${item.content}`)
+      .then(() => App.showToast(App.I18n.t('toast_copied'), 'success'))
+      .catch(() => App.showToast(App.I18n.t('toast_copy_failed'), 'error'));
   }
 
-  App.Shared = { render, _createShare, _delete, _copy };
+  function _copyText(text) {
+    if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(text);
+    return new Promise((resolve, reject) => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy') ? resolve() : reject(new Error('copy failed'));
+      } catch (err) {
+        reject(err);
+      } finally {
+        ta.remove();
+      }
+    });
+  }
+
+  function onFab() {
+    const workflow = document.getElementById('share-workflow');
+    const select = document.getElementById('share-select');
+    if (!workflow || !select) {
+      render();
+      setTimeout(onFab, 0);
+      return;
+    }
+    workflow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    select.focus();
+    App.showToast(App.I18n.t('toast_share_ready'), 'info');
+  }
+
+  App.Shared = { render, onFab, _createShare, _delete, _copy };
 
 })(window.App = window.App || {});
