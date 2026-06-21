@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v43';
+const CACHE_VERSION = 'note-clip-v44';
 
 const PRECACHE_URLS = [
   './',
@@ -12,6 +12,7 @@ const PRECACHE_URLS = [
   './js/shared.js',
   './js/communication.js',
   './js/calendar.js',
+  './js/push.js',
   './js/reminders.js',
   './js/settings.js',
   './js/firebase/firebase-config.js',
@@ -49,4 +50,27 @@ self.addEventListener('fetch', event => {
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+// ââ Background push notifications ââââââââââââââââââââââââââââââââââââââââââââ
+self.addEventListener('push', event => {
+  const data = event.data ? event.data.json() : {};
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Note Clip Reminder', {
+      body: data.body || '',
+      icon: './icons/icon-192.png',
+      tag:  data.tag  || 'note-clip-reminder',
+    })
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      const existing = list.find(c => c.url.includes('davidfontenelle80-cloud.github.io'));
+      if (existing) return existing.focus();
+      return clients.openWindow('./');
+    })
+  );
 });
