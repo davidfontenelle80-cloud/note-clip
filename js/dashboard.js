@@ -1,21 +1,30 @@
 /**
  * dashboard.js — Note Clip PWA
  * Dashboard tab: greeting, today's focus, today's tasks, quick note,
- * mini calendar (with month/year pickers + swipe), upcoming reminders.
  * Stage 2 — Items C + D.
  */
 (function (App) {
   'use strict';
-
-  let _calYear, _calMonth, _selectedDate;
 
   // ── Helpers ───────────────────────────────────────────────────────
   function _esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  function _formatTime(time) {
+    const match = String(time || '').match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return time || '';
+    const hour24 = Number(match[1]);
+    const minute = match[2];
+    if (hour24 < 0 || hour24 > 23) return time;
+    const period = hour24 >= 12 ? 'p.m.' : 'a.m.';
+    const hour12 = hour24 % 12 || 12;
+    return `${hour12}:${minute} ${period}`;
+  }
+
   // ── Greeting ──────────────────────────────────────────────────────
-  function getGreeting() {
+  function getGreeting(name) {
+    if (!name) return App.I18n.t('greeting_welcome');
     const h = new Date().getHours();
     if (h >= 5  && h < 12) return App.I18n.t('greeting_morning');
     if (h >= 12 && h < 17) return App.I18n.t('greeting_afternoon');
@@ -25,161 +34,81 @@
 
   function greetingIcon() {
     const h = new Date().getHours();
-    let icon;
-    if (h >= 5  && h < 12) icon = 'ic_extra_lighthouse';
-    else if (h >= 12 && h < 17) icon = 'ic_extra_compass';
-    else if (h >= 17 && h < 21) icon = 'ic_extra_tree';
-    else icon = 'ic_extra_stars';
-    return `<span class="icon-wrap icon-wrap-sm" style="vertical-align:middle;margin-right:6px"><img src="./icons/${icon}.png" class="icon-img" alt=""></span>`;
+    let period;
+    if (h >= 5  && h < 12) period = 'morning';
+    else if (h >= 12 && h < 17) period = 'afternoon';
+    else if (h >= 17 && h < 21) period = 'evening';
+    else period = 'night';
+    return `<span class="greeting-stationery-icon greeting-${period}" aria-hidden="true"><span></span></span>`;
   }
 
-  // ── Calendar ──────────────────────────────────────────────────────
-  function buildCalendar(year, month) {
-    const today    = new Date();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const daysInPrev  = new Date(year, month, 0).getDate();
+
+  // ── Weather ───────────────────────────────────────────────────────
+  let _weatherCache = null; // { icon, temp, fetchedAt }
+  let _weatherFetching = false;
+  let _geoGranted = false; // true after user explicitly toggled ON
+
+  const WMO_ICON = {
+    0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
+    45:'🌫️', 48:'🌫️',
+    51:'🌦️', 53:'🌦️', 55:'🌧️',
+    61:'🌧️', 63:'🌧️', 65:'🌧️',
+    71:'🌨️', 73:'🌨️', 75:'❄️',
+    80:'🌦️', 81:'🌧️', 82:'🌧️',
+    95:'⛈️', 96:'⛈️', 99:'⛈️',
+  };
+
+  function _weatherIcon(code) {
+    return WMO_ICON[code] || '🌡️';
+  }
+
+  function _weatherChipHtml() {
+    if (!_weatherCache) return '';
+    return `<div class="weather-chip">
+      <span class="weather-chip-icon">${_weatherCache.icon}</span>
+      <span class="weather-chip-temp">${_weatherCache.temp}°F</span>
+    </div>`;
+  }
+
+  function _fetchWeather() {
     const state = App.Storage.getState();
-    const noteDates = new Set(
-      state.notes.filter(n => n.dueDate).map(n => n.dueDate.slice(0, 10))
+    if (!state.settings.weatherEnabled) return;
+    if (_weatherFetching) return;
+    // Only call geolocation once per session (or on first toggle-ON)
+    _weatherFetching = true;
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const { latitude: lat, longitude: lon } = pos.coords;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
+        fetch(url)
+          .then(r => r.json())
+          .then(data => {
+            const cw = data.current_weather;
+            if (!cw) return;
+            _weatherCache = {
+              icon: _weatherIcon(cw.weathercode),
+              temp: Math.round(cw.temperature),
+              fetchedAt: Date.now(),
+            };
+            _weatherFetching = false;
+            _renderWeatherChip();
+          })
+          .catch(() => { _weatherFetching = false; });
+      },
+      () => { _weatherFetching = false; } // denied / error — hide silently
     );
-
-    const monthNames   = ['January','February','March','April','May','June',
-      'July','August','September','October','November','December'];
-    const monthNamesEs = ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-      'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-    const lang = App.I18n.current();
-    const monthLabel = (lang === 'es' ? monthNamesEs : monthNames)[month];
-    const dayLabels  = lang === 'es'
-      ? ['Do','Lu','Ma','Mi','Ju','Vi','Sa']
-      : ['Su','Mo','Tu','We','Th','Fr','Sa'];
-
-    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
-    let cells = '';
-    for (let i = firstDay - 1; i >= 0; i--)
-      cells += `<div class="cal-day other-month">${daysInPrev - i}</div>`;
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const cls = [
-        'cal-day',
-        ds === todayStr      ? 'today'    : '',
-        ds === _selectedDate ? 'selected' : '',
-        noteDates.has(ds)   ? 'has-note' : '',
-      ].filter(Boolean).join(' ');
-      cells += `<div class="${cls}" data-date="${ds}" onclick="App.Dashboard._selectDate('${ds}')">${d}</div>`;
-    }
-
-    const total = Math.ceil((firstDay + daysInMonth) / 7) * 7;
-    for (let d = 1; d <= total - firstDay - daysInMonth; d++)
-      cells += `<div class="cal-day other-month">${d}</div>`;
-
-    return `
-      <div class="mini-calendar" id="dash-calendar">
-        <div class="cal-header">
-          <button class="cal-nav-btn" onclick="App.Dashboard._prevMonth()">&#8249;</button>
-          <span class="cal-month-label">
-            <span style="cursor:pointer" onclick="App.Dashboard._openMonthPicker()">${monthLabel}</span>
-            &nbsp;
-            <span style="cursor:pointer" onclick="App.Dashboard._openYearPicker()">${year}</span>
-          </span>
-          <button class="cal-nav-btn" onclick="App.Dashboard._nextMonth()">&#8250;</button>
-        </div>
-        <div class="cal-grid">
-          ${dayLabels.map(l => `<div class="cal-day-label">${l}</div>`).join('')}
-          ${cells}
-        </div>
-      </div>`;
   }
 
-  function _prevMonth() {
-    _calMonth--;
-    if (_calMonth < 0) { _calMonth = 11; _calYear--; }
-    _refreshCalendar();
+  function _renderWeatherChip() {
+    const el = document.getElementById('dashboard-weather');
+    if (el) el.innerHTML = _weatherChipHtml();
   }
 
-  function _nextMonth() {
-    _calMonth++;
-    if (_calMonth > 11) { _calMonth = 0; _calYear++; }
-    _refreshCalendar();
-  }
-
-  function _selectDate(ds) {
-    _selectedDate = ds;
-    _refreshCalendar();
-    const state = App.Storage.getState();
-    const dayNotes = state.notes.filter(n => n.dueDate && n.dueDate.slice(0,10) === ds);
-    if (dayNotes.length) {
-      App.showToast(App.I18n.t('toast_notes_on_date', {count: dayNotes.length, date: ds}), 'info');
-      App.showTab('notes');
-      if (App.Notes && App.Notes.filterByDate) App.Notes.filterByDate(ds);
-    }
-  }
-
-  function _refreshCalendar() {
-    const el = document.getElementById('cal-wrap');
-    if (el) {
-      el.innerHTML = buildCalendar(_calYear, _calMonth);
-      _initCalendarSwipe();
-    }
-  }
-
-  // ── Month Picker ──────────────────────────────────────────────────
-  function _openMonthPicker() {
-    const months = App.I18n.current() === 'es'
-      ? ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
-      : ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const html = `<div class="picker-overlay" id="month-picker">
-      <div class="picker-panel">
-        <div class="picker-grid">
-          ${months.map((m,i) => `<button type="button" class="picker-btn${i===_calMonth?' picker-active':''}" data-val="${i}">${m}</button>`).join('')}
-        </div>
-      </div>
-    </div>`;
-    const cal = document.getElementById('dash-calendar');
-    if (!cal) return;
-    cal.insertAdjacentHTML('beforeend', html);
-    document.getElementById('month-picker').addEventListener('click', e => {
-      const btn = e.target.closest('[data-val]');
-      if (btn) { _calMonth = +btn.dataset.val; }
-      document.getElementById('month-picker')?.remove();
-      if (btn) _refreshCalendar();
-    });
-  }
-
-  // ── Year Picker ───────────────────────────────────────────────────
-  function _openYearPicker() {
-    const cur = _calYear;
-    const years = Array.from({length:11}, (_,i) => cur - 5 + i);
-    const html = `<div class="picker-overlay" id="year-picker">
-      <div class="picker-panel">
-        <div class="picker-grid" style="grid-template-columns:repeat(3,1fr)">
-          ${years.map(y => `<button type="button" class="picker-btn${y===cur?' picker-active':''}" data-val="${y}">${y}</button>`).join('')}
-        </div>
-      </div>
-    </div>`;
-    const cal = document.getElementById('dash-calendar');
-    if (!cal) return;
-    cal.insertAdjacentHTML('beforeend', html);
-    document.getElementById('year-picker').addEventListener('click', e => {
-      const btn = e.target.closest('[data-val]');
-      if (btn) { _calYear = +btn.dataset.val; }
-      document.getElementById('year-picker')?.remove();
-      if (btn) _refreshCalendar();
-    });
-  }
-
-  // ── Swipe gesture on calendar ─────────────────────────────────────
-  function _initCalendarSwipe() {
-    let sx = 0;
-    const cal = document.getElementById('dash-calendar');
-    if (!cal) return;
-    cal.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, {passive:true});
-    cal.addEventListener('touchend', e => {
-      const dx = e.changedTouches[0].clientX - sx;
-      if (Math.abs(dx) > 50) dx < 0 ? _nextMonth() : _prevMonth();
-    }, {passive:true});
+  function _clearWeather() {
+    _weatherCache = null;
+    _weatherFetching = false;
+    const el = document.getElementById('dashboard-weather');
+    if (el) el.innerHTML = '';
   }
 
   // ── Quick Note ────────────────────────────────────────────────────
@@ -246,38 +175,21 @@
       return;
     }
     el.innerHTML = notes.map(n => `
-      <div class="task-chip" onclick="App.showTab('notes')">
+      <button type="button" class="task-chip" onclick="App.Dashboard._openTask('${n.id}')">
         <span class="task-chip-dot" style="background:var(--note-${n.color||'yellow'})"></span>
         <span class="task-chip-title">${_esc(n.title || App.I18n.t('no_notes'))}</span>
         ${n.priority ? `<span class="priority-badge priority-${n.priority}">${App.I18n.t('priority_'+n.priority)}</span>` : ''}
-        ${n.dueTime  ? `<span class="task-chip-time">${n.dueTime}</span>` : ''}
-      </div>
+        ${n.dueTime  ? `<span class="task-chip-time">${_formatTime(n.dueTime)}</span>` : ''}
+        <button type="button" class="bell-btn${n.reminderAt ? ' has-reminder' : ''}"
+          title="Set reminder"
+          onclick="event.stopPropagation();App.Reminders.openPickerForNote('${n.id}')">⏰</button>
+      </button>
     `).join('');
   }
 
-  // ── Upcoming Reminders ────────────────────────────────────────────
-  function _renderUpcoming() {
-    const today = new Date().toISOString().slice(0, 10);
-    const notes = App.Storage.getNotes()
-      .filter(n => n.dueDate && n.dueDate >= today && !n.completed && !n.archived)
-      .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-      .slice(0, 5);
-    const el = document.getElementById('dash-reminders-list');
-    if (!el) return;
-    if (!notes.length) {
-      el.innerHTML = `<p class="empty-state-sm">${App.I18n.t('dash_nothing_upcoming')}</p>`;
-      return;
-    }
-    const lang = App.I18n.current();
-    el.innerHTML = notes.map(n => {
-      const d     = new Date(n.dueDate + 'T12:00:00');
-      const label = d.toLocaleDateString(lang === 'es' ? 'es-US' : 'en-US', {month:'short', day:'numeric'});
-      return `<div class="reminder-row">
-        <span class="reminder-dot" style="background:var(--note-${n.color||'yellow'})"></span>
-        <span class="reminder-title">${_esc(n.title || App.I18n.t('no_notes'))}</span>
-        <span class="reminder-date">${label}${n.dueTime ? ' · '+n.dueTime : ''}</span>
-      </div>`;
-    }).join('');
+  function _openTask(id) {
+    App.showTab('notes');
+    setTimeout(() => App.Notes?._editNote?.(id), 0);
   }
 
   // ── Today's Focus ─────────────────────────────────────────────────
@@ -297,19 +209,18 @@
     const lang  = App.I18n.current();
     const dateStr = now.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US',
       { weekday: 'long', month: 'long', day: 'numeric' });
-    const name = state.settings.username ? `, ${_esc(state.settings.username)}` : '';
-
-    if (_calYear === undefined) {
-      _calYear  = now.getFullYear();
-      _calMonth = now.getMonth();
-    }
+    const name = (state.settings.username || '').trim();
+    const greeting = name ? `${getGreeting(name)}, ${_esc(name)}` : getGreeting('');
 
     el.innerHTML = `
       <!-- Greeting -->
       <div class="greeting-block">
-        <div class="greeting-text">${greetingIcon()} ${getGreeting()}${name}</div>
+        <div class="greeting-text">${greetingIcon()} ${greeting}</div>
         <div class="greeting-date">${dateStr}</div>
       </div>
+
+      <!-- Weather chip (opt-in, renders into this slot) -->
+      <div id="dashboard-weather"></div>
 
       <!-- Today's Focus -->
       <div class="focus-card">
@@ -331,7 +242,8 @@
       <div class="section-header" style="margin-bottom:var(--space-sm)">
         <span class="section-title" data-i18n="quick_note">${App.I18n.t('quick_note')}</span>
       </div>
-      <div class="quick-note-wrap" style="margin-bottom:var(--space-lg)">
+      <div class="quick-note-wrap quick-note-card" style="margin-bottom:var(--space-lg)">
+        <span class="quick-note-clip" aria-hidden="true"></span>
         <textarea id="quick-note-ta" class="quick-note-input"
           placeholder="${App.I18n.t('quick_note_ph')}" rows="3"></textarea>
         <div class="quick-note-actions">
@@ -341,28 +253,23 @@
         </div>
       </div>
 
-      <!-- Mini Calendar -->
-      <div id="cal-wrap">${buildCalendar(_calYear, _calMonth)}</div>
-
-      <!-- Upcoming Reminders -->
-      <section class="dash-section" id="dash-reminders" style="margin-top:var(--space-lg)">
-        <h3 class="dash-section-title">${App.I18n.t('dash_upcoming')}</h3>
-        <div id="dash-reminders-list"></div>
-      </section>
     `;
 
     // Populate dynamic sections
     _renderTodayTasks();
-    _renderUpcoming();
-    _initCalendarSwipe();
+    // Trigger weather fetch if enabled (no-op if already cached or disabled)
+    const _st = App.Storage.getState();
+    if (_st.settings.weatherEnabled) {
+      if (_weatherCache) { _renderWeatherChip(); } else { _fetchWeather(); }
+    }
   }
 
   App.Dashboard = {
     render,
     _saveQuickNote, _saveFocus,
     _showQuickNoteCategory, _assignQuickCat, _dismissCatPicker,
-    _prevMonth, _nextMonth, _selectDate,
-    _openMonthPicker, _openYearPicker,
+    _openTask,
+    _fetchWeather, _clearWeather,
   };
 
 })(window.App = window.App || {});

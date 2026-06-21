@@ -6,6 +6,8 @@
 
 /* ── Design Tokens ─────────────────────────────────────────────── */
 :root {
+  --keyboard-inset:       0px;
+
   /* Brand */
   --color-primary:        #C8A96E;
   --color-primary-dark:   #B8924F;
@@ -99,6 +101,11 @@
   --header-height:      56px;
   --bottom-nav-height:  76px;
   --max-width:          600px;
+  /* Quick Note */
+  --quick-note-paper: #FFF9C4;
+  --quick-note-lines: rgba(100, 120, 180, 0.13);
+  --quick-note-fold: #F0E68C;
+  --quick-note-fold-shadow: rgba(0, 0, 0, 0.10);
 }
 
 /* ── Dark mode — Executive Dashboard System ──────────────────────── */
@@ -146,6 +153,11 @@
   --color-primary-dark: #B8943A;
   --shadow-card:        0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
   --shadow-inset:       inset 0 1px 0 rgba(255,255,255,.08), inset 1px 0 0 rgba(255,255,255,.04);
+  /* Quick Note dark */
+  --quick-note-paper: #3D3820;
+  --quick-note-lines: rgba(150, 170, 220, 0.18);
+  --quick-note-fold: #2E2A15;
+  --quick-note-fold-shadow: rgba(0, 0, 0, 0.25);
 }
 
 /* ── Reset + Base ────────────────────────────────────────────────── */
@@ -448,8 +460,10 @@ input, textarea, select {
 
 /* Delete + action buttons on cards */
 .card-delete-btn {
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: var(--radius-full);
   background: var(--color-border);
   color: var(--color-text-3);
@@ -519,6 +533,121 @@ input, textarea, select {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-md);
+}
+
+.cat-modal-sheet {
+  max-height: min(88vh, 760px);
+  overflow: auto;
+}
+
+.cat-icon-selected {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-2);
+}
+
+.cat-icon-selected-preview {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  font-size: 1.7rem;
+}
+
+.cat-icon-selected-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+}
+
+.cat-icon-selected-name {
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.cat-icon-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.cat-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cat-icon-option {
+  min-height: 74px;
+  padding: 8px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font: inherit;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.15;
+  cursor: pointer;
+}
+
+.cat-icon-option.selected {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(200,169,110,.24), var(--shadow-sm);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 24%, transparent), var(--shadow-sm);
+  background: var(--color-primary-soft);
+}
+
+.cat-icon-option:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.cat-icon-picture {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.cat-icon-empty {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+  padding: var(--space-sm);
+}
+
+.cat-custom-fallback {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-xs);
+}
+
+.cat-custom-fallback summary {
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+}
+
+.cat-custom-row {
+  margin-top: var(--space-sm);
+}
+
+@media (max-width: 420px) {
+  .cat-icon-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cat-icon-option { min-height: 70px; }
 }
 
 /* ── Notes Grid ──────────────────────────────────────────────────── */
@@ -825,8 +954,10 @@ input, textarea, select {
 }
 .list-item:last-child { border-bottom: none; }
 .list-item-check {
-  width: 22px;
-  height: 22px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   border-radius: var(--radius-sm);
   border: 2px solid var(--color-border);
   background: var(--color-surface-2);
@@ -902,6 +1033,7 @@ input, textarea, select {
   align-items: flex-end;
   justify-content: center;
   padding: var(--space-md);
+  padding-bottom: max(var(--space-md), var(--keyboard-inset));
   animation: fade-in 180ms ease;
 }
 .modal-backdrop.hidden { display: none; }
@@ -914,8 +1046,10 @@ input, textarea, select {
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   padding: var(--space-md);
   padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 0px));
-  max-height: 90dvh;
+  max-height: calc(100dvh - (var(--space-md) * 2) - var(--keyboard-inset));
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   animation: slide-up 280ms cubic-bezier(0.34,1.56,0.64,1);
   box-shadow: 0 -4px 24px rgba(0,0,0,.12);
 }
@@ -941,6 +1075,14 @@ input, textarea, select {
   margin-top: var(--space-lg);
 }
 .modal-actions .btn { flex: 1; }
+.modal-actions.sticky-actions {
+  position: sticky;
+  bottom: calc(-1 * var(--space-md));
+  z-index: 2;
+  background: var(--color-surface);
+  padding: var(--space-sm) 0 max(var(--space-xs), env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--color-border);
+}
 
 /* ── Color Picker Row ────────────────────────────────────────────── */
 .color-row {
@@ -1063,6 +1205,7 @@ input, textarea, select {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-height: 44px;
   padding: 8px 14px;
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
@@ -1113,6 +1256,33 @@ input, textarea, select {
 }
 .update-notice[hidden] { display: none; }
 
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--bottom-nav-height) + 14px);
+  transform: translateX(-50%);
+  z-index: 420;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  max-width: min(92vw, 420px);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-full);
+  background: var(--color-text);
+  color: var(--color-bg);
+  box-shadow: var(--shadow-fab);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.undo-toast button {
+  min-height: 36px;
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 700;
+}
+
 /* ── Utility ─────────────────────────────────────────────────────── */
 .hidden { display: none !important; }
 .sr-only {
@@ -1137,6 +1307,8 @@ input, textarea, select {
 /* ── Task Chips (Dashboard Today's Tasks) ────────────────────────── */
 .task-chip {
   display: flex; align-items: center; gap: 8px;
+  width: 100%; border: 0; color: inherit; text-align: left;
+  min-height: 44px;
   padding: 10px 12px; border-radius: 10px;
   background: var(--color-surface); margin-bottom: 6px;
   box-shadow: 0 1px 4px rgba(160,130,80,.08), inset 0 1px 0 rgba(255,255,255,.6);
@@ -1149,11 +1321,13 @@ input, textarea, select {
 .empty-state-sm { font-size: .85rem; color: var(--color-text-3); padding: 8px 0; }
 
 /* ── Reminder Rows (Dashboard Upcoming) ──────────────────────────── */
-.reminder-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--color-border); }
-.reminder-row:last-child { border-bottom:none; }
-.reminder-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.reminder-title { flex:1; font-size:.875rem; color:var(--color-text); }
-.reminder-date { font-size:.75rem; color:var(--color-text-3); white-space:nowrap; }
+.reminder-row { display:flex; align-items:center; gap:10px; min-height:48px; padding:11px 12px; border:1px solid var(--color-border); border-radius:12px; background:var(--color-surface); box-shadow:0 2px 8px rgba(48,38,20,.07), inset 0 1px 0 rgba(255,255,255,.45); margin-bottom:8px; }
+.reminder-row:last-child { margin-bottom:0; }
+.reminder-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; box-shadow:0 0 0 4px color-mix(in srgb,currentColor 12%,transparent); }
+.reminder-title { flex:1; min-width:0; font-size:.95rem; font-weight:700; color:var(--color-text); }
+.reminder-date { font-size:.82rem; font-weight:700; color:var(--color-primary-strong); white-space:nowrap; }
+.dash-upcoming-section .dash-section-title { color:var(--color-text); font-weight:800; letter-spacing:.1em; }
+.dash-upcoming-section #dash-reminders-list { padding-bottom: calc(var(--bottom-nav-height) + 12px); }
 
 /* ── Dash Section ─────────────────────────────────────────────────── */
 .dash-section { margin-bottom: var(--space-lg); }
@@ -1179,4 +1353,101 @@ input, textarea, select {
 .shared-subtitle { font-size: .85rem; color: var(--color-text-3); margin-top: 2px; }
 .shared-card { padding: 10px 12px; margin-bottom: 8px; }
 .shared-card-actions { display: flex; gap: 6px; margin-top: 8px; }
-.shared-card-actions button { flex: 1; padding: 6px; font-size: .75rem;
+.shared-card-actions button { flex: 1; padding: 6px; font-size: .75rem; }
+
+/* ── Calendar Tab ─────────────────────────────────────────────────── */
+#cal-tab-cal { position: relative; }
+.cal-tab-calendar { margin-bottom: 0; }
+.cal-day.has-reminder::after {
+  conte
+/* ── Toggle Switch ───────────────────────────────────────────────── */
+.toggle-switch { position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
+.toggle-switch input { opacity:0; width:0; height:0; }
+.toggle-slider {
+  position:absolute; cursor:pointer; inset:0;
+  background:var(--color-border); border-radius:24px;
+  transition:background .2s;
+}
+.toggle-slider::before {
+  content:''; position:absolute; width:18px; height:18px;
+  left:3px; top:3px; background:#fff; border-radius:50%;
+  transition:transform .2s;
+}
+.toggle-switch input:checked + .toggle-slider { background:var(--color-primary); }
+.toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); }
+
+/* ── Weather Chip ────────────────────────────────────────────────── */
+.weather-chip {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--color-surface-2,rgba(0,0,0,.06));
+  border-radius:20px; padding:4px 10px 4px 8px;
+  font-size:var(--text-sm); color:var(--color-text);
+  margin-top:var(--space-xs);
+}
+.weather-chip-icon { font-size:1.1rem; line-height:1; }
+.weather-chip-temp { font-weight:600; }
+
+/* ── Reminder Bell Icon ──────────────────────────────────────────── */
+.bell-btn {
+  background:none; border:none; cursor:pointer; padding:2px 4px;
+  font-size:0.85rem; line-height:1; opacity:0.55;
+  color:var(--color-text); border-radius:4px;
+  transition:opacity .15s;
+}
+.bell-btn:hover { opacity:1; }
+.bell-btn.has-reminder { opacity:1; color:var(--color-primary); }
+
+/* Quick Note */
+.quick-note-card {
+  position: relative;
+  background-color: var(--quick-note-paper);
+  background-image:
+    repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 27px,
+      var(--quick-note-lines) 27px,
+      var(--quick-note-lines) 28px
+    );
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08);
+  overflow: hidden;
+  border: none;
+}
+.quick-note-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(
+    225deg,
+    var(--quick-note-fold) 50%,
+    transparent 50%
+  );
+  box-shadow: -2px -2px 3px var(--quick-note-fold-shadow);
+}
+.quick-note-card textarea {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  resize: none;
+}
+.quick-note-card .card-title,
+.quick-note-card .section-title {
+  background: transparent;
+}
+
+/* Nav icons */
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+  margin: 0 auto 2px;
+  color: var(--color-text-dim);
+  transition: color 0.2s;
+}
+.nav-tab.active .nav-icon {
+  color: var(--color-primary);
+}

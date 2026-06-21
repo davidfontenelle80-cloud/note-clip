@@ -1,9 +1,4 @@
-/**
- * sw.js — Note Clip PWA
- * Cache-first service worker. Bump CACHE_VERSION on every deploy.
- */
-
-const CACHE_VERSION = 'note-clip-v11';
+const CACHE_VERSION = 'note-clip-v43';
 
 const PRECACHE_URLS = [
   './',
@@ -16,55 +11,42 @@ const PRECACHE_URLS = [
   './js/lists.js',
   './js/shared.js',
   './js/communication.js',
+  './js/calendar.js',
+  './js/reminders.js',
   './js/settings.js',
   './js/firebase/firebase-config.js',
+  './js/firebase/cloud-sync.js',
+  './js/onboarding.js',
   './app.js',
   './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_VERSION)
-      .then(cache => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil(caches.open(CACHE_VERSION).then(cache => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))
-      ))
-      .then(() => self.clients.claim())
-      .then(() => {
-        self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
-          clients.forEach(client => client.postMessage({ type: 'RELOAD_READY' }));
-        });
-      })
-  );
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()).then(() => {
+    self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
+      clients.forEach(client => client.postMessage({ type: 'RELOAD_READY' }));
+    });
+  }));
 });
 
 self.addEventListener('fetch', event => {
-  // Skip non-GET and cross-origin requests
   if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith(self.location.origin)) return;
-
-  event.respondWith(
-    caches.match(event.request)
-      .then(cached => cached || fetch(event.request)
-        .then(response => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_VERSION).then(cache => cache.put(event.request, clone));
-          }
-          return response;
-        })
-      )
-  );
+  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+    if (response.ok) {
+      const clone = response.clone();
+      caches.open(CACHE_VERSION).then(cache => cache.put(event.request, clone));
+    }
+    return response;
+  })));
 });
 
-// Handle SKIP_WAITING message from app
 self.addEventListener('message', event => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
