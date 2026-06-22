@@ -172,6 +172,19 @@
 
   function onFab() { document.getElementById('comm-context')?.focus(); }
 
-  App.Communication = { render, onFab, _generate, _copyOutput, _saveOutput, _deleteDraft, _copyDraft, _copyText };
+  // Render communication content into an arbitrary element (used by settings modal).
+  // Temporarily swaps the pane ID so the existing render() targets the right element.
+  function renderInto(elId) {
+    const target = document.getElementById(elId);
+    if (!target) return;
+    const existing = document.getElementById('pane-communication');
+    if (existing) existing.id = '__comm_pane_hidden';
+    target.id = 'pane-communication';
+    render();
+    target.id = elId;
+    if (existing) existing.id = 'pane-communication';
+  }
+
+  App.Communication = { render, renderInto, onFab, _generate, _copyOutput, _saveOutput, _deleteDraft, _copyDraft, _copyText };
 
 })(window.App = window.App || {});
