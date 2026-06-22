@@ -486,7 +486,13 @@
       </div>`;
 
     document.body.insertAdjacentHTML('beforeend', html);
-    document.getElementById('note-title').focus();
+    // Scroll sheet to top before focusing so iOS keyboard adjustment starts from the top
+    const _sheet = document.querySelector('#note-modal .modal-sheet');
+    if (_sheet) _sheet.scrollTop = 0;
+    requestAnimationFrame(() => setTimeout(() => {
+      const _t = document.getElementById('note-title');
+      if (_t) { _t.scrollIntoView({ block: 'start', behavior: 'instant' }); _t.focus(); }
+    }, 50));
     _selectedNoteColor = n.color || 'yellow';
   }
 
