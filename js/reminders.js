@@ -28,26 +28,38 @@
 
   // ── Reminder timing ────────────────────────────────────────────────
   function _reminderSig(n) {
-    return `${n.dueDate||''}_${n.dueTime||''}_${n.reminder||''}_${n.reminderAt||''}`;
+    return [n.id, n.dueDate, n.dueTime, n.reminder, n.reminderAt, n.completed, n.archived].join('|');
   }
 
   function _reminderTime(n) {
+    if (n.completed || n.archived) return null;
     // Direct ISO reminder takes precedence over preset
     if (n.reminderAt) {
       const t = new Date(n.reminderAt).getTime();
       return isNaN(t) ? null : t;
     }
-    if (!n.dueDate || !n.reminder) return null;
-    const [y, m, d] = n.dueDate.split('-').map(Number);
-    if (n.reminder === 'same_day')  return new Date(y, m-1, d, 8, 0, 0).getTime();
-    if (n.reminder === 'day_before') return new Date(y, m-1, d-1, 8, 0, 0).getTime();
-    if (n.dueTime && (n.reminder === '1h_before' || n.reminder === '2h_before')) {
-      const [hh, mm] = n.dueTime.split(':').map(Number);
-      const base = new Date(y, m-1, d, hh, mm, 0).getTime();
-      return base - (n.reminder === '1h_before' ? 3600000 : 7200000);
+    // Preset reminder tied to dueDate
+    if (n.dueDate && n.reminder && n.reminder !== 'none') {
+      const [y, m, d] = n.dueDate.split('-').map(Number);
+      if (!y || !m || !d) return null;
+      if (n.reminder === 'same_day')   return new Date(y, m-1, d,   8, 0, 0).getTime();
+      if (n.reminder === 'day_before') return new Date(y, m-1, d-1, 8, 0, 0).getTime();
+      if (n.dueTime && (n.reminder === '1h_before' || n.reminder === '2h_before')) {
+        const [hh, mm] = n.dueTime.split(':').map(Number);
+        if (Number.isFinite(hh) && Number.isFinite(mm)) {
+          const base = new Date(y, m-1, d, hh, mm, 0).getTime();
+          return base - (n.reminder === '1h_before' ? 3600000 : 7200000);
+        }
+      }
+      // Reminder set but no applicable time — fire at 8am on due date
+      return new Date(y, m-1, d, 8, 0, 0).getTime();
     }
-    // Fallback: reminder set but no time — fire at 8am on due date
-    return new Date(y, m-1, d, 8, 0, 0).getTime();
+    // dueDate + dueTime only (no reminder or reminder === 'none') — fire at exact due time
+    if (n.dueDate && n.dueTime && (!n.reminder || n.reminder === 'none' || n.reminder === '')) {
+      const t = new Date(n.dueDate + 'T' + n.dueTime).getTime();
+      return isNaN(t) ? null : t;
+    }
+    return null;
   }
 
   // ── Check which notes need a popup ────────────────────────────────
@@ -58,7 +70,6 @@
 
     // Notes
     const notesPending = App.Storage.getNotes().filter(n => {
-      if (!n.reminderAt && (!n.dueDate || !n.reminder)) return false;
       if (n.completed || n.archived) return false;
       const rt = _reminderTime(n);
       if (!rt || rt > now) return false;

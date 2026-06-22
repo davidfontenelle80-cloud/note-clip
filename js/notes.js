@@ -31,52 +31,41 @@
     return _esc(icon);
   }
 
+  // Flat emoji array — 80+ curated icons (ES6 \u{} syntax)
   const CATEGORY_ICON_OPTIONS = [
-    { value: '\u{1F4BC}', name: 'Work', terms: 'work office briefcase job business' },
-    { value: '\u{1FA7A}', name: 'Medical', terms: 'medical health first aid doctor' },
-    { value: '\u{1F464}', name: 'Personal', terms: 'personal person profile user' },
-    { value: '\u{1F3E0}', name: 'House', terms: 'house home residence' },
-    { value: '\u{1F4C4}', name: 'Documents', terms: 'documents paper file form' },
-    { value: '\u{1F514}', name: 'Reminder', terms: 'reminder bell follow up alert' },
-    { value: '\u{1F4E6}', name: 'Package', terms: 'package orders shipping delivery box' },
-    { value: '\u{1F4A1}', name: 'Ideas', terms: 'ideas idea light bulb' },
-    { value: '\u{1F4C5}', name: 'Calendar', terms: 'calendar date appointment schedule' },
-    { value: '\u{260E}\u{FE0F}', name: 'Phone', terms: 'phone call contact communication' },
-    { value: '\u{1F4CD}', name: 'Location', terms: 'location pin map address place' },
-    { value: '\u{1F697}', name: 'Car', terms: 'car auto vehicle travel' },
-    { value: '\u{1F6D2}', name: 'Shopping', terms: 'shopping cart store groceries' },
-    { value: '\u{1F4B5}', name: 'Money', terms: 'money cash budget finance' },
-    { value: '\u{2B50}', name: 'Important', terms: 'important star favorite priority' },
-    { value: '\u{2705}', name: 'Checklist', terms: 'checklist check done task' },
-    { value: '\u{1F4DA}', name: 'Books', terms: 'books reading study library' },
-    { value: '\u{2708}\u{FE0F}', name: 'Travel', terms: 'travel plane trip flight' },
-    { value: '\u{1F37D}\u{FE0F}', name: 'Meals', terms: 'meals food restaurant dinner' },
-    { value: '\u{1F4DD}', name: 'Notes', terms: 'notes memo writing note' },
+    '\u{1F4BC}','\u{1F4CB}','\u{1F4CA}','\u{1F4C8}','\u{1F4C9}','\u{1F5A5}\u{FE0F}','\u{1F4BB}','\u{1F5A8}\u{FE0F}','\u{1F4CE}','\u{1F5C2}\u{FE0F}','\u{1F4C1}','\u{1F4C2}','\u{1F5C3}\u{FE0F}','\u{2705}','\u{2611}\u{FE0F}',
+    '\u{1F4DD}','\u{1F4C4}','\u{1F4C3}','\u{1F4DC}','\u{1F5D2}\u{FE0F}','\u{1F5D3}\u{FE0F}','\u{1F4C5}','\u{1F4C6}','\u{1F516}','\u{1F3F7}\u{FE0F}',
+    '\u{1F476}','\u{1F9D2}','\u{1F466}','\u{1F467}','\u{1F9D1}','\u{1F469}','\u{1F468}','\u{1F9D1}\u{200D}\u{1F91D}\u{200D}\u{1F9D1}','\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}','\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}',
+    '\u{1F48A}','\u{1FA7A}','\u{1F3C3}','\u{1F9D8}','\u{1F4AA}','\u{1FA79}','\u{1F3CB}\u{FE0F}','\u{1F957}','\u{1F964}','\u{1F6CC}',
+    '\u{1F4B0}','\u{1F4B3}','\u{1F6D2}','\u{1F3E6}','\u{1F4B5}','\u{1F9FE}','\u{1F4B8}','\u{1F3E7}',
+    '\u{1F3E0}','\u{1F527}','\u{1FAB4}','\u{1F9F9}','\u{1F6CB}\u{FE0F}','\u{1F511}','\u{1FA91}','\u{1F6C1}','\u{1FA9F}','\u{1F3D7}\u{FE0F}',
+    '\u{2708}\u{FE0F}','\u{1F697}','\u{1F5FA}\u{FE0F}','\u{1F9F3}','\u{1F3E8}','\u{26FD}','\u{1F68C}','\u{1F682}','\u{1F6A2}','\u{1F3D5}\u{FE0F}',
+    '\u{1F37D}\u{FE0F}','\u{1F9D1}\u{200D}\u{1F373}','\u{2615}','\u{1F961}','\u{1F355}','\u{1F958}','\u{1F371}',
+    '\u{1F4DA}','\u{1F393}','\u{270F}\u{FE0F}','\u{1F4D0}','\u{1F9EA}','\u{1F52C}','\u{1F4D6}','\u{1F3EB}',
+    '\u{1F3B5}','\u{1F3AE}','\u{1F4F7}','\u{1F3A8}','\u{26BD}','\u{1F3AC}','\u{1F3B8}','\u{265F}\u{FE0F}','\u{1F3AF}','\u{1F3B2}',
+    '\u{1F33F}','\u{2600}\u{FE0F}','\u{1F30A}','\u{1F43E}','\u{1F331}','\u{1F30D}','\u{26F0}\u{FE0F}','\u{1F338}',
+    '\u{2B50}','\u{1F525}','\u{23F0}','\u{1F4CD}','\u{1F512}','\u{1F4A1}','\u{1F514}','\u{26A1}','\u{1F381}','\u{2764}\u{FE0F}','\u{1F198}','\u{1F4CC}'
   ];
 
-  let _selectedCatIcon = CATEGORY_ICON_OPTIONS[2].value;
+  let _selectedCatIcon = CATEGORY_ICON_OPTIONS[2];
 
   function _catIconOption(value) {
-    return CATEGORY_ICON_OPTIONS.find(opt => opt.value === value) || null;
+    return CATEGORY_ICON_OPTIONS.includes(value) ? value : null;
   }
 
   function _catIconLabel(value) {
-    return _catIconOption(value)?.name || 'Custom emoji';
+    return ''; // Flat emoji array — no text labels needed
   }
 
   function _categoryIconPickerHtml(selected) {
-    _selectedCatIcon = selected || CATEGORY_ICON_OPTIONS[2].value;
-    const selectedOption = _catIconOption(_selectedCatIcon);
-    const customValue = selectedOption ? '' : _selectedCatIcon;
-    const buttons = CATEGORY_ICON_OPTIONS.map(opt => `
+    _selectedCatIcon = selected || CATEGORY_ICON_OPTIONS[2];
+
+    const buttons = CATEGORY_ICON_OPTIONS.map(icon => `
       <button type="button"
-        class="cat-icon-option${opt.value === _selectedCatIcon ? ' selected' : ''}"
-        data-icon="${_esc(opt.value)}"
-        data-icon-name="${_esc(opt.name)}"
-        data-icon-search="${_esc((opt.name + ' ' + opt.terms).toLowerCase())}"
+        class="cat-icon-option${icon === _selectedCatIcon ? ' selected' : ''}"
+        data-icon="${_esc(icon)}"
         onclick="App.Notes._setCatIcon(this.dataset.icon)">
-        <span class="cat-icon-picture">${_iconHtml(opt.value)}</span>
-        <span class="cat-icon-label">${_esc(opt.name)}</span>
+        <span class="cat-icon-picture">${_iconHtml(icon)}</span>
       </button>`).join('');
 
     return `
@@ -85,26 +74,15 @@
         <div id="cat-icon-selected-preview" class="cat-icon-selected-preview">${_iconHtml(_selectedCatIcon)}</div>
         <div>
           <div class="cat-icon-selected-label">${App.I18n.t('cat_icon_selected')}</div>
-          <div id="cat-icon-selected-name" class="cat-icon-selected-name">${_esc(_catIconLabel(_selectedCatIcon))}</div>
         </div>
       </div>
       <div class="cat-icon-picker">
-        <input id="cat-icon-search" class="form-input cat-icon-search" autocomplete="off" autocorrect="off"
-          placeholder="Search icons…" oninput="App.Notes._filterCatIcons(this.value)">
         <div id="cat-icon-grid" class="cat-icon-grid">${buttons}</div>
-        <div id="cat-icon-empty" class="cat-icon-empty" hidden>No matching icons</div>
-        <details class="cat-custom-fallback">
-          <summary>Use custom emoji</summary>
-          <div class="cat-custom-row">
-            <input id="cat-custom-emoji" class="form-input" autocomplete="off" autocorrect="off"
-              placeholder="Emoji" value="${_esc(customValue)}" maxlength="8" oninput="App.Notes._applyCustomCatEmoji()">
-          </div>
-        </details>
       </div>`;
   }
 
   function _setCatIcon(icon) {
-    _selectedCatIcon = icon || CATEGORY_ICON_OPTIONS[2].value;
+    _selectedCatIcon = icon || CATEGORY_ICON_OPTIONS[2];
     const hidden = document.getElementById('cat-icon');
     if (hidden) hidden.value = _selectedCatIcon;
     document.querySelectorAll('#cat-icon-grid .cat-icon-option').forEach(btn => {
@@ -112,28 +90,23 @@
     });
     const preview = document.getElementById('cat-icon-selected-preview');
     if (preview) preview.innerHTML = _iconHtml(_selectedCatIcon);
-    const name = document.getElementById('cat-icon-selected-name');
-    if (name) name.textContent = _catIconLabel(_selectedCatIcon);
-    const custom = document.getElementById('cat-custom-emoji');
-    if (custom && _catIconOption(_selectedCatIcon)) custom.value = '';
-  }
-
-  function _filterCatIcons(query) {
-    const q = String(query || '').trim().toLowerCase();
-    let shown = 0;
-    document.querySelectorAll('#cat-icon-grid .cat-icon-option').forEach(btn => {
-      const match = !q || (btn.dataset.iconSearch || '').includes(q);
-      btn.hidden = !match;
-      if (match) shown += 1;
+    // After icon tap: scroll name input into view and focus it
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        const nameInput = document.getElementById('cat-name');
+        if (nameInput) {
+          nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          nameInput.focus();
+        }
+      }, 150);
     });
-    const empty = document.getElementById('cat-icon-empty');
-    if (empty) empty.hidden = shown > 0;
   }
 
-  function _applyCustomCatEmoji() {
-    const value = document.getElementById('cat-custom-emoji')?.value.trim() || '';
-    if (value) _setCatIcon(value);
-  }
+  // No-op: search input removed from emoji-only grid
+  function _filterCatIcons(query) {}
+
+  // No-op: custom emoji input removed
+  function _applyCustomCatEmoji() {}
 
   // ── Status Tabs ───────────────────────────────────────────────────
   function buildStatusTabs() {
@@ -163,9 +136,9 @@
           <div class="category-icon-wrap">${_iconHtml(cat.icon)}</div>
           <div style="display:flex;gap:4px;flex-shrink:0">
             <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">✎</button>
+              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">&#x270E;</button>
             <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">×</button>
+              onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">&times;</button>
           </div>
         </div>
         <div class="category-name">${_esc(cat.name)}</div>
@@ -193,7 +166,7 @@
       <div class="note-card-header">
         <div class="note-card-title">${_esc(title)}</div>
         <button class="card-delete-btn"
-          onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="Delete">×</button>
+          onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="Delete">&times;</button>
       </div>
       ${body ? `<div class="note-card-body">${_esc(body.slice(0,120))}${body.length>120?'…':''}</div>` : ''}
       <div class="note-card-footer">
@@ -208,7 +181,7 @@
             : ''}
           <button class="bell-btn${note.reminderAt ? ' has-reminder' : ''}"
             title="Set reminder"
-            onclick="event.stopPropagation();App.Reminders.openPickerForNote('${note.id}')">⏰</button>
+            onclick="event.stopPropagation();App.Reminders.openPickerForNote('${note.id}')">&#x23F0;</button>
         </div>
       </div>
       ${note.address ? `<div style="font-size:var(--text-xs);color:rgba(0,0,0,.5);margin-top:4px">${_esc(note.locationName || note.address)}</div>` : ''}
@@ -220,7 +193,6 @@
     let notes = state.notes;
     if (_filterCatId) notes = notes.filter(n => n.categoryId === _filterCatId);
 
-    // Status filter
     if (_filterStatus === 'archived') {
       notes = notes.filter(n => n.archived);
     } else if (_filterStatus === 'completed') {
@@ -229,12 +201,10 @@
       notes = notes.filter(n => !n.archived && !n.completed && n.status === _filterStatus);
     }
 
-    // Date filter (from calendar tap)
     if (_dateFilter) {
       notes = notes.filter(n => n.dueDate && n.dueDate.slice(0,10) === _dateFilter);
     }
 
-    // Search filter
     if (_searchQuery) {
       const q = _searchQuery.toLowerCase();
       notes = notes.filter(n =>
@@ -243,7 +213,6 @@
       );
     }
 
-    // Sort: overdue → today → future (date asc) → no-date; then priority, then newest
     const today = new Date().toISOString().slice(0, 10);
     const _priOrder = { critical:0, urgent:0, high:1, medium:2, low:3, optional:4 };
     notes = [...notes].sort((a, b) => {
@@ -299,7 +268,6 @@
     } else if (_view === 'notes') {
       content = buildStatusTabs() + buildNotesGrid(state);
     } else if (_view === 'note-list') {
-      // Notes for a specific category
       content = `
         <button class="btn btn-secondary btn-sm" onclick="App.Notes._setView('categories')" style="margin-bottom:var(--space-md)">
           ← ${App.I18n.t('categories')}
@@ -340,10 +308,6 @@
 
   function _setSearch(q) {
     _searchQuery = q || '';
-    // Debounce: re-render on input without full page rebuild
-    const state = App.Storage.getState();
-    const gridEl = document.querySelector('.notes-grid, .empty-state');
-    const wrapEl = gridEl ? gridEl.closest('.notes-grid, .search-bar-wrap')?.parentElement : null;
     render();
   }
 
@@ -384,6 +348,8 @@
         <button class="share-btn copy" onclick="App.Notes._copyAddress()">${App.I18n.t('copy_address')}</button>
       </div>` : '';
 
+    const chevronSvg = '<svg class="section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+
     const html = `
       <div id="note-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
         <div class="modal-sheet">
@@ -423,11 +389,13 @@
             <div class="color-row" id="color-row">${colorRow}</div>
           </div>
 
-          <details style="margin-bottom:var(--space-md)">
-            <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;padding:8px 0;color:var(--color-text-muted)">
-              Due Date &amp; Reminder
-            </summary>
-            <div style="padding-top:var(--space-sm)">
+          <div style="margin-bottom:var(--space-md)">
+            <button class="section-toggle" data-section="due" aria-expanded="false"
+              onclick="App.Notes._toggleSection('due')">
+              <span class="section-toggle-label">Due Date &amp; Reminder</span>
+              ${chevronSvg}
+            </button>
+            <div id="section-content-due" class="section-toggle-content" hidden style="padding-top:var(--space-sm)">
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label">${App.I18n.t('note_due')}</label>
@@ -464,13 +432,15 @@
                 </div>
               </div>
             </div>
-          </details>
+          </div>
 
-          <details style="margin-bottom:var(--space-md)">
-            <summary style="font-size:var(--text-sm);font-weight:600;cursor:pointer;padding:8px 0;color:var(--color-text-muted)">
-              Appointment &amp; Location
-            </summary>
-            <div style="padding-top:var(--space-sm)">
+          <div style="margin-bottom:var(--space-md)">
+            <button class="section-toggle" data-section="appt" aria-expanded="false"
+              onclick="App.Notes._toggleSection('appt')">
+              <span class="section-toggle-label">Appointment &amp; Location</span>
+              ${chevronSvg}
+            </button>
+            <div id="section-content-appt" class="section-toggle-content" hidden style="padding-top:var(--space-sm)">
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_appt')}</label>
                 <input id="note-appt-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Appointment name…" value="${_esc(n.appointmentName)}">
@@ -495,7 +465,7 @@
               </div>
               ${mapsBlock}
             </div>
-          </details>
+          </div>
 
           <div class="modal-actions">
             ${isEdit ? `
@@ -532,34 +502,49 @@
 
   function _noteReminderTime(note) {
     if (!note || note.completed || note.archived) return null;
+    // Direct ISO reminder takes precedence
     if (note.reminderAt) {
       const t = new Date(note.reminderAt).getTime();
       return isNaN(t) ? null : t;
     }
-    if (!note.dueDate || !note.reminder) return null;
-    const [y, m, d] = note.dueDate.split('-').map(Number);
-    if (!y || !m || !d) return null;
-    if (note.reminder === 'same_day') return new Date(y, m - 1, d, 8, 0, 0).getTime();
-    if (note.reminder === 'day_before') return new Date(y, m - 1, d - 1, 8, 0, 0).getTime();
-    if (note.dueTime && (note.reminder === '1h_before' || note.reminder === '2h_before')) {
-      const [hh, mm] = note.dueTime.split(':').map(Number);
-      if (Number.isFinite(hh) && Number.isFinite(mm)) {
-        const base = new Date(y, m - 1, d, hh, mm, 0).getTime();
-        return base - (note.reminder === '1h_before' ? 3600000 : 7200000);
+    // Preset reminder tied to dueDate
+    if (note.dueDate && note.reminder && note.reminder !== 'none') {
+      const [y, m, d] = note.dueDate.split('-').map(Number);
+      if (!y || !m || !d) return null;
+      if (note.reminder === 'same_day')   return new Date(y, m - 1, d,     8, 0, 0).getTime();
+      if (note.reminder === 'day_before') return new Date(y, m - 1, d - 1, 8, 0, 0).getTime();
+      if (note.dueTime && (note.reminder === '1h_before' || note.reminder === '2h_before')) {
+        const [hh, mm] = note.dueTime.split(':').map(Number);
+        if (Number.isFinite(hh) && Number.isFinite(mm)) {
+          const base = new Date(y, m - 1, d, hh, mm, 0).getTime();
+          return base - (note.reminder === '1h_before' ? 3600000 : 7200000);
+        }
       }
+      return new Date(y, m - 1, d, 8, 0, 0).getTime();
     }
-    return new Date(y, m - 1, d, 8, 0, 0).getTime();
+    // dueDate+dueTime only (no reminder or reminder === 'none') — fire at exact due time
+    if (note.dueDate && note.dueTime && (!note.reminder || note.reminder === 'none' || note.reminder === '')) {
+      const t = new Date(note.dueDate + 'T' + note.dueTime).getTime();
+      return isNaN(t) ? null : t;
+    }
+    return null;
   }
 
   function _syncNotePushReminder(note) {
     if (!note || !note.id) return;
     const fireMs = _noteReminderTime(note);
     if (fireMs) {
+      let body = note.body || '';
+      // For dueDate+dueTime-only path, use "Due now:" body
+      if (!note.reminderAt && note.dueDate && note.dueTime &&
+          (!note.reminder || note.reminder === 'none' || note.reminder === '')) {
+        body = `Due now: ${note.title || 'Note'}`;
+      }
       App.Push?.syncReminder?.(
         'note',
         note.id,
         note.title || 'Reminder',
-        note.body || '',
+        body,
         Math.floor(fireMs / 1000)
       );
     } else {
@@ -621,7 +606,6 @@
       _syncNotePushReminder(savedNote);
       _closeModal();
       render();
-      // Refresh dashboard reminders if visible
       if (document.getElementById('reminders-wrap')) App.Dashboard.render();
     } finally {
       _saving = false;
@@ -633,6 +617,15 @@
     const sel = document.getElementById('note-reminder');
     const box = document.getElementById('note-reminder-custom');
     if (box) box.style.display = (sel && sel.value === 'custom') ? '' : 'none';
+  }
+
+  function _toggleSection(name) {
+    const btn = document.querySelector(`.section-toggle[data-section="${name}"]`);
+    const content = document.getElementById(`section-content-${name}`);
+    if (!btn || !content) return;
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!expanded));
+    content.hidden = expanded;
   }
 
   function _editNote(id) {
@@ -708,7 +701,7 @@
   // ── Category Modal ────────────────────────────────────────────────
   function _openCatModal(cat) {
     const isEdit = !!cat;
-    const c = cat || { name: '', icon: CATEGORY_ICON_OPTIONS[2].value, color: '#F7F0B6' };
+    const c = cat || { name: '', icon: CATEGORY_ICON_OPTIONS[2], color: '#F7F0B6' };
 
     const html = `
       <div id="cat-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
@@ -716,12 +709,12 @@
           <div class="modal-handle"></div>
           <div class="modal-title">${isEdit ? App.I18n.t('edit_category') : App.I18n.t('add_category')}</div>
           <div class="form-group">
-            <label class="form-label">${App.I18n.t('cat_name')}</label>
-            <input id="cat-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Category name…" value="${_esc(c.name)}">
-          </div>
-          <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_icon')}</label>
             ${_categoryIconPickerHtml(c.icon)}
+          </div>
+          <div class="form-group">
+            <label class="form-label">${App.I18n.t('cat_name')}</label>
+            <input id="cat-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Category name…" value="${_esc(c.name)}">
           </div>
           <div class="modal-actions">
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
@@ -730,7 +723,7 @@
         </div>
       </div>`;
     document.body.insertAdjacentHTML('beforeend', html);
-    document.getElementById('cat-name').focus();
+    // No autofocus on open — focus comes after icon selection
   }
 
   function _editCat(id) {
@@ -743,7 +736,7 @@
 
   function _saveCat(id) {
     const name = document.getElementById('cat-name')?.value.trim() || '';
-    const icon = document.getElementById('cat-icon')?.value.trim() || CATEGORY_ICON_OPTIONS[2].value;
+    const icon = document.getElementById('cat-icon')?.value.trim() || CATEGORY_ICON_OPTIONS[2];
     if (!name) { App.showToast(App.I18n.t('toast_cat_name_req'), 'error'); return; }
     if (id) {
       App.Storage.updateCategory(id, { name, icon });
@@ -760,7 +753,6 @@
     const state = App.Storage.getState();
     const noteCount = state.notes.filter(n => n.categoryId === id).length;
     if (noteCount > 0) {
-      // Show choose modal
       const html = `
         <div id="cat-delete-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
           <div class="modal-sheet">
@@ -799,7 +791,7 @@
     render();
   }
 
-  // ── FAB handler (called by app.js) ─────────
+  // ── FAB handler (called by app.js) ──────────────────────────────
   function onFab() {
     if (_view === 'categories') {
       _openCatModal(null);
@@ -808,12 +800,11 @@
     }
   }
 
-  // ── Date filter (called from calendar date tap) ───────────────────
+  // ── Date filter (called from calendar date tap) ──────────────────
   function filterByDate(dateStr) {
     _dateFilter = dateStr || null;
     _view = 'notes';
     render();
-    // Auto-clear after 10s so normal browsing resumes
     setTimeout(() => {
       if (_dateFilter === dateStr) {
         _dateFilter = null;
@@ -826,7 +817,7 @@
     render, onFab, filterByDate,
     _setView, _viewCat, _setStatus, _setSearch,
     _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
-    _openNoteModal, _closeModal, _saveNote, _pickColor,
+    _openNoteModal, _closeModal, _saveNote, _pickColor, _toggleSection,
     _editCat, _saveCat, _deleteCat, _confirmDeleteCat, _toggleCustomReminder,
     _setCatIcon, _filterCatIcons, _applyCustomCatEmoji,
     _openAppleMaps, _openGoogleMaps, _copyAddress,

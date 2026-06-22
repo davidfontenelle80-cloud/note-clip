@@ -526,8 +526,9 @@ input, textarea, select {
 }
 
 .cat-modal-sheet {
-  max-height: min(88vh, 760px);
-  overflow: auto;
+  max-height: min(92vh, 800px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .cat-icon-selected {
@@ -569,15 +570,16 @@ input, textarea, select {
   gap: var(--space-sm);
 }
 
+/* Emoji-only grid — 5 columns, compact buttons */
 .cat-icon-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .cat-icon-option {
-  min-height: 74px;
-  padding: 8px 6px;
+  min-height: 52px;
+  padding: 6px 4px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -586,7 +588,7 @@ input, textarea, select {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 0;
   font: inherit;
   font-size: var(--text-xs);
   font-weight: 700;
@@ -636,8 +638,8 @@ input, textarea, select {
 }
 
 @media (max-width: 420px) {
-  .cat-icon-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .cat-icon-option { min-height: 70px; }
+  .cat-icon-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .cat-icon-option { min-height: 48px; }
 }
 
 /* ── Notes Grid ──────────────────────────────────────────────────── */
@@ -688,6 +690,43 @@ input, textarea, select {
   font-size: var(--text-lg);
   font-weight: 700;
   color: var(--color-text);
+}
+
+/* ── Collapsible Section Toggles (Note Modal) ────────────────────── */
+.section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin: 8px 0 4px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: left;
+  transition: background var(--transition), border-color var(--transition);
+}
+.section-toggle:hover {
+  background: var(--color-border);
+}
+.section-toggle[aria-expanded="true"] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+.section-toggle[aria-expanded="true"] .section-chevron {
+  transform: rotate(180deg);
+}
+.section-chevron {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+  color: var(--color-text-muted);
+}
+.section-toggle-content {
+  padding-top: var(--space-sm);
 }
 
 /* ── Form Controls ───────────────────────────────────────────────── */
@@ -1349,7 +1388,13 @@ input, textarea, select {
 #cal-tab-cal { position: relative; }
 .cal-tab-calendar { margin-bottom: 0; }
 .cal-day.has-reminder::after {
-  conte
+  content: '•';
+  display: block;
+  font-size: 0.4rem;
+  color: var(--color-primary-dark);
+  margin-top: -2px;
+}
+
 /* ── Toggle Switch ───────────────────────────────────────────────── */
 .toggle-switch { position:relative; display:inline-block; width:44px; height:24px; flex-shrink:0; }
 .toggle-switch input { opacity:0; width:0; height:0; }
@@ -1386,45 +1431,3 @@ input, textarea, select {
 }
 .bell-btn:hover { opacity:1; }
 .bell-btn.has-reminder { opacity:1; color:var(--color-primary); }
-
-/* Quick Note */
-.quick-note-card {
-  position: relative;
-  background-color: var(--quick-note-paper);
-  background-image:
-    repeating-linear-gradient(
-      to bottom,
-      transparent,
-      transparent 27px,
-      var(--quick-note-lines) 27px,
-      var(--quick-note-lines) 28px
-    );
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08);
-  overflow: hidden;
-  border: none;
-}
-.quick-note-card::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 28px;
-  height: 28px;
-  background: linear-gradient(
-    225deg,
-    var(--quick-note-fold) 50%,
-    transparent 50%
-  );
-  box-shadow: -2px -2px 3px var(--quick-note-fold-shadow);
-}
-.quick-note-card textarea {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  resize: none;
-}
-.quick-note-card .card-title,
-.quick-note-card .section-title {
-  background: transparent;
-}
