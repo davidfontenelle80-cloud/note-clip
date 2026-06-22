@@ -150,6 +150,47 @@
   --shadow-inset:       inset 0 1px 0 rgba(255,255,255,.08), inset 1px 0 0 rgba(255,255,255,.04);
 }
 
+/* ── Dark mode icon tile overrides ─────────────────────────────── */
+[data-theme="dark"] .cat-icon-option {
+  background: linear-gradient(160deg, #1e2c42 0%, #162030 100%);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.30),
+    0 2px 6px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(0,0,0,.20),
+    inset 1px 0 0 rgba(255,255,255,.04);
+}
+[data-theme="dark"] .cat-icon-option:active {
+  box-shadow:
+    0 0 1px rgba(0,0,0,.40),
+    inset 0 2px 4px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(0,0,0,.20);
+}
+[data-theme="dark"] .cat-icon-option.selected {
+  background: linear-gradient(160deg, rgba(212,175,90,.18) 0%, rgba(212,175,90,.28) 100%);
+  box-shadow:
+    0 0 0 2px rgba(212,175,90,.40),
+    0 2px 6px rgba(0,0,0,.30),
+    inset 0 1px 0 rgba(255,255,255,.10),
+    inset 0 -1px 0 rgba(0,0,0,.20);
+}
+[data-theme="dark"] .category-icon-wrap {
+  background: linear-gradient(160deg, #1e2c42 0%, #162030 100%);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.30),
+    0 2px 6px rgba(0,0,0,.20),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 1px 0 0 rgba(255,255,255,.04);
+}
+[data-theme="dark"] .cat-icon-img {
+  filter:
+    drop-shadow(0 1px 2px rgba(0,0,0,.50))
+    drop-shadow(0 2px 5px rgba(0,0,0,.35));
+}
+[data-theme="dark"] .cat-icon-picture {
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.40));
+}
+
 /* ── Reset + Base ────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html {
@@ -500,8 +541,12 @@ input, textarea, select {
   width: 44px;
   height: 44px;
   border-radius: var(--radius-md);
-  background: var(--color-surface-2);
-  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,.6);
+  background: linear-gradient(160deg, #ffffff 0%, #ede9e1 100%);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.08),
+    0 2px 6px rgba(160,130,80,.08),
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 1px 0 0 rgba(255,255,255,.50);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -549,6 +594,7 @@ input, textarea, select {
   place-items: center;
   flex: 0 0 auto;
   font-size: 1.7rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.18));
 }
 
 .cat-icon-selected-label {
@@ -582,7 +628,13 @@ input, textarea, select {
   padding: 6px 4px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: linear-gradient(160deg, #ffffff 0%, #ede9e1 100%);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.08),
+    0 2px 6px rgba(160,130,80,.07),
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 -1px 0 rgba(0,0,0,.04),
+    inset 1px 0 0 rgba(255,255,255,.50);
   color: var(--color-text);
   display: flex;
   flex-direction: column;
@@ -595,13 +647,27 @@ input, textarea, select {
   text-align: center;
   line-height: 1.15;
   cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.cat-icon-option:active {
+  transform: scale(0.93);
+  box-shadow:
+    0 0 1px rgba(0,0,0,.06),
+    inset 0 2px 4px rgba(0,0,0,.08),
+    inset 0 1px 0 rgba(0,0,0,.04);
 }
 
 .cat-icon-option.selected {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(200,169,110,.24), var(--shadow-sm);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 24%, transparent), var(--shadow-sm);
-  background: var(--color-primary-soft);
+  /* Fallback for Safari < 16.2 */
+  background: linear-gradient(160deg, rgba(200,169,110,.18) 0%, rgba(200,169,110,.30) 100%);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 14%, white) 0%, color-mix(in srgb, var(--color-primary) 26%, #ede9e1) 100%);
+  box-shadow:
+    0 0 0 2px rgba(200,169,110,.35),
+    0 0 0 2px color-mix(in srgb, var(--color-primary) 35%, transparent),
+    0 2px 6px rgba(160,130,80,.16),
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 -1px 0 rgba(0,0,0,.04);
 }
 
 .cat-icon-option:focus-visible {
@@ -612,6 +678,27 @@ input, textarea, select {
 .cat-icon-picture {
   font-size: 1.5rem;
   line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.16));
+  display: block;
+}
+/* PNG icon art — float above tile with depth shadow */
+.cat-icon-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  display: block;
+  filter:
+    drop-shadow(0 1px 2px rgba(0,0,0,.22))
+    drop-shadow(0 2px 4px rgba(0,0,0,.12));
+}
+/* Small chip icons in note cards */
+.chip-icon-img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  vertical-align: middle;
+  display: inline-block;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.15));
 }
 
 .cat-icon-empty {
