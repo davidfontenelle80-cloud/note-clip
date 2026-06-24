@@ -157,6 +157,284 @@
     }
   }
 
+  // ── Note modal i18n guard ────────────────────────────────────────
+  function patchNoteModalI18n() {
+    if (!App.Notes || App.Notes.__modalI18nPatched) return;
+
+    const originalOnFab = App.Notes.onFab;
+    const LOCAL = {
+      en: {
+        none: '— none —',
+        reminder_same_day: 'Same day (8am)',
+        reminder_day_before: 'Day before',
+        reminder_1h_before: '1 hour before',
+        reminder_2h_before: '2 hours before',
+        reminder_custom: 'Custom…',
+        note_appt_name_ph: 'Appointment name…',
+        note_location_name_ph: 'Location name…',
+        note_address_ph: 'Full address…',
+        reopen: 'Reopen',
+        set_reminder: 'Set Reminder',
+        confirm_delete_note: 'Delete this note?',
+      },
+      es: {
+        none: '— ninguna —',
+        reminder_same_day: 'Mismo día (8 a.m.)',
+        reminder_day_before: 'Día anterior',
+        reminder_1h_before: '1 hora antes',
+        reminder_2h_before: '2 horas antes',
+        reminder_custom: 'Personalizado…',
+        note_appt_name_ph: 'Nombre de la cita…',
+        note_location_name_ph: 'Nombre del lugar…',
+        note_address_ph: 'Dirección completa…',
+        reopen: 'Reabrir',
+        set_reminder: 'Configurar recordatorio',
+        confirm_delete_note: '¿Eliminar esta nota?',
+      },
+    };
+
+    function tx(key) {
+      const value = App.I18n?.t?.(key);
+      if (value && value !== key) return value;
+      const lang = App.I18n?.current?.() === 'es' ? 'es' : 'en';
+      return LOCAL[lang]?.[key] || LOCAL.en[key] || key;
+    }
+
+    function esc(s) {
+      return String(s || '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;');
+    }
+
+    function iconHtml(icon, cls) {
+      if (!icon) return '';
+      if (String(icon).startsWith('ic_')) {
+        return `<img src="./icons/${esc(icon)}.png" class="${cls || 'cat-icon-img'}" alt="" loading="lazy">`;
+      }
+      return esc(icon);
+    }
+
+    function openNoteModal(note) {
+      const state = App.Storage.getState();
+      const isEdit = !!note;
+      const n = note || {
+        title: '', body: '', color: 'yellow', categoryId: null,
+        priority: 'medium', status: 'active',
+        dueDate: '', dueTime: '', reminder: '',
+        appointmentName: '', appointmentDatetime: '', leaveBy: '',
+        locationName: '', address: '',
+      };
+
+      const colorRow = App.Storage.NOTE_COLORS.map(c => {
+        const hex = { lavender:'#D4C5E2', sky:'#BDD5EA', mint:'#C5E2C5', yellow:'#F7F0B6', coral:'#F2C4B0', peach:'#F7D9B0' }[c];
+        return `<div class="color-swatch${n.color===c?' selected':''}" style="background:${hex}"
+          data-color="${c}" onclick="App.Notes._pickColor('${c}')"></div>`;
+      }).join('');
+
+      const catOptions = state.categories.map(c =>
+        `<option value="${esc(c.id)}"${n.categoryId===c.id?' selected':''}>${esc(c.name)}</option>`
+      ).join('');
+
+      const priorityOpts = ['critical','high','medium','low','optional'].map(p =>
+        `<option value="${p}"${n.priority===p?' selected':''}>${App.I18n.t('priority_'+p)}</option>`
+      ).join('');
+
+      const statusOpts = ['active','awaiting','followup','hold','toread'].map(s =>
+        `<option value="${s}"${n.status===s?' selected':''}>${App.I18n.t('status_'+s)}</option>`
+      ).join('');
+
+      const mapsBlock = n.address ? `
+        <div style="display:flex;flex-wrap:wrap;gap:var(--space-sm);margin-top:var(--space-sm)">
+          <button class="share-btn" onclick="App.Notes._openAppleMaps()">${App.I18n.t('open_maps')}</button>
+          <button class="share-btn" onclick="App.Notes._openGoogleMaps()">${App.I18n.t('open_gmaps')}</button>
+          <button class="share-btn copy" onclick="App.Notes._copyAddress()">${App.I18n.t('copy_address')}</button>
+        </div>` : '';
+
+      const chevronSvg = '<svg class="section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+
+      const html = `
+        <div id="note-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
+          <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title">${isEdit ? App.I18n.t('edit_note') : App.I18n.t('add_note')}</div>
+
+            <div class="form-group">
+              <label class="form-label">${App.I18n.t('note_title')}</label>
+              <input id="note-title" class="form-input" autocomplete="off" autocorrect="off" placeholder="${App.I18n.t('note_title_ph')}" value="${esc(n.title)}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">${App.I18n.t('note_body')}</label>
+              <textarea id="note-body" class="form-textarea" autocomplete="off" autocorrect="off" placeholder="${App.I18n.t('note_body_ph')}">${esc(n.body)}</textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">${App.I18n.t('note_priority')}</label>
+                <select id="note-priority" class="form-select">${priorityOpts}</select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">${App.I18n.t('note_status')}</label>
+                <select id="note-status" class="form-select">${statusOpts}</select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">${App.I18n.t('note_category')}</label>
+              <select id="note-cat" class="form-select">
+                <option value="">${tx('none')}</option>
+                ${catOptions}
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">${App.I18n.t('note_color')}</label>
+              <div class="color-row" id="color-row">${colorRow}</div>
+            </div>
+
+            <div style="margin-bottom:var(--space-md)">
+              <button class="section-toggle" data-section="due" aria-expanded="false"
+                onclick="App.Notes._toggleSection('due')">
+                <span class="section-toggle-label">${App.I18n.t('note_due_reminder')}</span>
+                ${chevronSvg}
+              </button>
+              <div id="section-content-due" class="section-toggle-content" hidden style="padding-top:var(--space-sm)">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">${App.I18n.t('note_due')}</label>
+                    <input type="date" id="note-due" class="form-input" value="${esc(n.dueDate)}">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">${App.I18n.t('note_due_time')}</label>
+                    <input type="time" id="note-due-time" class="form-input" value="${esc(n.dueTime)}">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">${App.I18n.t('note_reminder')}</label>
+                  <select id="note-reminder" class="form-select" onchange="App.Notes._toggleCustomReminder()">
+                    <option value="">${tx('none')}</option>
+                    <option value="same_day"${n.reminder==='same_day'?' selected':''}>${tx('reminder_same_day')}</option>
+                    <option value="day_before"${n.reminder==='day_before'?' selected':''}>${tx('reminder_day_before')}</option>
+                    <option value="1h_before"${n.reminder==='1h_before'?' selected':''}>${tx('reminder_1h_before')}</option>
+                    <option value="2h_before"${n.reminder==='2h_before'?' selected':''}>${tx('reminder_2h_before')}</option>
+                    <option value="custom"${n.reminderAt && !n.reminder ? ' selected' : ''}>${tx('reminder_custom')}</option>
+                  </select>
+                </div>
+                <div id="note-reminder-custom" style="display:${n.reminderAt && !n.reminder ? '' : 'none'};padding-top:var(--space-sm)">
+                  <div class="form-row">
+                    <div class="form-group" style="flex:1">
+                      <label class="form-label">${App.I18n.t('note_due')}</label>
+                      <input type="date" id="note-reminder-custom-date" class="form-input"
+                        value="${esc(n.reminderAt ? n.reminderAt.slice(0,10) : '')}">
+                    </div>
+                    <div class="form-group" style="flex:1">
+                      <label class="form-label">${App.I18n.t('note_due_time')}</label>
+                      <input type="time" id="note-reminder-custom-time" class="form-input"
+                        value="${esc(n.reminderAt ? n.reminderAt.slice(11,16) : '08:00')}">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:var(--space-md)">
+              <button class="section-toggle" data-section="appt" aria-expanded="false"
+                onclick="App.Notes._toggleSection('appt')">
+                <span class="section-toggle-label">${App.I18n.t('note_appt_location')}</span>
+                ${chevronSvg}
+              </button>
+              <div id="section-content-appt" class="section-toggle-content" hidden style="padding-top:var(--space-sm)">
+                <div class="form-group">
+                  <label class="form-label">${App.I18n.t('note_appt')}</label>
+                  <input id="note-appt-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="${tx('note_appt_name_ph')}" value="${esc(n.appointmentName)}">
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">${App.I18n.t('note_appt_dt')}</label>
+                    <input type="datetime-local" id="note-appt-dt" class="form-input" value="${esc(n.appointmentDatetime)}">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">${App.I18n.t('note_leave_by')}</label>
+                    <input type="time" id="note-leave" class="form-input" value="${esc(n.leaveBy)}">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">${App.I18n.t('note_location')}</label>
+                  <input id="note-location" class="form-input" autocomplete="off" autocorrect="off" placeholder="${tx('note_location_name_ph')}" value="${esc(n.locationName)}">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">${App.I18n.t('note_address')}</label>
+                  <input id="note-address" class="form-input" autocomplete="off" autocorrect="off" placeholder="${tx('note_address_ph')}" value="${esc(n.address)}">
+                </div>
+                ${mapsBlock}
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              ${isEdit ? `
+                <button class="btn btn-danger btn-sm" onclick="App.Notes._deleteNote('${n.id}',true)">
+                  ${App.I18n.t('delete')}
+                </button>
+                ${n.completed
+                  ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._reopenNote('${n.id}')">↩ ${tx('reopen')}</button>`
+                  : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">✓</button>`}
+                ${n.archived
+                  ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._restoreNote('${n.id}')">${App.I18n.t('restore')}</button>`
+                  : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">${App.I18n.t('archive')}</button>`}
+              ` : ''}
+              <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
+              <button id="note-save-btn" class="btn btn-primary" onclick="App.Notes._saveNote('${isEdit ? n.id : ''}')">${App.I18n.t('save')}</button>
+            </div>
+          </div>
+        </div>`;
+
+      document.body.insertAdjacentHTML('beforeend', html);
+      enhanceModal('note-modal');
+      const sheet = document.querySelector('#note-modal .modal-sheet');
+      if (sheet) sheet.scrollTop = 0;
+      requestAnimationFrame(() => setTimeout(() => {
+        const titleInput = document.getElementById('note-title');
+        if (titleInput) { titleInput.scrollIntoView({ block: 'start', behavior: 'instant' }); titleInput.focus(); }
+      }, 50));
+      App.Notes._pickColor(n.color || 'yellow');
+    }
+
+    function editNote(id) {
+      const state = App.Storage.getState();
+      const note = state.notes.find(n => n.id === id);
+      if (!note) return;
+      openNoteModal(note);
+    }
+
+    function deleteNote(id, fromModal) {
+      if (!confirm(tx('confirm_delete_note'))) return;
+      App.Push?.clearReminder?.('note', id);
+      App.Storage.deleteNote(id);
+      if (fromModal) App.Notes._closeModal();
+      App.showToast(App.I18n.t('toast_note_deleted'), 'success');
+      App.Notes.render();
+    }
+
+    function patchedOnFab() {
+      const isNotesCategoryView = _activeTab === 'notes' && document.querySelector('#pane-notes.active .category-grid');
+      if (isNotesCategoryView && typeof originalOnFab === 'function') {
+        originalOnFab();
+        return;
+      }
+      openNoteModal(null);
+    }
+
+    Object.assign(App.Notes, {
+      _openNoteModal: openNoteModal,
+      _editNote: editNote,
+      _deleteNote: deleteNote,
+      onFab: patchedOnFab,
+      __modalI18nPatched: true,
+    });
+  }
+
   // ── Service Worker ───────────────────────────────────────────────
   function registerSW() {
     if (!('serviceWorker' in navigator)) return;
@@ -220,6 +498,7 @@
 
     // Apply saved language
     App.I18n.set(state.settings.language || 'en');
+    patchNoteModalI18n();
 
     // Wire nav tabs
     document.querySelectorAll('.nav-tab').forEach(btn => {
@@ -238,6 +517,7 @@
         const lang = btn.dataset.lang;
         App.Storage.updateSettings({ language: lang });
         App.I18n.set(lang);
+        patchNoteModalI18n();
         refreshCurrentTab();
       });
     });
