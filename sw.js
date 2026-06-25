@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v60';
+const CACHE_VERSION = 'note-clip-v61';
 
 const PRECACHE_URLS = [
   './',
@@ -43,9 +43,11 @@ const PAPER_STYLE_ID = 'noteclip-icon-paper-cards';
 
 const INJECTED_STYLE = `<style id="${NAV_STYLE_ID}">
   html:not([data-theme="dark"]) .bottom-nav {
-    background: linear-gradient(180deg, rgba(246,239,220,.96), rgba(231,217,184,.96)) !important;
+    background:
+      radial-gradient(circle at 16% 0%, rgba(255,255,255,.50) 0, rgba(255,255,255,.18) 30%, transparent 58%),
+      linear-gradient(180deg, rgba(246,239,220,.96), rgba(225,207,160,.96)) !important;
     border-top-color: rgba(118,82,22,.26) !important;
-    box-shadow: 0 -12px 28px rgba(103,73,26,.18), inset 0 1px 0 rgba(255,255,255,.76) !important;
+    box-shadow: 0 -12px 28px rgba(103,73,26,.18), inset 0 1px 0 rgba(255,255,255,.76), inset 0 -1px 0 rgba(112,77,18,.08) !important;
   }
   html[data-theme="dark"] .bottom-nav {
     background: linear-gradient(180deg, rgba(42,35,22,.96), rgba(20,17,12,.98)) !important;
@@ -97,9 +99,12 @@ const INJECTED_STYLE = `<style id="${NAV_STYLE_ID}">
   }
   html:not([data-theme="dark"]) .nav-tab.active {
     color: #1d1102 !important;
-    background: linear-gradient(180deg, rgba(255,222,120,.95), rgba(210,157,55,.78)) !important;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,.42) 0, rgba(255,255,255,.16) 34%, transparent 62%),
+      radial-gradient(circle at 87% 90%, rgba(177,116,13,.18) 0, transparent 46%),
+      linear-gradient(145deg, #fff2aa 0%, #ffd264 54%, #c89125 100%) !important;
     border: 1px solid rgba(139,88,8,.34) !important;
-    box-shadow: 0 10px 18px rgba(91,58,8,.28), inset 0 1px 0 rgba(255,255,255,.66), inset 0 -1px 0 rgba(98,62,6,.22) !important;
+    box-shadow: 0 10px 18px rgba(91,58,8,.28), 0 0 0 4px rgba(255,224,128,.18), inset 0 1px 0 rgba(255,255,255,.66), inset 0 -1px 0 rgba(98,62,6,.22) !important;
     transform: translateY(-4px) !important;
   }
   html[data-theme="dark"] .nav-tab.active {
@@ -183,7 +188,7 @@ const INJECTED_STYLE = `<style id="${NAV_STYLE_ID}">
     color: var(--real-paper-ink) !important;
     background:
       radial-gradient(circle at 17% 15%, rgba(255,255,255,.58) 0, rgba(255,255,255,.28) 18%, transparent 48%),
-      radial-gradient(circle at 82% 86%, rgba(94,68,23,.20) 0, transparent 42%),
+      radial-gradient(circle at 82% 86%, color-mix(in srgb, var(--paper-deep, var(--real-paper-deep)) 34%, transparent) 0, transparent 42%),
       linear-gradient(145deg, #fff9ce 0%, var(--paper-bg, var(--real-paper-bg)) 58%, var(--paper-deep, var(--real-paper-deep)) 100%) !important;
     box-shadow:
       0 2px 4px rgba(255,255,255,.42) inset,
@@ -265,10 +270,11 @@ const INJECTED_STYLE = `<style id="${NAV_STYLE_ID}">
     height: clamp(48px, 18%, 86px) !important;
     border-radius: 0 0 31px 0 !important;
     background:
-      radial-gradient(circle at 100% 100%, rgba(92,65,23,.20) 0 31%, transparent 47%),
-      linear-gradient(135deg, transparent 0 46%, rgba(255,255,230,.78) 48% 60%, rgba(116,82,30,.26) 61% 100%) !important;
+      radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--paper-deep, var(--real-paper-deep)) 30%, transparent) 0 34%, transparent 54%),
+      linear-gradient(135deg, transparent 0 48%, color-mix(in srgb, var(--paper-bg, var(--real-paper-bg)) 82%, var(--paper-deep, var(--real-paper-deep)) 18%) 49% 64%, color-mix(in srgb, var(--paper-deep, var(--real-paper-deep)) 34%, transparent) 65% 100%) !important;
     clip-path: polygon(100% 0, 0 100%, 100% 100%) !important;
-    filter: drop-shadow(-5px -5px 7px rgba(87,62,23,.12)) !important;
+    opacity: .72 !important;
+    filter: drop-shadow(-4px -4px 6px color-mix(in srgb, var(--paper-deep, var(--real-paper-deep)) 12%, transparent)) !important;
     pointer-events: none !important;
   }
 
