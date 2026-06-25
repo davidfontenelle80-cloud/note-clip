@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v57';
+const CACHE_VERSION = 'note-clip-v58';
 
 const PRECACHE_URLS = [
   './',
@@ -38,22 +38,25 @@ const CONSISTENT_CALENDAR_NAV_ICON = `<svg width="24" height="24" viewBox="0 0 2
   <line x1="14" y1="19" x2="16" y2="19"/>
 </svg>`;
 
-const LIGHT_NAV_STYLE_ID = 'noteclip-light-nav-force-refresh';
-const LIGHT_NAV_STYLE = `<style id="${LIGHT_NAV_STYLE_ID}">
+const NAV_STYLE_ID = 'noteclip-light-nav-force-refresh';
+const NAV_STYLE = `<style id="${NAV_STYLE_ID}">
   html:not([data-theme="dark"]) .bottom-nav {
     background: color-mix(in srgb, var(--color-surface, #fff8ec) 80%, #c18a18 20%) !important;
     border-top-color: rgba(118, 82, 22, .32) !important;
     box-shadow: 0 -12px 28px rgba(103, 73, 26, .18), inset 0 1px 0 rgba(255,255,255,.76) !important;
   }
-  html:not([data-theme="dark"]) .nav-tab {
+  html:not([data-theme="dark"]) .nav-tab,
+  html[data-theme="dark"] .nav-tab {
     position: relative !important;
-    color: #4b3109 !important;
-    font-weight: 850 !important;
-    text-shadow: 0 1px 0 rgba(255,255,255,.86) !important;
     border-radius: 20px !important;
     max-width: 82px !important;
     min-width: 0 !important;
     overflow: visible !important;
+  }
+  html:not([data-theme="dark"]) .nav-tab {
+    color: #4b3109 !important;
+    font-weight: 850 !important;
+    text-shadow: 0 1px 0 rgba(255,255,255,.86) !important;
   }
   html:not([data-theme="dark"]) .nav-tab > span[data-i18n] {
     color: #4b3109 !important;
@@ -114,6 +117,76 @@ const LIGHT_NAV_STYLE = `<style id="${LIGHT_NAV_STYLE_ID}">
     filter: saturate(1.46) contrast(1.22) !important;
     box-shadow: 0 0 0 3px rgba(255, 242, 181, .42), inset 1px 1px 0 rgba(255,255,255,.78), inset -1px -1px 0 rgba(85,55,8,.28), 0 8px 12px rgba(102,66,10,.36) !important;
   }
+
+  html[data-theme="dark"] .bottom-nav {
+    background: linear-gradient(180deg, rgba(42, 35, 22, .96), rgba(20, 17, 12, .98)) !important;
+    border-top-color: rgba(238, 198, 91, .28) !important;
+    box-shadow: 0 -14px 30px rgba(0, 0, 0, .42), inset 0 1px 0 rgba(255, 230, 155, .12) !important;
+  }
+  html[data-theme="dark"] .nav-tab {
+    color: #d7bd73 !important;
+    font-weight: 850 !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,.72) !important;
+  }
+  html[data-theme="dark"] .nav-tab > span[data-i18n] {
+    color: #d7bd73 !important;
+    max-width: none !important;
+    width: auto !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+    line-height: 1.05 !important;
+  }
+  html[data-theme="dark"] .nav-tab[data-tab="dashboard"] > span[data-i18n] {
+    font-size: 11px !important;
+    letter-spacing: -.35px !important;
+  }
+  html[data-theme="dark"] .nav-tab > svg.nav-icon {
+    box-sizing: border-box !important;
+    width: 34px !important;
+    height: 31px !important;
+    padding: 5px !important;
+    border-radius: 11px !important;
+    color: #f2d277 !important;
+    background: linear-gradient(145deg, #6f5620 0%, #3f3118 62%, #251d11 100%) !important;
+    border: 1.2px solid rgba(238, 198, 91, .35) !important;
+    box-shadow: inset 1px 1px 0 rgba(255, 230, 155, .16), inset -1px -1px 0 rgba(0,0,0,.34), 0 6px 10px rgba(0,0,0,.48) !important;
+    filter: saturate(1.08) contrast(1.08) !important;
+    transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, background .18s ease !important;
+  }
+  html[data-theme="dark"] .nav-tab.active {
+    color: #fff0b8 !important;
+    background: linear-gradient(180deg, rgba(126, 89, 20, .96), rgba(64, 45, 13, .88)) !important;
+    border: 1px solid rgba(244, 198, 83, .42) !important;
+    box-shadow: 0 9px 18px rgba(0,0,0,.54), 0 0 0 1px rgba(255, 214, 105, .14), inset 0 1px 0 rgba(255, 233, 161, .2), inset 0 -1px 0 rgba(0,0,0,.3) !important;
+    transform: translateY(-4px) !important;
+  }
+  html[data-theme="dark"] .nav-tab.active::after {
+    content: '' !important;
+    position: absolute !important;
+    left: 50% !important;
+    bottom: 5px !important;
+    width: 6px !important;
+    height: 6px !important;
+    transform: translateX(-50%) !important;
+    border-radius: 50% !important;
+    background: #ffd76a !important;
+    box-shadow: 0 0 0 3px rgba(255, 215, 106, .22), 0 0 10px rgba(255, 207, 78, .38), 0 2px 4px rgba(0,0,0,.45) !important;
+  }
+  html[data-theme="dark"] .nav-tab.active > span[data-i18n] {
+    color: #fff0b8 !important;
+    font-weight: 900 !important;
+    padding-bottom: 6px !important;
+  }
+  html[data-theme="dark"] .nav-tab.active > svg.nav-icon {
+    color: #fff3bd !important;
+    background: linear-gradient(145deg, #b37c14 0%, #79520d 52%, #38240a 100%) !important;
+    border-color: rgba(255, 213, 95, .55) !important;
+    transform: translateY(-2px) scale(1.04) !important;
+    filter: saturate(1.24) contrast(1.15) !important;
+    box-shadow: 0 0 0 3px rgba(255, 214, 105, .18), inset 1px 1px 0 rgba(255, 233, 161, .24), inset -1px -1px 0 rgba(0,0,0,.36), 0 8px 14px rgba(0,0,0,.55) !important;
+  }
 </style>`;
 
 function shouldPatchHtml(request) {
@@ -121,11 +194,11 @@ function shouldPatchHtml(request) {
   return request.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('/index.html');
 }
 
-function patchLightNavStyle(html) {
-  // Replace any earlier injected nav fix so the active state is not weakened by old cache HTML.
+function patchNavStyle(html) {
+  // Replace any earlier injected nav fix so active state is not weakened by old cache HTML.
   html = html.replace(/<style id="noteclip-light-nav-force-refresh">[\s\S]*?<\/style>/, '');
-  if (html.includes('</head>')) return html.replace('</head>', `${LIGHT_NAV_STYLE}\n</head>`);
-  return LIGHT_NAV_STYLE + html;
+  if (html.includes('</head>')) return html.replace('</head>', `${NAV_STYLE}\n</head>`);
+  return NAV_STYLE + html;
 }
 
 async function patchHtmlResponse(request, response) {
@@ -138,7 +211,7 @@ async function patchHtmlResponse(request, response) {
   if (html.includes(LEGACY_CALENDAR_NAV_ICON)) {
     html = html.replace(LEGACY_CALENDAR_NAV_ICON, CONSISTENT_CALENDAR_NAV_ICON);
   }
-  html = patchLightNavStyle(html);
+  html = patchNavStyle(html);
 
   return new Response(html, {
     status: response.status,
