@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v54';
+const CACHE_VERSION = 'note-clip-v55';
 
 const PRECACHE_URLS = [
   './',
@@ -24,8 +24,60 @@ const PRECACHE_URLS = [
   './icons/icon-512.png',
 ];
 
+const LEGACY_CALENDAR_NAV_ICON = '<span class="nav-icon nav-stationery nav-calendar" aria-hidden="true"><span class="nav-glyph"></span></span>';
+const CONSISTENT_CALENDAR_NAV_ICON = `<svg width="24" height="24" viewBox="0 0 28 28" class="nav-icon" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="5" y="6" width="18" height="17" rx="2" fill="currentColor" fill-opacity="0.08"/>
+  <rect x="5" y="6" width="18" height="17" rx="2"/>
+  <line x1="9" y1="3.5" x2="9" y2="8"/>
+  <line x1="19" y1="3.5" x2="19" y2="8"/>
+  <line x1="5" y1="11" x2="23" y2="11"/>
+  <line x1="9" y1="15" x2="11" y2="15"/>
+  <line x1="14" y1="15" x2="16" y2="15"/>
+  <line x1="19" y1="15" x2="21" y2="15"/>
+  <line x1="9" y1="19" x2="11" y2="19"/>
+  <line x1="14" y1="19" x2="16" y2="19"/>
+</svg>`;
+
+function shouldPatchHtml(request) {
+  const url = new URL(request.url);
+  return request.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('/index.html');
+}
+
+async function patchHtmlResponse(request, response) {
+  if (!response || !response.ok || !shouldPatchHtml(request)) return response;
+
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType && !contentType.includes('text/html')) return response;
+
+  const html = await response.text();
+  if (!html.includes(LEGACY_CALENDAR_NAV_ICON)) {
+    return new Response(html, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  }
+
+  return new Response(html.replace(LEGACY_CALENDAR_NAV_ICON, CONSISTENT_CALENDAR_NAV_ICON), {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
+}
+
+async function precache() {
+  const cache = await caches.open(CACHE_VERSION);
+  await Promise.all(PRECACHE_URLS.map(async url => {
+    const request = new Request(url, { cache: 'reload' });
+    const response = await fetch(request);
+    if (response.ok) {
+      await cache.put(request, await patchHtmlResponse(request, response));
+    }
+  }));
+}
+
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_VERSION).then(cache => cache.addAll(PRECACHE_URLS)).then(() => self.skipWaiting()));
+  event.waitUntil(precache().then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', event => {
@@ -39,13 +91,19 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith(self.location.origin)) return;
-  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
+
+  event.respondWith(caches.match(event.request).then(async cached => {
+    if (cached) return patchHtmlResponse(event.request, cached);
+
+    const response = await fetch(event.request);
     if (response.ok) {
-      const clone = response.clone();
-      caches.open(CACHE_VERSION).then(cache => cache.put(event.request, clone));
+      const normalized = await patchHtmlResponse(event.request, response.clone());
+      const cacheClone = normalized.clone();
+      caches.open(CACHE_VERSION).then(cache => cache.put(event.request, cacheClone));
+      return normalized;
     }
     return response;
-  })));
+  }));
 });
 
 self.addEventListener('message', event => {
