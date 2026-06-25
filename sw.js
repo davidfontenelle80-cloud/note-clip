@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v64-category-modal-fix';
+const CACHE_VERSION = 'note-clip-v65-category-modal-polish';
 
 const PRECACHE_URLS = [
   './',
@@ -62,6 +62,7 @@ const HOTFIX_STYLE = `<style id="${HOTFIX_STYLE_ID}">
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     overscroll-behavior: contain !important;
+    scroll-padding-bottom: 96px !important;
   }
 
   #cat-modal .cat-modal-sheet > .modal-handle { order: 0 !important; flex: 0 0 auto !important; }
@@ -71,6 +72,7 @@ const HOTFIX_STYLE = `<style id="${HOTFIX_STYLE_ID}">
   #cat-modal .cat-modal-sheet > .modal-title + .form-group {
     order: 3 !important;
     min-height: 0 !important;
+    margin-bottom: var(--space-sm, 8px) !important;
   }
   #cat-modal .cat-modal-sheet > .modal-title + .form-group + .form-group {
     order: 2 !important;
@@ -88,29 +90,33 @@ const HOTFIX_STYLE = `<style id="${HOTFIX_STYLE_ID}">
   }
 
   #cat-modal .cat-icon-picker {
-    max-height: min(40dvh, 330px) !important;
+    max-height: min(30dvh, 240px) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     padding-right: 2px !important;
     padding-bottom: var(--space-sm, 8px) !important;
   }
 
+  /* When the keyboard is open, keep Save/Cancel below the picker instead of floating over icons. */
+  #cat-modal .cat-modal-sheet:focus-within .cat-icon-picker {
+    max-height: min(18dvh, 145px) !important;
+  }
+
   #cat-modal .cat-icon-grid {
-    padding-bottom: var(--space-sm, 8px) !important;
+    padding-bottom: var(--space-md, 16px) !important;
   }
 
   #cat-modal .cat-modal-sheet > .modal-actions {
     order: 4 !important;
-    position: sticky !important;
-    bottom: calc(-1 * var(--space-md, 16px)) !important;
+    position: static !important;
     z-index: 20 !important;
-    margin-top: var(--space-md, 16px) !important;
+    margin-top: var(--space-sm, 8px) !important;
     padding-top: var(--space-sm, 8px) !important;
     padding-bottom: max(var(--space-sm, 8px), env(safe-area-inset-bottom, 0px)) !important;
-    background: color-mix(in srgb, var(--color-surface, #faf9f6) 88%, transparent) !important;
+    background: color-mix(in srgb, var(--color-surface, #faf9f6) 96%, transparent) !important;
     border-top: 1px solid var(--color-border, rgba(0,0,0,.08)) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 </style>`;
 
