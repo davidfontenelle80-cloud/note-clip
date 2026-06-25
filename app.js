@@ -281,14 +281,6 @@
         .replace(/'/g,'&#39;');
     }
 
-    function iconHtml(icon, cls) {
-      if (!icon) return '';
-      if (String(icon).startsWith('ic_')) {
-        return `<img src="./icons/${esc(icon)}.png" class="${cls || 'cat-icon-img'}" alt="" loading="lazy">`;
-      }
-      return esc(icon);
-    }
-
     function openNoteModal(note) {
       const state = App.Storage.getState();
       const isEdit = !!note;
@@ -507,6 +499,103 @@
     });
   }
 
+  // ── Category modal source workflow patch ──────────────────────────
+  function patchCategoryModalWorkflow() {
+    if (!App.Notes || App.Notes.__categoryModalPatched) return;
+
+    const originalOpenCatModal = App.Notes._openCatModal;
+    const originalEditCat = App.Notes._editCat;
+    const previousOnFab = App.Notes.onFab;
+
+    function esc(s) {
+      return String(s || '')
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#39;');
+    }
+
+    function iconHtml(icon) {
+      if (!icon) return '';
+      if (String(icon).startsWith('ic_')) {
+        return `<img src="./icons/${esc(icon)}.png" class="cat-icon-img" alt="" loading="lazy">`;
+      }
+      return esc(icon);
+    }
+
+    function normalizeCatModal() {
+      const modal = document.getElementById('cat-modal');
+      const sheet = modal?.querySelector('.cat-modal-sheet');
+      if (!sheet) return;
+
+      const formGroups = Array.from(sheet.querySelectorAll(':scope > .form-group'));
+      const iconGroup = formGroups.find(group => group.querySelector('#cat-icon'));
+      const nameGroup = formGroups.find(group => group.querySelector('#cat-name'));
+      const actions = sheet.querySelector(':scope > .modal-actions');
+
+      if (nameGroup && iconGroup && nameGroup.compareDocumentPosition(iconGroup) & Node.DOCUMENT_POSITION_PRECEDING) {
+        sheet.insertBefore(nameGroup, iconGroup);
+      }
+
+      if (iconGroup) iconGroup.classList.add('cat-icon-form-group');
+      if (actions) actions.classList.add('cat-actions');
+
+      const nameInput = document.getElementById('cat-name');
+      if (nameInput) {
+        nameInput.setAttribute('autocomplete', 'off');
+        nameInput.setAttribute('autocorrect', 'off');
+      }
+
+      enhanceModal(modal);
+      sheet.scrollTop = 0;
+    }
+
+    function openCatModal(cat) {
+      if (typeof originalOpenCatModal === 'function') {
+        originalOpenCatModal(cat);
+        normalizeCatModal();
+      }
+    }
+
+    function setCatIcon(icon) {
+      const selected = icon || document.getElementById('cat-icon')?.value || '📊';
+      const hidden = document.getElementById('cat-icon');
+      if (hidden) hidden.value = selected;
+
+      document.querySelectorAll('#cat-icon-grid .cat-icon-option').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.icon === selected);
+      });
+
+      const preview = document.getElementById('cat-icon-selected-preview');
+      if (preview) preview.innerHTML = iconHtml(selected);
+    }
+
+    function editCat(id) {
+      const state = App.Storage.getState();
+      const cat = state.categories.find(c => c.id === id);
+      if (!cat) return;
+      openCatModal(cat);
+    }
+
+    function patchedOnFab() {
+      const isNotesCategoryView = _activeTab === 'notes' && document.querySelector('#pane-notes.active .category-grid');
+      if (isNotesCategoryView) {
+        openCatModal(null);
+        return;
+      }
+      if (typeof previousOnFab === 'function') previousOnFab();
+    }
+
+    Object.assign(App.Notes, {
+      _openCatModal: openCatModal,
+      _setCatIcon: setCatIcon,
+      _editCat: typeof originalEditCat === 'function' ? editCat : App.Notes._editCat,
+      onFab: patchedOnFab,
+      __categoryModalPatched: true,
+    });
+  }
+
   // ── Service Worker ───────────────────────────────────────────────
   function registerSW() {
     if (!('serviceWorker' in navigator)) return;
@@ -572,6 +661,7 @@
     // Apply saved language
     App.I18n.set(state.settings.language || 'en');
     patchNoteModalI18n();
+    patchCategoryModalWorkflow();
 
     // Remove retired Shared tab before wiring navigation.
     removeSharedTabChrome();
@@ -594,6 +684,7 @@
         App.Storage.updateSettings({ language: lang });
         App.I18n.set(lang);
         patchNoteModalI18n();
+        patchCategoryModalWorkflow();
         refreshCurrentTab();
       });
     });
