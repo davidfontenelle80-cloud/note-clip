@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v65-category-modal-polish';
+const CACHE_VERSION = 'note-clip-v66-category-source-patch';
 
 const PRECACHE_URLS = [
   './',
