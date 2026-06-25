@@ -6,11 +6,17 @@
 (function (App) {
   'use strict';
 
-  const TABS = ['dashboard','notes','lists','calendar','shared','communication','settings'];
+  const TABS = ['dashboard','notes','lists','calendar','communication','settings'];
   let _activeTab = 'dashboard';
+
+  function removeSharedTabChrome() {
+    document.querySelectorAll('[data-tab="shared"]').forEach(el => el.remove());
+    document.getElementById('pane-shared')?.remove();
+  }
 
   // ── Tab routing ──────────────────────────────────────────────────
   function showTab(name) {
+    if (name === 'shared') name = 'dashboard';
     if (!TABS.includes(name)) return;
     _activeTab = name;
 
@@ -30,7 +36,6 @@
       dashboard:     () => App.Dashboard?.render(),
       notes:         () => App.Notes?.render(),
       lists:         () => App.Lists?.render(),
-      shared:        () => App.Shared?.render(),
       calendar:      () => App.Calendar?.render(),
       communication: () => App.Communication?.render(),
       settings:      () => App.Settings?.render(),
@@ -45,7 +50,6 @@
     const handlers = {
       notes:         () => App.Notes?.onFab(),
       lists:         () => App.Lists?.onFab(),
-      shared:        () => App.Shared?.onFab(),
       calendar:      () => App.Notes?._openNoteModal(null),
       dashboard:     () => App.Notes?._openNoteModal(null),
     };
@@ -499,6 +503,9 @@
     // Apply saved language
     App.I18n.set(state.settings.language || 'en');
     patchNoteModalI18n();
+
+    // Remove retired Shared tab before wiring navigation.
+    removeSharedTabChrome();
 
     // Wire nav tabs
     document.querySelectorAll('.nav-tab').forEach(btn => {
