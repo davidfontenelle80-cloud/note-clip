@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v61';
+const CACHE_VERSION = 'note-clip-v62';
 
 const PRECACHE_URLS = [
   './',
@@ -42,6 +42,14 @@ const NAV_STYLE_ID = 'noteclip-light-nav-force-refresh';
 const PAPER_STYLE_ID = 'noteclip-icon-paper-cards';
 
 const INJECTED_STYLE = `<style id="${NAV_STYLE_ID}">
+  .bottom-nav {
+    align-items: flex-end !important;
+    justify-content: space-around !important;
+    gap: 3px !important;
+    padding: 8px 10px max(6px, env(safe-area-inset-bottom, 0px)) !important;
+    height: calc(var(--bottom-nav-height) + 10px) !important;
+    overflow: visible !important;
+  }
   html:not([data-theme="dark"]) .bottom-nav {
     background:
       radial-gradient(circle at 16% 0%, rgba(255,255,255,.50) 0, rgba(255,255,255,.18) 30%, transparent 58%),
@@ -56,94 +64,137 @@ const INJECTED_STYLE = `<style id="${NAV_STYLE_ID}">
   }
   .nav-tab {
     position: relative !important;
-    border-radius: 22px !important;
-    max-width: 82px !important;
-    min-width: 0 !important;
+    flex: 0 1 66px !important;
+    width: 66px !important;
+    max-width: 70px !important;
+    min-width: 54px !important;
+    min-height: 62px !important;
+    padding: 7px 3px 6px !important;
+    margin: 0 !important;
+    gap: 3px !important;
     overflow: visible !important;
+    border-radius: 16px !important;
     font-weight: 850 !important;
+    isolation: isolate !important;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, width .2s ease !important;
   }
-  html:not([data-theme="dark"]) .nav-tab { color: #493109 !important; text-shadow: 0 1px 0 rgba(255,255,255,.8) !important; }
-  html[data-theme="dark"] .nav-tab { color: #d7bd73 !important; text-shadow: 0 1px 2px rgba(0,0,0,.72) !important; }
+  html:not([data-theme="dark"]) .nav-tab {
+    color: #2b210d !important;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,.50) 0, rgba(255,255,255,.18) 34%, transparent 62%),
+      radial-gradient(circle at 88% 90%, rgba(175,116,17,.18) 0, transparent 45%),
+      linear-gradient(145deg, #fff1a8 0%, #ffe37e 54%, #cda13a 100%) !important;
+    border: 1px solid rgba(126,86,15,.42) !important;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,.74), inset -1px -1px 0 rgba(94,63,10,.14), 0 4px 8px rgba(85,58,15,.22), 0 9px 0 -6px rgba(77,56,21,.34) !important;
+    text-shadow: 0 1px 0 rgba(255,255,255,.72) !important;
+  }
+  html[data-theme="dark"] .nav-tab {
+    color: #f2d277 !important;
+    background: linear-gradient(145deg,#6f5620 0%,#3f3118 62%,#251d11 100%) !important;
+    border: 1px solid rgba(238,198,91,.35) !important;
+    box-shadow: inset 1px 1px 0 rgba(255,230,155,.16), inset -1px -1px 0 rgba(0,0,0,.34), 0 6px 10px rgba(0,0,0,.48) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,.72) !important;
+  }
+  .nav-tab::before {
+    content: '' !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: -5px !important;
+    width: 18px !important;
+    height: 13px !important;
+    transform: translateX(-50%) !important;
+    border-radius: 6px 6px 8px 8px !important;
+    background: linear-gradient(180deg, rgba(255,255,255,.58), rgba(232,236,236,.45)) !important;
+    border: 1px solid rgba(105,112,116,.38) !important;
+    box-shadow: 0 2px 5px rgba(48,40,24,.15), inset 0 1px 0 rgba(255,255,255,.38) !important;
+    pointer-events: none !important;
+  }
   .nav-tab > span[data-i18n] {
-    max-width: none !important;
-    width: auto !important;
-    overflow: visible !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
     text-overflow: clip !important;
     white-space: nowrap !important;
-    font-size: 12px !important;
+    font-size: 10px !important;
     line-height: 1.05 !important;
+    font-weight: 900 !important;
+    text-align: center !important;
   }
-  .nav-tab[data-tab="dashboard"] > span[data-i18n] { font-size: 11px !important; letter-spacing: -.35px !important; }
-  html:not([data-theme="dark"]) .nav-tab > span[data-i18n] { color: #493109 !important; }
-  html[data-theme="dark"] .nav-tab > span[data-i18n] { color: #d7bd73 !important; }
+  .nav-tab[data-tab="dashboard"] > span[data-i18n],
+  .nav-tab[data-tab="calendar"] > span[data-i18n],
+  .nav-tab[data-tab="settings"] > span[data-i18n] {
+    font-size: 9.5px !important;
+    letter-spacing: -.25px !important;
+  }
+  html:not([data-theme="dark"]) .nav-tab > span[data-i18n] { color: #2b210d !important; }
+  html[data-theme="dark"] .nav-tab > span[data-i18n] { color: #f3d98c !important; }
   .nav-tab > svg.nav-icon {
     box-sizing: border-box !important;
-    width: 34px !important;
-    height: 31px !important;
+    width: 32px !important;
+    height: 30px !important;
     padding: 5px !important;
-    border-radius: 12px !important;
+    border-radius: 10px !important;
     transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, background .18s ease !important;
+    margin: 0 auto !important;
   }
   html:not([data-theme="dark"]) .nav-tab > svg.nav-icon {
     color: #2b1c05 !important;
     background: linear-gradient(145deg,#fff5bd 0%,#ffe58d 54%,#d7ae42 100%) !important;
-    border: 1.2px solid rgba(83,57,12,.35) !important;
-    box-shadow: inset 1px 1px 0 rgba(255,255,255,.78), inset -1px -1px 0 rgba(108,73,14,.18), 0 6px 10px rgba(93,64,16,.25) !important;
-    filter: saturate(1.16) contrast(1.08) !important;
+    border: 1px solid rgba(83,57,12,.35) !important;
+    box-shadow: inset 1px 1px 0 rgba(255,255,255,.78), inset -1px -1px 0 rgba(108,73,14,.18), 0 4px 7px rgba(93,64,16,.20) !important;
   }
   html[data-theme="dark"] .nav-tab > svg.nav-icon {
     color: #f2d277 !important;
     background: linear-gradient(145deg,#6f5620 0%,#3f3118 62%,#251d11 100%) !important;
-    border: 1.2px solid rgba(238,198,91,.35) !important;
-    box-shadow: inset 1px 1px 0 rgba(255,230,155,.16), inset -1px -1px 0 rgba(0,0,0,.34), 0 6px 10px rgba(0,0,0,.48) !important;
+    border: 1px solid rgba(238,198,91,.35) !important;
+    box-shadow: inset 1px 1px 0 rgba(255,230,155,.16), inset -1px -1px 0 rgba(0,0,0,.34), 0 5px 8px rgba(0,0,0,.40) !important;
+  }
+  .nav-tab.active {
+    flex-basis: 86px !important;
+    width: 86px !important;
+    max-width: 94px !important;
+    min-height: 76px !important;
+    transform: translateY(-10px) !important;
+    border-radius: 22px !important;
+    z-index: 2 !important;
   }
   html:not([data-theme="dark"]) .nav-tab.active {
     color: #1d1102 !important;
     background:
-      radial-gradient(circle at 18% 12%, rgba(255,255,255,.42) 0, rgba(255,255,255,.16) 34%, transparent 62%),
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,.46) 0, rgba(255,255,255,.18) 34%, transparent 62%),
       radial-gradient(circle at 87% 90%, rgba(177,116,13,.18) 0, transparent 46%),
       linear-gradient(145deg, #fff2aa 0%, #ffd264 54%, #c89125 100%) !important;
-    border: 1px solid rgba(139,88,8,.34) !important;
-    box-shadow: 0 10px 18px rgba(91,58,8,.28), 0 0 0 4px rgba(255,224,128,.18), inset 0 1px 0 rgba(255,255,255,.66), inset 0 -1px 0 rgba(98,62,6,.22) !important;
-    transform: translateY(-4px) !important;
+    border: 1px solid rgba(139,88,8,.42) !important;
+    box-shadow: 0 0 0 7px rgba(255,224,128,.16), 0 12px 22px rgba(91,58,8,.30), 0 14px 0 -8px rgba(77,56,21,.36), inset 0 1px 0 rgba(255,255,255,.66), inset 0 -1px 0 rgba(98,62,6,.22) !important;
   }
   html[data-theme="dark"] .nav-tab.active {
     color: #fff0b8 !important;
     background: linear-gradient(180deg, rgba(126,89,20,.96), rgba(64,45,13,.88)) !important;
     border: 1px solid rgba(244,198,83,.42) !important;
-    box-shadow: 0 9px 18px rgba(0,0,0,.54), 0 0 0 1px rgba(255,214,105,.14), inset 0 1px 0 rgba(255,233,161,.2), inset 0 -1px 0 rgba(0,0,0,.3) !important;
-    transform: translateY(-4px) !important;
+    box-shadow: 0 0 0 7px rgba(255,214,105,.10), 0 11px 20px rgba(0,0,0,.56), inset 0 1px 0 rgba(255,233,161,.2), inset 0 -1px 0 rgba(0,0,0,.3) !important;
   }
   .nav-tab.active::after {
     content: '' !important;
     position: absolute !important;
     left: 50% !important;
-    bottom: 5px !important;
-    width: 6px !important;
-    height: 6px !important;
+    bottom: -7px !important;
+    width: 9px !important;
+    height: 9px !important;
     transform: translateX(-50%) !important;
     border-radius: 50% !important;
   }
-  html:not([data-theme="dark"]) .nav-tab.active::after { background:#5d3700 !important; box-shadow:0 0 0 3px rgba(255,236,162,.6),0 2px 4px rgba(83,50,3,.24) !important; }
+  html:not([data-theme="dark"]) .nav-tab.active::after { background:#5d3700 !important; box-shadow:0 0 0 4px rgba(255,236,162,.62),0 2px 4px rgba(83,50,3,.24) !important; }
   html[data-theme="dark"] .nav-tab.active::after { background:#ffd76a !important; box-shadow:0 0 0 3px rgba(255,215,106,.22),0 0 10px rgba(255,207,78,.38),0 2px 4px rgba(0,0,0,.45) !important; }
-  .nav-tab.active > span[data-i18n] { font-weight: 900 !important; padding-bottom: 6px !important; }
+  .nav-tab.active > span[data-i18n] { font-size: 11px !important; font-weight: 900 !important; padding-bottom: 0 !important; }
+  .nav-tab.active[data-tab="dashboard"] > span[data-i18n],
+  .nav-tab.active[data-tab="calendar"] > span[data-i18n],
+  .nav-tab.active[data-tab="settings"] > span[data-i18n] { font-size: 10px !important; }
   html:not([data-theme="dark"]) .nav-tab.active > span[data-i18n] { color:#1d1102 !important; }
   html[data-theme="dark"] .nav-tab.active > span[data-i18n] { color:#fff0b8 !important; }
-  html:not([data-theme="dark"]) .nav-tab.active > svg.nav-icon {
-    color:#120a01 !important;
-    background: linear-gradient(145deg,#fff2a9 0%,#ffc93e 52%,#b87405 100%) !important;
-    border-color: rgba(89,51,0,.58) !important;
-    transform: translateY(-2px) scale(1.04) !important;
-    filter: saturate(1.46) contrast(1.22) !important;
-    box-shadow: 0 0 0 3px rgba(255,242,181,.42), inset 1px 1px 0 rgba(255,255,255,.78), inset -1px -1px 0 rgba(85,55,8,.28), 0 8px 12px rgba(102,66,10,.36) !important;
-  }
-  html[data-theme="dark"] .nav-tab.active > svg.nav-icon {
-    color:#fff3bd !important;
-    background: linear-gradient(145deg,#b37c14 0%,#79520d 52%,#38240a 100%) !important;
-    border-color: rgba(255,213,95,.55) !important;
-    transform: translateY(-2px) scale(1.04) !important;
-    filter: saturate(1.24) contrast(1.15) !important;
-    box-shadow: 0 0 0 3px rgba(255,214,105,.18), inset 1px 1px 0 rgba(255,233,161,.24), inset -1px -1px 0 rgba(0,0,0,.36), 0 8px 14px rgba(0,0,0,.55) !important;
+  .nav-tab.active > svg.nav-icon {
+    width: 35px !important;
+    height: 33px !important;
+    transform: translateY(-1px) scale(1.04) !important;
   }
 </style>
 <style id="${PAPER_STYLE_ID}">
@@ -261,21 +312,8 @@ const INJECTED_STYLE = `<style id="${NAV_STYLE_ID}">
   .share-card::after,
   .card::after,
   .modal-sheet::after {
-    content: '' !important;
-    position: absolute !important;
-    right: -1px !important;
-    bottom: -1px !important;
-    z-index: 6 !important;
-    width: clamp(48px, 18%, 86px) !important;
-    height: clamp(48px, 18%, 86px) !important;
-    border-radius: 0 0 31px 0 !important;
-    background:
-      radial-gradient(circle at 100% 100%, color-mix(in srgb, var(--paper-deep, var(--real-paper-deep)) 30%, transparent) 0 34%, transparent 54%),
-      linear-gradient(135deg, transparent 0 48%, color-mix(in srgb, var(--paper-bg, var(--real-paper-bg)) 82%, var(--paper-deep, var(--real-paper-deep)) 18%) 49% 64%, color-mix(in srgb, var(--paper-deep, var(--real-paper-deep)) 34%, transparent) 65% 100%) !important;
-    clip-path: polygon(100% 0, 0 100%, 100% 100%) !important;
-    opacity: .72 !important;
-    filter: drop-shadow(-4px -4px 6px color-mix(in srgb, var(--paper-deep, var(--real-paper-deep)) 12%, transparent)) !important;
-    pointer-events: none !important;
+    content: none !important;
+    display: none !important;
   }
 
   .note-card[data-color="lavender"] { --paper-bg:#efe4ff; --paper-deep:#b89bd8; }
