@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v56';
+const CACHE_VERSION = 'note-clip-v57';
 
 const PRECACHE_URLS = [
   './',
@@ -41,17 +41,33 @@ const CONSISTENT_CALENDAR_NAV_ICON = `<svg width="24" height="24" viewBox="0 0 2
 const LIGHT_NAV_STYLE_ID = 'noteclip-light-nav-force-refresh';
 const LIGHT_NAV_STYLE = `<style id="${LIGHT_NAV_STYLE_ID}">
   html:not([data-theme="dark"]) .bottom-nav {
-    background: color-mix(in srgb, var(--color-surface, #fff8ec) 82%, #c18a18 18%) !important;
-    border-top-color: rgba(118, 82, 22, .28) !important;
+    background: color-mix(in srgb, var(--color-surface, #fff8ec) 80%, #c18a18 20%) !important;
+    border-top-color: rgba(118, 82, 22, .32) !important;
     box-shadow: 0 -12px 28px rgba(103, 73, 26, .18), inset 0 1px 0 rgba(255,255,255,.76) !important;
   }
   html:not([data-theme="dark"]) .nav-tab {
+    position: relative !important;
     color: #4b3109 !important;
     font-weight: 850 !important;
     text-shadow: 0 1px 0 rgba(255,255,255,.86) !important;
+    border-radius: 20px !important;
+    max-width: 82px !important;
+    min-width: 0 !important;
+    overflow: visible !important;
   }
   html:not([data-theme="dark"]) .nav-tab > span[data-i18n] {
     color: #4b3109 !important;
+    max-width: none !important;
+    width: auto !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+    font-size: 12px !important;
+    line-height: 1.05 !important;
+  }
+  html:not([data-theme="dark"]) .nav-tab[data-tab="dashboard"] > span[data-i18n] {
+    font-size: 11px !important;
+    letter-spacing: -.35px !important;
   }
   html:not([data-theme="dark"]) .nav-tab > svg.nav-icon {
     box-sizing: border-box !important;
@@ -67,18 +83,36 @@ const LIGHT_NAV_STYLE = `<style id="${LIGHT_NAV_STYLE_ID}">
     transition: transform .18s ease, filter .18s ease, box-shadow .18s ease, background .18s ease !important;
   }
   html:not([data-theme="dark"]) .nav-tab.active {
-    color: #261705 !important;
+    color: #1d1102 !important;
+    background: linear-gradient(180deg, rgba(255, 219, 111, .95), rgba(211, 153, 35, .72)) !important;
+    border: 1px solid rgba(139, 88, 8, .34) !important;
+    box-shadow: 0 8px 16px rgba(91, 58, 8, .26), inset 0 1px 0 rgba(255,255,255,.58), inset 0 -1px 0 rgba(98, 62, 6, .2) !important;
+    transform: translateY(-4px) !important;
+  }
+  html:not([data-theme="dark"]) .nav-tab.active::after {
+    content: '' !important;
+    position: absolute !important;
+    left: 50% !important;
+    bottom: 5px !important;
+    width: 6px !important;
+    height: 6px !important;
+    transform: translateX(-50%) !important;
+    border-radius: 50% !important;
+    background: #5d3700 !important;
+    box-shadow: 0 0 0 3px rgba(255, 236, 162, .6), 0 2px 4px rgba(83, 50, 3, .24) !important;
   }
   html:not([data-theme="dark"]) .nav-tab.active > span[data-i18n] {
-    color: #261705 !important;
+    color: #1d1102 !important;
+    font-weight: 900 !important;
+    padding-bottom: 6px !important;
   }
   html:not([data-theme="dark"]) .nav-tab.active > svg.nav-icon {
-    color: #160d02 !important;
-    background: linear-gradient(145deg, #fff09c 0%, #ffd24f 55%, #c7890c 100%) !important;
-    border-color: rgba(113, 70, 4, .52) !important;
-    transform: translateY(-3px) !important;
-    filter: saturate(1.38) contrast(1.18) !important;
-    box-shadow: 0 0 0 3px rgba(213,161,39,.24), inset 1px 1px 0 rgba(255,255,255,.74), inset -1px -1px 0 rgba(85,55,8,.25), 0 9px 13px rgba(102,66,10,.34) !important;
+    color: #120a01 !important;
+    background: linear-gradient(145deg, #fff2a9 0%, #ffc93e 52%, #b87405 100%) !important;
+    border-color: rgba(89, 51, 0, .58) !important;
+    transform: translateY(-2px) scale(1.04) !important;
+    filter: saturate(1.46) contrast(1.22) !important;
+    box-shadow: 0 0 0 3px rgba(255, 242, 181, .42), inset 1px 1px 0 rgba(255,255,255,.78), inset -1px -1px 0 rgba(85,55,8,.28), 0 8px 12px rgba(102,66,10,.36) !important;
   }
 </style>`;
 
@@ -88,7 +122,8 @@ function shouldPatchHtml(request) {
 }
 
 function patchLightNavStyle(html) {
-  if (html.includes(`id="${LIGHT_NAV_STYLE_ID}"`)) return html;
+  // Replace any earlier injected nav fix so the active state is not weakened by old cache HTML.
+  html = html.replace(/<style id="noteclip-light-nav-force-refresh">[\s\S]*?<\/style>/, '');
   if (html.includes('</head>')) return html.replace('</head>', `${LIGHT_NAV_STYLE}\n</head>`);
   return LIGHT_NAV_STYLE + html;
 }
