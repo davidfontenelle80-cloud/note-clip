@@ -130,12 +130,26 @@ Commit:
 - `3ba895af664f219893ba42916f50c391b5cb18e7` — Strip retired Shared tab from served HTML.
 
 ### 6. Service worker UI hotfix cleanup
-Status: Pending
+Status: BLOCKED / deferred for safe-source-edit limitation
 
 Tasks:
-- [ ] Remove UI CSS injection after source fixes are complete.
-- [ ] Keep cache and push behavior intact.
+- [ ] Remove UI CSS/link/markup patching from `sw.js` after source files are complete.
+- [x] Keep cache and push behavior intact.
 - [ ] Bump cache version once when completed.
+
+Audit notes:
+- `sw.js` still has HTML patching responsibilities: adding source CSS links, swapping the legacy calendar icon, and stripping the retired Shared tab from served HTML.
+- Full cleanup requires safely editing `index.html` directly so it includes `css/category-modal-source.css`, `css/bottom-nav-source.css`, the corrected calendar icon, and no Shared tab markup.
+- Direct `index.html` replacement is not currently safe because the GitHub file output truncates the long inline style block. Replacing the whole file from a partial/truncated copy could corrupt the app.
+- No further service worker cleanup was performed to avoid breaking the currently working app.
+- Cache and push notification behavior remain intact.
+
+Recommended resolution:
+- Use a local clone or Codex full-file access to edit `index.html` safely.
+- After `index.html` directly owns those changes, remove `patchInjectedStyles()` HTML rewriting from `sw.js` and keep `sw.js` as cache/push only.
+
+Commit:
+- `339b5f2d8c33b7da3425df0e386c038de35ec034` — Audit service worker cleanup blocker.
 
 ### 7. List modal keyboard check
 Status: Pending
@@ -152,6 +166,7 @@ Tasks:
 - `css/bottom-nav-source.css` now owns the light-mode bottom-nav polish.
 - `sw.js` now injects a source CSS link for bottom-nav polish and prevents the app.js duplicate inline style from being added.
 - `sw.js` strips the retired Shared tab from served HTML before app wiring.
+- `sw.js` still owns some HTML patching until `index.html` can be safely full-file edited.
 - Recent commits:
   - `3ba895af664f219893ba42916f50c391b5cb18e7` — Strip retired Shared tab from served HTML.
   - `a71bf0f6625897b0172e1cae38da0b2f3c1bb450` — Load bottom nav styling from source file.
