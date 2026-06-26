@@ -5,7 +5,7 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Issue: #1 — Stabilization cleanup: move UI hotfixes into source and smoke-test mobile workflows
 
 ## Current stage
-Mobile stabilization cleanup + UI polish pass.
+Mobile stabilization cleanup + UI polish pass + attachment roadmap Stage A/B.
 
 ## Rule
 Before each stabilization item:
@@ -48,16 +48,11 @@ Status: Code-level implemented, awaiting live phone verification
 Tasks:
 - [x] Replace always-visible Edit/Delete circles with one clean more menu.
 - [x] Keep tap-on-card behavior opening category notes.
-- [x] Keep Rename/Change Icon/Delete behavior available from the menu.
+- [x] Keep Edit/Delete behavior available from the menu.
 - [x] Make category icons larger and more visually balanced.
 - [x] Add subtle category accent corners.
 - [x] Lighten paper texture and improve spacing/shadows.
 - [x] Bump service worker cache so polish assets load.
-
-Commits:
-- `bb947d14561d3b064581823e76c0b93307cc244d` — Add polished category card UI.
-- `8d330bcd6f84aa2f33f49761495a080cd544952a` — Add category card more menu behavior.
-- `7b739704796ef178a8edec0c17dbc16dd9c6718e` — Load category card polish assets.
 
 ### 11. Editable category accent colors
 Status: Code-level implemented, awaiting live phone verification
@@ -69,24 +64,53 @@ Tasks:
 - [x] Apply saved category color back onto cards after render.
 - [x] Bump service worker cache so accent script loads.
 
+### 12. Category card create menu / attachment roadmap Stage A-B
+Status: Code-level implemented, awaiting live phone verification
+
+Objective:
+- Add the category-card plus workflow now, without enabling risky attachment storage yet.
+
+Tasks:
+- [x] Add a small + button to each category card.
+- [x] Tapping category card still opens that category.
+- [x] Tapping three-dot menu still opens Edit/Delete.
+- [x] Tapping category-card + opens Create in [Category].
+- [x] New Note works and preselects that category.
+- [x] Photo appears as Coming next placeholder.
+- [x] PDF appears as Coming next placeholder.
+- [x] No storage schema change yet for attachments.
+- [x] Bump service worker cache so new script loads.
+
 Implementation notes:
-- `js/fab-hotfix.js` now includes accent color choices and saves `color` with category changes.
-- `css/category-card-polish.css` now supports `.no-accent` and accent-picker styling.
-- `js/cat-accent-apply.js` applies saved category colors to rendered cards.
-- `sw.js` now precaches and injects `js/cat-accent-apply.js`.
-- Cache bumped to `note-clip-v75-category-accent-edit`.
+- Added `js/category-card-add-menu.js`.
+- Added category-card + button styling and create-menu styling to `css/category-card-polish.css`.
+- `sw.js` now precaches and injects `js/category-card-add-menu.js`.
+- Cache bumped to `note-clip-v77-category-create-menu`.
+- New Note opens the existing note modal and sets the selected category.
+- Photo/PDF intentionally show Coming next until local attachment storage is built.
 
 Commits:
-- `61b8ac956f44f0b1d029bda87bd7fa50e75ec8e0` — Add category accent color editing.
-- `3d67ae808b22daa1e574789a651c4c1677f564ac` — Style category accent picker.
-- `784da806e1094813bd380af644e867f126d40666` — Add category accent application.
-- `c15b6b7182fbc826b189338a662f6bc2a118626a` — Load category accent apply script.
+- `89fd6cf17659417fa5117764bd8850c5e089cf4b` — Add category card create menu.
+- `6a7dee74d3787c6ea9e213c5d1ccd643684dade6` — Style category card create menu.
+- `e7d108984961f44602b78a1b8618180660e5178e` — Load category card create menu.
+
+## Attachment feature roadmap
+
+### Stage C — Local attachment MVP
+Pending. Add image/PDF file picker, local storage strategy, attachment metadata on notes, and safe file-size limits.
+
+### Stage D — Attachment viewer/delete
+Pending. Add full-screen image viewer, PDF card/open behavior, delete attachment, and note render support.
+
+### Stage E — Backup/sync attachments
+Pending. Add cloud backup/sync after local storage is stable.
 
 ## Latest code checkpoint
 - `sw.js` still owns HTML patching until `index.html` can be safely full-file edited.
 - `js/dashboard.js` greeting logic now treats early morning as morning.
 - `js/fab-hotfix.js` owns robust floating + button routing, category modal fallback, and category accent editing.
 - `css/category-card-polish.css`, `js/category-card-polish.js`, and `js/cat-accent-apply.js` own the refreshed category-card UI and editable corner accent.
+- `js/category-card-add-menu.js` owns the category-card + create menu.
 
 ## Smoke test checklist
 - [ ] Dashboard loads.
@@ -95,11 +119,16 @@ Commits:
 - [x] Active tab has glow/card but no dot.
 - [x] Categories + opens Add Category.
 - [ ] Category cards show only the more button, not separate edit/delete circles.
-- [ ] More button opens Rename / Change Icon / Delete Category menu.
-- [ ] Rename opens edit category modal.
+- [ ] More button opens Edit / Delete menu.
+- [ ] Edit opens edit category modal.
 - [ ] Card Accent Color appears in Add/Edit Category.
 - [ ] No Color removes the card corner accent.
 - [ ] Color choice saves and appears on the category card.
+- [ ] Category-card + appears on each category card.
+- [ ] Category-card + opens Create in [Category].
+- [ ] New Note from category-card + opens note modal with that category selected.
+- [ ] Photo placeholder shows Coming next.
+- [ ] PDF placeholder shows Coming next.
 - [ ] Delete category still confirms/deletes correctly.
 - [ ] Category Name is visible immediately.
 - [ ] Type category name.
