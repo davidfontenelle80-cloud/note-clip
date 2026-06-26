@@ -42,6 +42,14 @@
     return canvas.toDataURL('image/jpeg', JPEG_QUALITY);
   }
 
+  function storageCheck(size){
+    const check = App.AttachmentMeter?.canAdd?.(size);
+    if(!check) return true;
+    if(!check.ok){ App.showToast(check.message, 'error'); return false; }
+    if(check.warn) App.showToast(check.message, 'success');
+    return true;
+  }
+
   function choosePhoto(){
     return new Promise(function(resolve){
       const input = document.createElement('input');
@@ -63,6 +71,7 @@
     App.showToast('Preparing photo…', 'success');
     try{
       const dataUrl = await compressImage(file);
+      if(!storageCheck(dataUrl.length)) return;
       const att = { id: uid(), type: 'image', name: file.name || 'Photo', mime: 'image/jpeg', size: dataUrl.length, dataUrl: dataUrl, createdAt: new Date().toISOString() };
       const note = App.Storage.addNote({ title: file.name ? file.name.replace(/\.[^.]+$/,'') : 'Photo', body: '', categoryId: catId || null, status: 'active', attachments: [att] });
       App.showToast('Photo note saved', 'success');
@@ -80,6 +89,7 @@
     if(!file.type || !file.type.startsWith('image/')){ App.showToast('Please choose an image.', 'error'); return; }
     try{
       const dataUrl = await compressImage(file);
+      if(!storageCheck(dataUrl.length)) return;
       const state = App.Storage.getState();
       const note = state.notes.find(function(n){ return n.id === noteId; });
       if(!note) return;
