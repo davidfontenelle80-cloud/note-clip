@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v72-fab-route-hotfix';
+const CACHE_VERSION = 'note-clip-v73-category-modal-standalone-fix';
 
 const PRECACHE_URLS = [
   './',
