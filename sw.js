@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v75-category-accent-edit';
+const CACHE_VERSION = 'note-clip-v76-category-menu-edit-label';
 
 const PRECACHE_URLS = [
   './',
