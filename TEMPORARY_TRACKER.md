@@ -39,36 +39,8 @@ Tasks:
 ### 8. Greeting logic fix
 Status: Code-level implemented, live phone verified
 
-Tasks:
-- [x] Treat midnight through 11:59 a.m. as morning.
-- [x] Keep afternoon/evening/night thresholds intact after noon.
-- [x] Keep greeting icon in sync with greeting text.
-- [x] Bump service worker cache so `js/dashboard.js` reloads.
-
-Commits:
-- `a90eaa5233640dce0a8007dab0e304e44eb83516` — Fix early morning greeting logic.
-- `7552b8f7b603f7962ef9cf0f54d8787962cc07f5` — Bump cache for greeting logic fix.
-
 ### 9. FAB category creation routing fix
 Status: Code-level implemented, live phone verified after standalone modal fallback
-
-Tasks:
-- [x] Ensure the floating + button opens Add Category while Notes is in By Category view.
-- [x] Keep + opening Add Note while Notes is in All Notes / note-list view.
-- [x] Keep + opening Add List on Lists tab.
-- [x] Keep + opening Add Note from Dashboard/Calendar.
-- [x] Bump service worker cache so the new routing script loads.
-
-Implementation notes:
-- Added `js/fab-hotfix.js`.
-- Follow-up fixed real issue: original `_openCatModal` was private inside `js/notes.js`; standalone fallback now opens Add/Edit Category modal directly.
-- Cache bumped to `note-clip-v73-category-modal-standalone-fix`.
-
-Commits:
-- `6a074e51011a054e33a0182f0730f0e5cd609a52` — Add robust FAB routing hotfix.
-- `ccfe4a25d47528e35a5fafcb152a07174cdb3667` — Load robust FAB routing hotfix.
-- `219c147a03bba2835642d2e37bf9037a117632a2` — Fix category add and edit modal routing.
-- `d7ff4515a0ce1a25efa603aa1dee33a176856bf1` — Bump cache for category modal standalone fix.
 
 ### 10. Notes category card polish
 Status: Code-level implemented, awaiting live phone verification
@@ -82,24 +54,39 @@ Tasks:
 - [x] Lighten paper texture and improve spacing/shadows.
 - [x] Bump service worker cache so polish assets load.
 
-Implementation notes:
-- Added `css/category-card-polish.css` for refreshed card styling.
-- Added `js/category-card-polish.js` to transform existing rendered category cards without changing storage data.
-- The script hides old edit/delete buttons and appends a `•••` category action button.
-- The menu calls existing edit/delete buttons internally, preserving current behavior and confirmations.
-- `sw.js` now precaches and injects the card polish CSS/JS.
-- Cache bumped to `note-clip-v74-category-card-polish`.
-
 Commits:
 - `bb947d14561d3b064581823e76c0b93307cc244d` — Add polished category card UI.
 - `8d330bcd6f84aa2f33f49761495a080cd544952a` — Add category card more menu behavior.
 - `7b739704796ef178a8edec0c17dbc16dd9c6718e` — Load category card polish assets.
 
+### 11. Editable category accent colors
+Status: Code-level implemented, awaiting live phone verification
+
+Tasks:
+- [x] Add Card Accent Color to Add/Edit Category modal.
+- [x] Add No Color option.
+- [x] Save selected accent color on the category record.
+- [x] Apply saved category color back onto cards after render.
+- [x] Bump service worker cache so accent script loads.
+
+Implementation notes:
+- `js/fab-hotfix.js` now includes accent color choices and saves `color` with category changes.
+- `css/category-card-polish.css` now supports `.no-accent` and accent-picker styling.
+- `js/cat-accent-apply.js` applies saved category colors to rendered cards.
+- `sw.js` now precaches and injects `js/cat-accent-apply.js`.
+- Cache bumped to `note-clip-v75-category-accent-edit`.
+
+Commits:
+- `61b8ac956f44f0b1d029bda87bd7fa50e75ec8e0` — Add category accent color editing.
+- `3d67ae808b22daa1e574789a651c4c1677f564ac` — Style category accent picker.
+- `784da806e1094813bd380af644e867f126d40666` — Add category accent application.
+- `c15b6b7182fbc826b189338a662f6bc2a118626a` — Load category accent apply script.
+
 ## Latest code checkpoint
 - `sw.js` still owns HTML patching until `index.html` can be safely full-file edited.
 - `js/dashboard.js` greeting logic now treats early morning as morning.
-- `js/fab-hotfix.js` owns robust floating + button routing and category modal fallback.
-- `css/category-card-polish.css` and `js/category-card-polish.js` own the refreshed category-card UI.
+- `js/fab-hotfix.js` owns robust floating + button routing, category modal fallback, and category accent editing.
+- `css/category-card-polish.css`, `js/category-card-polish.js`, and `js/cat-accent-apply.js` own the refreshed category-card UI and editable corner accent.
 
 ## Smoke test checklist
 - [ ] Dashboard loads.
@@ -110,6 +97,9 @@ Commits:
 - [ ] Category cards show only the more button, not separate edit/delete circles.
 - [ ] More button opens Rename / Change Icon / Delete Category menu.
 - [ ] Rename opens edit category modal.
+- [ ] Card Accent Color appears in Add/Edit Category.
+- [ ] No Color removes the card corner accent.
+- [ ] Color choice saves and appears on the category card.
 - [ ] Delete category still confirms/deletes correctly.
 - [ ] Category Name is visible immediately.
 - [ ] Type category name.
