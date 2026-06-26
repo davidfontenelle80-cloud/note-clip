@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v70-shared-tab-cleanup';
+const CACHE_VERSION = 'note-clip-v71-greeting-logic-fix';
 
 const PRECACHE_URLS = [
   './',
