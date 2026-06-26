@@ -40,13 +40,15 @@
     pop.innerHTML='<div class="category-create-title">Create in '+esc(cat.name)+'</div>'+
       '<button type="button" data-action="note"><span>📝</span><span>New Note</span></button>'+
       '<button type="button" data-action="photo"><span>📷</span><span>Photo</span></button>'+
-      '<button type="button" data-action="pdf"><span>📄</span><span>PDF</span></button>';
+      '<button type="button" data-action="pdf"><span>📄</span><span>PDF</span></button>'+
+      '<button type="button" data-action="scan"><span>📑</span><span>Scan Document</span></button>';
     pop.addEventListener('click',function(e){
       const action=e.target.closest('button')?.dataset.action;
       if(!action)return;
       if(action==='note') createNoteInCategory(cat.id);
       if(action==='photo') { closeMenu(); App.PhotoAttachments?.createPhotoNote?.(cat.id); }
       if(action==='pdf') { closeMenu(); App.PdfAttachments?.createPdfNote?.(cat.id); }
+      if(action==='scan') { closeMenu(); App.DocumentScanner?.createScanNote?.(cat.id); }
     });
 
     document.body.appendChild(back);
@@ -54,7 +56,7 @@
     const r=anchor.getBoundingClientRect();
     const w=250;
     pop.style.left=Math.max(12,Math.min(window.innerWidth-w-12,r.right-w))+'px';
-    pop.style.top=Math.max(12,Math.min(window.innerHeight-220,r.bottom+8))+'px';
+    pop.style.top=Math.max(12,Math.min(window.innerHeight-260,r.bottom+8))+'px';
   }
 
   function installButtons(){
