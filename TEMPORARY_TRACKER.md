@@ -5,7 +5,7 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Issue: #1 — Stabilization cleanup: move UI hotfixes into source and smoke-test mobile workflows
 
 ## Current stage
-Mobile stabilization cleanup + UI polish pass + Stage 13B Attachment Storage Safety.
+Mobile stabilization cleanup + UI polish pass + Stage 13C Storage Manager Actions.
 
 ## Rule
 Before each stabilization item:
@@ -54,25 +54,8 @@ Status: Code-level implemented, awaiting live phone verification
 ### 13. Photo Attachments MVP
 Status: Code-level implemented, live phone verified
 
-Tasks:
-- [x] Make category-card + > Photo active.
-- [x] Open image picker/camera from Photo action.
-- [x] Compress selected photo before saving.
-- [x] Create a new note in that category with the photo attached.
-- [x] Store photo attachment metadata on the note record.
-- [x] Show photo thumbnails on note cards.
-- [x] Show attachment gallery inside edit note modal.
-- [x] Allow adding another photo to an existing saved note.
-- [x] Allow tapping photo to open full-screen viewer.
-- [x] Allow deleting a photo from a note.
-- [x] Keep PDF as Coming next.
-- [x] Bump service worker cache so photo attachment script loads.
-
 ### 13B. Attachment Storage Safety
-Status: Code-level implemented, awaiting live phone verification
-
-Objective:
-- Keep attachment growth safe for the shared Firebase free-plan quota.
+Status: Code-level implemented, live phone verified
 
 Decisions:
 - Total app attachment safety cap: 250 MB.
@@ -80,27 +63,32 @@ Decisions:
 - Warning threshold: 80% of the 250 MB cap.
 - Current MVP still stores compressed Data URLs inside notes until later blob/file storage work.
 
+### 13C. Storage Manager Actions
+Status: Code-level implemented, awaiting live phone verification
+
+Objective:
+- Make Manage Storage actually actionable before moving to PDF support.
+
 Tasks:
-- [x] Add attachment storage meter in Settings.
-- [x] Show used storage, safety limit, percent used, photo count, PDF count, and remaining space.
-- [x] Add Manage Storage modal showing largest attachments first.
-- [x] Enforce 5 MB per-photo limit after compression.
-- [x] Enforce 250 MB total attachment safety limit.
-- [x] Show warning when storage is above 80%.
-- [x] Bump service worker cache so meter and guardrails load.
+- [x] Add View button for each attachment in Manage Storage.
+- [x] Add Delete button for each attachment in Manage Storage.
+- [x] View image opens full-screen photo viewer.
+- [x] Delete removes only the attachment, not the note.
+- [x] Storage meter refreshes after delete.
+- [x] Notes view refreshes after delete.
+- [x] Update mobile layout for action buttons.
+- [x] Bump service worker cache so actions load.
 
 Implementation notes:
-- Added `js/attachment-meter.js`.
-- Added `css/attachment-meter.css`.
-- Updated `js/photo-attachments.js` to call `App.AttachmentMeter.canAdd()` before saving a photo.
-- Updated `sw.js` to precache and inject the meter CSS/JS before photo attachments.
-- Cache bumped to `note-clip-v79-attachment-storage-safety`.
+- Updated `js/attachment-meter.js` so storage items carry `noteId`, `id`, and `dataUrl`.
+- Added `App.AttachmentMeter.view()` and `App.AttachmentMeter.remove()`.
+- Updated `css/attachment-meter.css` for mobile-friendly View/Delete actions.
+- Cache bumped to `note-clip-v80-storage-manager-actions`.
 
 Commits:
-- `8212cc085af88c0411d66bb0a10bc0c769f2c664` — Add attachment storage meter.
-- `408ae82d66a57ecd8e5613feba683b344a4ffadf` — Style attachment storage meter.
-- `59d30f263d170cea2ab104ce6d4d3452bd8021b1` — Enforce attachment storage limits for photos.
-- `b9e48455cc75c196caf6a069a1742ec1107e7031` — Load attachment storage meter.
+- `f669b8b4dc91e6e37ef3ccceb8484da11ee69656` — Add view and delete actions to storage manager.
+- `0076c5160b4599e76c22eb23001558dcca8cd5cd` — Style storage manager actions.
+- `213cfc49da4122b6215ebfb59a49a1c2d1444f70` — Bump cache for storage manager actions.
 
 ## Attachment feature roadmap
 
@@ -116,8 +104,8 @@ Pending. Add document capture, crop/straighten, and PDF creation.
 ## Latest code checkpoint
 - `sw.js` still owns HTML patching until `index.html` can be safely full-file edited.
 - `js/photo-attachments.js` owns local photo attachment MVP behavior and now checks storage limits.
-- `js/attachment-meter.js` owns attachment stats and Settings meter.
-- `css/attachment-meter.css` owns meter visuals.
+- `js/attachment-meter.js` owns attachment stats, Settings meter, and Manage Storage actions.
+- `css/attachment-meter.css` owns meter/action visuals.
 
 ## Smoke test checklist
 - [ ] Dashboard loads.
@@ -125,9 +113,12 @@ Pending. Add document capture, crop/straighten, and PDF creation.
 - [x] Bottom nav tabs switch correctly.
 - [x] Active tab has glow/card but no dot.
 - [x] Categories + opens Add Category.
-- [ ] Settings shows Attachments storage section.
-- [ ] Attachment meter shows used storage / 250 MB.
-- [ ] Manage Storage opens and lists largest attachments.
+- [x] Settings shows Attachments storage section.
+- [x] Attachment meter shows used storage / 250 MB.
+- [x] Manage Storage opens and lists largest attachments.
+- [ ] Manage Storage View opens image viewer.
+- [ ] Manage Storage Delete removes only the attachment.
+- [ ] Storage meter updates after deleting attachment.
 - [ ] Photo from category-card + still opens image picker/camera.
 - [ ] Selected photo creates note in correct category.
 - [ ] Photo thumbnail appears on note card.
