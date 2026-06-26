@@ -177,6 +177,28 @@ Commits:
 - `a90eaa5233640dce0a8007dab0e304e44eb83516` — Fix early morning greeting logic.
 - `7552b8f7b603f7962ef9cf0f54d8787962cc07f5` — Bump cache for greeting logic fix.
 
+### 9. FAB category creation routing fix
+Status: Code-level implemented, awaiting live phone verification
+
+Tasks:
+- [x] Ensure the floating + button opens Add Category while Notes is in By Category view.
+- [x] Keep + opening Add Note while Notes is in All Notes / note-list view.
+- [x] Keep + opening Add List on Lists tab.
+- [x] Keep + opening Add Note from Dashboard/Calendar.
+- [x] Bump service worker cache so the new routing script loads.
+
+Implementation notes:
+- Added `js/fab-hotfix.js`.
+- The new script installs a capture-phase click handler on `#fab` so older click handlers cannot misroute the tap.
+- It detects active tab from active bottom nav or active pane.
+- It detects Notes category view by looking for `.category-grid`, `.category-card`, or an active category toggle.
+- `sw.js` now precaches and injects `./js/fab-hotfix.js` after the app scripts.
+- Cache bumped to `note-clip-v72-fab-route-hotfix`.
+
+Commits:
+- `6a074e51011a054e33a0182f0730f0e5cd609a52` — Add robust FAB routing hotfix.
+- `ccfe4a25d47528e35a5fafcb152a07174cdb3667` — Load robust FAB routing hotfix.
+
 ## Latest code checkpoint
 - `sw.js` no longer contains the category modal CSS block.
 - `css/category-modal-source.css` owns category modal mobile layout CSS.
@@ -187,7 +209,10 @@ Commits:
 - `sw.js` strips the retired Shared tab from served HTML before app wiring.
 - `sw.js` still owns some HTML patching until `index.html` can be safely full-file edited.
 - `js/dashboard.js` greeting logic now treats early morning as morning.
+- `js/fab-hotfix.js` now owns robust floating + button routing.
 - Recent commits:
+  - `ccfe4a25d47528e35a5fafcb152a07174cdb3667` — Load robust FAB routing hotfix.
+  - `6a074e51011a054e33a0182f0730f0e5cd609a52` — Add robust FAB routing hotfix.
   - `7552b8f7b603f7962ef9cf0f54d8787962cc07f5` — Bump cache for greeting logic fix.
   - `a90eaa5233640dce0a8007dab0e304e44eb83516` — Fix early morning greeting logic.
   - `3ba895af664f219893ba42916f50c391b5cb18e7` — Strip retired Shared tab from served HTML.
