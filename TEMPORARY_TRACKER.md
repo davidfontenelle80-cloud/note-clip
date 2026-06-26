@@ -5,7 +5,7 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Issue: #1 — Stabilization cleanup: move UI hotfixes into source and smoke-test mobile workflows
 
 ## Current stage
-Mobile stabilization cleanup + UI polish pass + Stage 13 Photo Attachments MVP.
+Mobile stabilization cleanup + UI polish pass + Stage 13B Attachment Storage Safety.
 
 ## Rule
 Before each stabilization item:
@@ -51,20 +51,8 @@ Status: Code-level implemented, awaiting live phone verification
 ### 12. Category card create menu / attachment roadmap Stage A-B
 Status: Code-level implemented, awaiting live phone verification
 
-Tasks:
-- [x] Add a small + button to each category card.
-- [x] Tapping category card still opens that category.
-- [x] Tapping three-dot menu still opens Edit/Delete.
-- [x] Tapping category-card + opens Create in [Category].
-- [x] New Note works and preselects that category.
-- [x] PDF appears as Coming next placeholder.
-- [x] Bump service worker cache so new script loads.
-
 ### 13. Photo Attachments MVP
-Status: Code-level implemented, awaiting live phone verification
-
-Objective:
-- Enable first local attachment type: photos/images.
+Status: Code-level implemented, live phone verified
 
 Tasks:
 - [x] Make category-card + > Photo active.
@@ -80,21 +68,39 @@ Tasks:
 - [x] Keep PDF as Coming next.
 - [x] Bump service worker cache so photo attachment script loads.
 
+### 13B. Attachment Storage Safety
+Status: Code-level implemented, awaiting live phone verification
+
+Objective:
+- Keep attachment growth safe for the shared Firebase free-plan quota.
+
+Decisions:
+- Total app attachment safety cap: 250 MB.
+- Per attachment cap after compression: 5 MB.
+- Warning threshold: 80% of the 250 MB cap.
+- Current MVP still stores compressed Data URLs inside notes until later blob/file storage work.
+
+Tasks:
+- [x] Add attachment storage meter in Settings.
+- [x] Show used storage, safety limit, percent used, photo count, PDF count, and remaining space.
+- [x] Add Manage Storage modal showing largest attachments first.
+- [x] Enforce 5 MB per-photo limit after compression.
+- [x] Enforce 250 MB total attachment safety limit.
+- [x] Show warning when storage is above 80%.
+- [x] Bump service worker cache so meter and guardrails load.
+
 Implementation notes:
-- Added `js/photo-attachments.js`.
-- Uses image file input and client-side canvas compression.
-- Stores MVP image data as compressed Data URL inside `note.attachments`.
-- Adds note-card thumbnails and edit-modal attachment gallery without changing the base `js/notes.js` save flow.
-- Added photo preview/viewer styles to `css/category-card-polish.css`.
-- `js/category-card-add-menu.js` now routes Photo to `App.PhotoAttachments.createPhotoNote(cat.id)`.
-- `sw.js` now precaches and injects `js/photo-attachments.js`.
-- Cache bumped to `note-clip-v78-photo-attachments-mvp`.
+- Added `js/attachment-meter.js`.
+- Added `css/attachment-meter.css`.
+- Updated `js/photo-attachments.js` to call `App.AttachmentMeter.canAdd()` before saving a photo.
+- Updated `sw.js` to precache and inject the meter CSS/JS before photo attachments.
+- Cache bumped to `note-clip-v79-attachment-storage-safety`.
 
 Commits:
-- `2945feec0ba458e8130a94f58a2ca07944a09713` — Add photo attachment MVP.
-- `6065293d4013fc31317d022cd1f820a0fa70073a` — Enable photo action from category create menu.
-- `dd40b9fab2516e6497a1fb957dfa965809a5756e` — Style photo attachment previews.
-- `e74e4cfa3e748c0bb7fc4e9a53182c45d707e6ae` — Load photo attachment MVP.
+- `8212cc085af88c0411d66bb0a10bc0c769f2c664` — Add attachment storage meter.
+- `408ae82d66a57ecd8e5613feba683b344a4ffadf` — Style attachment storage meter.
+- `59d30f263d170cea2ab104ce6d4d3452bd8021b1` — Enforce attachment storage limits for photos.
+- `b9e48455cc75c196caf6a069a1742ec1107e7031` — Load attachment storage meter.
 
 ## Attachment feature roadmap
 
@@ -104,13 +110,14 @@ Pending. Add PDF file picker, PDF metadata, PDF preview card/open behavior, and 
 ### Stage 15 — Attachment backup/sync
 Pending. Move beyond local MVP storage after attachment behavior is stable.
 
+### Stage 16 — Document scanner
+Pending. Add document capture, crop/straighten, and PDF creation.
+
 ## Latest code checkpoint
 - `sw.js` still owns HTML patching until `index.html` can be safely full-file edited.
-- `js/dashboard.js` greeting logic now treats early morning as morning.
-- `js/fab-hotfix.js` owns robust floating + button routing, category modal fallback, and category accent editing.
-- `css/category-card-polish.css`, `js/category-card-polish.js`, and `js/cat-accent-apply.js` own the refreshed category-card UI and editable corner accent.
-- `js/category-card-add-menu.js` owns the category-card + create menu.
-- `js/photo-attachments.js` owns local photo attachment MVP behavior.
+- `js/photo-attachments.js` owns local photo attachment MVP behavior and now checks storage limits.
+- `js/attachment-meter.js` owns attachment stats and Settings meter.
+- `css/attachment-meter.css` owns meter visuals.
 
 ## Smoke test checklist
 - [ ] Dashboard loads.
@@ -118,24 +125,17 @@ Pending. Move beyond local MVP storage after attachment behavior is stable.
 - [x] Bottom nav tabs switch correctly.
 - [x] Active tab has glow/card but no dot.
 - [x] Categories + opens Add Category.
-- [ ] Category cards show only the more button, not separate edit/delete circles.
-- [ ] More button opens Edit / Delete menu.
-- [ ] Edit opens edit category modal.
-- [ ] Card Accent Color appears in Add/Edit Category.
-- [ ] No Color removes the card corner accent.
-- [ ] Color choice saves and appears on the category card.
-- [ ] Category-card + appears on each category card.
-- [ ] Category-card + opens Create in [Category].
-- [ ] New Note from category-card + opens note modal with that category selected.
-- [ ] Photo from category-card + opens image picker/camera.
+- [ ] Settings shows Attachments storage section.
+- [ ] Attachment meter shows used storage / 250 MB.
+- [ ] Manage Storage opens and lists largest attachments.
+- [ ] Photo from category-card + still opens image picker/camera.
 - [ ] Selected photo creates note in correct category.
 - [ ] Photo thumbnail appears on note card.
 - [ ] Photo appears inside edit note modal.
 - [ ] Add Photo works on existing saved note.
-- [ ] Tapping photo opens full-screen viewer.
-- [ ] Deleting photo removes it from note.
+- [ ] 5 MB post-compression limit blocks oversized attachment.
+- [ ] 80% storage warning appears when applicable.
 - [ ] PDF placeholder shows Coming next.
-- [ ] Delete category still confirms/deletes correctly.
 - [ ] Notes add/edit/delete works.
 - [ ] Lists add/edit/check/delete works.
 - [ ] Calendar opens and date tap works.
