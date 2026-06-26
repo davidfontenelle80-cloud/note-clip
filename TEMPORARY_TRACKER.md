@@ -5,7 +5,7 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Issue: #1 — Stabilization cleanup: move UI hotfixes into source and smoke-test mobile workflows
 
 ## Current stage
-Mobile stabilization cleanup + UI polish pass + Stage 13C Storage Manager Actions.
+Mobile stabilization cleanup + UI polish pass + Stage 14 PDF Attachment MVP.
 
 ## Rule
 Before each stabilization item:
@@ -31,10 +31,6 @@ Audit notes:
 
 ### 7. List modal keyboard check
 Status: Pending
-
-Tasks:
-- [ ] Test Lists + workflow.
-- [ ] Fix autofocus/keyboard overlap only if confirmed.
 
 ### 8. Greeting logic fix
 Status: Code-level implemented, live phone verified
@@ -64,36 +60,41 @@ Decisions:
 - Current MVP still stores compressed Data URLs inside notes until later blob/file storage work.
 
 ### 13C. Storage Manager Actions
+Status: Code-level implemented, live phone verified
+
+### 14. PDF Attachment MVP
 Status: Code-level implemented, awaiting live phone verification
 
 Objective:
-- Make Manage Storage actually actionable before moving to PDF support.
+- Enable PDF attachments using the same attachment/storage framework as photos.
 
 Tasks:
-- [x] Add View button for each attachment in Manage Storage.
-- [x] Add Delete button for each attachment in Manage Storage.
-- [x] View image opens full-screen photo viewer.
-- [x] Delete removes only the attachment, not the note.
-- [x] Storage meter refreshes after delete.
-- [x] Notes view refreshes after delete.
-- [x] Update mobile layout for action buttons.
-- [x] Bump service worker cache so actions load.
+- [x] Make category-card + > PDF active.
+- [x] Open PDF file picker from PDF action.
+- [x] Create a new note in that category with the PDF attached.
+- [x] Store PDF attachment metadata on the note record.
+- [x] Show PDF badge on note cards.
+- [x] Show PDF cards inside edit note modal.
+- [x] Allow adding a PDF to an existing saved note.
+- [x] Allow tapping PDF to open a full-screen viewer.
+- [x] Allow deleting PDF from a note.
+- [x] Enforce existing 5 MB per-attachment / 250 MB total safety limits.
+- [x] Bump service worker cache so PDF assets load.
 
 Implementation notes:
-- Updated `js/attachment-meter.js` so storage items carry `noteId`, `id`, and `dataUrl`.
-- Added `App.AttachmentMeter.view()` and `App.AttachmentMeter.remove()`.
-- Updated `css/attachment-meter.css` for mobile-friendly View/Delete actions.
-- Cache bumped to `note-clip-v80-storage-manager-actions`.
+- Added `js/pdf-attachments.js`.
+- Updated `js/category-card-add-menu.js` so PDF launches `App.PdfAttachments.createPdfNote(cat.id)`.
+- Added PDF card/viewer styles to `css/attachment-meter.css`.
+- Updated `sw.js` to precache and inject `js/pdf-attachments.js`.
+- Cache bumped to `note-clip-v81-pdf-attachments-mvp`.
 
 Commits:
-- `f669b8b4dc91e6e37ef3ccceb8484da11ee69656` — Add view and delete actions to storage manager.
-- `0076c5160b4599e76c22eb23001558dcca8cd5cd` — Style storage manager actions.
-- `213cfc49da4122b6215ebfb59a49a1c2d1444f70` — Bump cache for storage manager actions.
+- `044e8d838d4253a3d13d3cdcbcac777dd76cab11` — Add PDF attachment MVP.
+- `69b900b449f0de1f6abb80b8f21c53f4a36dc1eb` — Enable PDF action from category create menu.
+- `8589b8081eb6e4ad9d4599d9c93a6d6bc2be51f7` — Style PDF attachment previews.
+- `78fdefbef81fccdc365229ad24275f5ecad28fc0` — Load PDF attachment MVP.
 
 ## Attachment feature roadmap
-
-### Stage 14 — PDF attachment MVP
-Pending. Add PDF file picker, PDF metadata, PDF preview card/open behavior, and delete support.
 
 ### Stage 15 — Attachment backup/sync
 Pending. Move beyond local MVP storage after attachment behavior is stable.
@@ -103,9 +104,10 @@ Pending. Add document capture, crop/straighten, and PDF creation.
 
 ## Latest code checkpoint
 - `sw.js` still owns HTML patching until `index.html` can be safely full-file edited.
-- `js/photo-attachments.js` owns local photo attachment MVP behavior and now checks storage limits.
+- `js/photo-attachments.js` owns local photo attachment behavior and storage checks.
+- `js/pdf-attachments.js` owns local PDF attachment behavior and storage checks.
 - `js/attachment-meter.js` owns attachment stats, Settings meter, and Manage Storage actions.
-- `css/attachment-meter.css` owns meter/action visuals.
+- `css/attachment-meter.css` owns storage meter, storage actions, and PDF preview/viewer visuals.
 
 ## Smoke test checklist
 - [ ] Dashboard loads.
@@ -116,17 +118,17 @@ Pending. Add document capture, crop/straighten, and PDF creation.
 - [x] Settings shows Attachments storage section.
 - [x] Attachment meter shows used storage / 250 MB.
 - [x] Manage Storage opens and lists largest attachments.
-- [ ] Manage Storage View opens image viewer.
-- [ ] Manage Storage Delete removes only the attachment.
-- [ ] Storage meter updates after deleting attachment.
-- [ ] Photo from category-card + still opens image picker/camera.
-- [ ] Selected photo creates note in correct category.
-- [ ] Photo thumbnail appears on note card.
-- [ ] Photo appears inside edit note modal.
-- [ ] Add Photo works on existing saved note.
-- [ ] 5 MB post-compression limit blocks oversized attachment.
-- [ ] 80% storage warning appears when applicable.
-- [ ] PDF placeholder shows Coming next.
+- [x] Manage Storage View opens image viewer.
+- [x] Manage Storage Delete removes only the attachment.
+- [x] Storage meter updates after deleting attachment.
+- [ ] PDF from category-card + opens file picker.
+- [ ] Selected PDF creates note in correct category.
+- [ ] PDF badge appears on note card.
+- [ ] PDF card appears inside edit note modal.
+- [ ] Add PDF works on existing saved note.
+- [ ] Tapping PDF opens full-screen viewer.
+- [ ] Deleting PDF removes it from note.
+- [ ] Photo workflow still works.
 - [ ] Notes add/edit/delete works.
 - [ ] Lists add/edit/check/delete works.
 - [ ] Calendar opens and date tap works.
