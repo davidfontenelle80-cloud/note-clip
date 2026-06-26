@@ -1,0 +1,65 @@
+/*
+ * category-modal-source.css — source-owned mobile category modal layout.
+ * This replaces the temporary category modal CSS that was previously injected by sw.js.
+ */
+
+#cat-modal .cat-modal-sheet {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: calc(100dvh - 24px - var(--keyboard-inset, 0px)) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
+  scroll-padding-bottom: 96px !important;
+}
+
+#cat-modal .cat-modal-sheet > .modal-handle {
+  flex: 0 0 auto !important;
+}
+
+#cat-modal .cat-modal-sheet > .modal-title {
+  flex: 0 0 auto !important;
+}
+
+#cat-modal #cat-name {
+  min-height: 48px !important;
+  font-size: 16px !important;
+}
+
+#cat-modal .cat-icon-form-group {
+  min-height: 0 !important;
+  margin-bottom: var(--space-sm, 8px) !important;
+}
+
+#cat-modal .cat-icon-selected {
+  margin-bottom: var(--space-sm, 8px) !important;
+}
+
+#cat-modal .cat-icon-picker {
+  max-height: min(30dvh, 240px) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  padding-right: 2px !important;
+  padding-bottom: var(--space-sm, 8px) !important;
+}
+
+#cat-modal .cat-modal-sheet:focus-within .cat-icon-picker {
+  max-height: min(18dvh, 145px) !important;
+}
+
+#cat-modal .cat-icon-grid {
+  padding-bottom: var(--space-md, 16px) !important;
+}
+
+#cat-modal .cat-actions,
+#cat-modal .cat-modal-sheet > .modal-actions {
+  position: static !important;
+  z-index: 20 !important;
+  margin-top: var(--space-sm, 8px) !important;
+  padding-top: var(--space-sm, 8px) !important;
+  padding-bottom: max(var(--space-sm, 8px), env(safe-area-inset-bottom, 0px)) !important;
+  background: color-mix(in srgb, var(--color-surface, #faf9f6) 96%, transparent) !important;
+  border-top: 1px solid var(--color-border, rgba(0,0,0,.08)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
