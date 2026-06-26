@@ -29,11 +29,6 @@
     },80);
   }
 
-  function comingSoon(label){
-    closeMenu();
-    App.showToast((label||'Feature')+' coming next', 'success');
-  }
-
   function showMenu(anchor,cat){
     closeMenu();
     const back=document.createElement('div');
@@ -45,13 +40,13 @@
     pop.innerHTML='<div class="category-create-title">Create in '+esc(cat.name)+'</div>'+
       '<button type="button" data-action="note"><span>📝</span><span>New Note</span></button>'+
       '<button type="button" data-action="photo"><span>📷</span><span>Photo</span></button>'+
-      '<button type="button" data-action="pdf"><span>📄</span><span>PDF</span><em>Coming next</em></button>';
+      '<button type="button" data-action="pdf"><span>📄</span><span>PDF</span></button>';
     pop.addEventListener('click',function(e){
       const action=e.target.closest('button')?.dataset.action;
       if(!action)return;
       if(action==='note') createNoteInCategory(cat.id);
       if(action==='photo') { closeMenu(); App.PhotoAttachments?.createPhotoNote?.(cat.id); }
-      if(action==='pdf') comingSoon('PDF attachments');
+      if(action==='pdf') { closeMenu(); App.PdfAttachments?.createPdfNote?.(cat.id); }
     });
 
     document.body.appendChild(back);
