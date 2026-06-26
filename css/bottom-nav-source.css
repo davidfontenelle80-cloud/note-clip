@@ -1,0 +1,64 @@
+/*
+ * bottom-nav-source.css — source-owned bottom navigation polish.
+ * This replaces the light-mode bottom-nav style block that was previously injected from app.js.
+ */
+
+html:not([data-theme="dark"]) .bottom-nav {
+  background: color-mix(in srgb, var(--color-surface, #fff8ec) 88%, #c18a18 12%);
+  border-top-color: rgba(118, 82, 22, .2);
+  box-shadow: 0 -10px 24px rgba(103, 73, 26, .14), inset 0 1px 0 rgba(255,255,255,.72);
+}
+
+html:not([data-theme="dark"]) .nav-tab {
+  color: #5b4016;
+  font-weight: 800;
+  text-shadow: 0 1px 0 rgba(255,255,255,.8);
+}
+
+html:not([data-theme="dark"]) .nav-tab > span[data-i18n] {
+  color: #5b4016;
+}
+
+html:not([data-theme="dark"]) .nav-stationery {
+  --icon-paper: #ffe28a;
+  --icon-paper-2: #e7bd46;
+  --icon-paper-line: rgba(80, 54, 12, .3);
+  --icon-ink: #30220b;
+  opacity: .98;
+  filter: saturate(1.18) contrast(1.08) drop-shadow(0 5px 6px rgba(90, 61, 14, .28));
+}
+
+html:not([data-theme="dark"]) .nav-glyph {
+  border-color: rgba(83, 57, 12, .28);
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.68),
+    inset -1px -1px 0 rgba(108, 73, 14, .18),
+    0 6px 9px rgba(93, 64, 16, .22);
+}
+
+html:not([data-theme="dark"]) .nav-tab.active {
+  color: #3b2708;
+}
+
+html:not([data-theme="dark"]) .nav-tab.active > span[data-i18n] {
+  color: #3b2708;
+}
+
+html:not([data-theme="dark"]) .nav-tab.active .nav-stationery {
+  --icon-paper: #ffd45c;
+  --icon-paper-2: #c98d15;
+  --icon-paper-line: rgba(60, 38, 4, .35);
+  --icon-ink: #201503;
+  opacity: 1;
+  transform: translateY(-3px) rotate(-5deg) skewY(-2deg);
+  filter: saturate(1.34) contrast(1.14) drop-shadow(0 8px 8px rgba(105, 69, 10, .34));
+}
+
+html:not([data-theme="dark"]) .nav-tab.active .nav-glyph {
+  outline: 1px solid rgba(133, 85, 5, .28);
+  box-shadow:
+    0 0 0 3px rgba(213, 161, 39, .18),
+    inset 1px 1px 0 rgba(255,255,255,.7),
+    inset -1px -1px 0 rgba(85, 55, 8, .22),
+    0 8px 12px rgba(102, 66, 10, .28);
+}
