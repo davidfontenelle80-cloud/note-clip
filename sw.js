@@ -1,9 +1,10 @@
-const CACHE_VERSION = 'note-clip-v66-category-source-patch';
+const CACHE_VERSION = 'note-clip-v67-category-css-source';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
   './css/styles.css',
+  './css/category-modal-source.css',
   './js/i18n.js',
   './js/storage.js',
   './js/dashboard.js',
@@ -38,10 +39,12 @@ const CONSISTENT_CALENDAR_NAV_ICON = `<svg width="24" height="24" viewBox="0 0 2
   <line x1="14" y1="19" x2="16" y2="19"/>
 </svg>`;
 
-const HOTFIX_STYLE_ID = 'noteclip-category-modal-hotfix';
+const NAV_DOT_STYLE_ID = 'noteclip-nav-dot-source-pending';
+const CATEGORY_MODAL_LINK_ID = 'noteclip-category-modal-source-css';
+const CATEGORY_MODAL_LINK = `<link id="${CATEGORY_MODAL_LINK_ID}" rel="stylesheet" href="./css/category-modal-source.css">`;
 
-const HOTFIX_STYLE = `<style id="${HOTFIX_STYLE_ID}">
-  /* Remove the redundant selected-tab dot. The glow/card/icon/label remain the active state. */
+const NAV_DOT_STYLE = `<style id="${NAV_DOT_STYLE_ID}">
+  /* Temporary until Item 3 removes the active-tab dot at the original nav source. */
   .nav-tab.active::after,
   .nav-tab.active:after,
   .nav-tab[aria-current="page"]::after,
@@ -53,71 +56,6 @@ const HOTFIX_STYLE = `<style id="${HOTFIX_STYLE_ID}">
     box-shadow: none !important;
     background: transparent !important;
   }
-
-  /* Mobile category modal workflow repair. */
-  #cat-modal .cat-modal-sheet {
-    display: flex !important;
-    flex-direction: column !important;
-    max-height: calc(100dvh - 24px - var(--keyboard-inset, 0px)) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    overscroll-behavior: contain !important;
-    scroll-padding-bottom: 96px !important;
-  }
-
-  #cat-modal .cat-modal-sheet > .modal-handle { order: 0 !important; flex: 0 0 auto !important; }
-  #cat-modal .cat-modal-sheet > .modal-title { order: 1 !important; flex: 0 0 auto !important; }
-
-  /* Original DOM order is icon picker first, name field second. Reorder visually so name is usable immediately. */
-  #cat-modal .cat-modal-sheet > .modal-title + .form-group {
-    order: 3 !important;
-    min-height: 0 !important;
-    margin-bottom: var(--space-sm, 8px) !important;
-  }
-  #cat-modal .cat-modal-sheet > .modal-title + .form-group + .form-group {
-    order: 2 !important;
-    flex: 0 0 auto !important;
-    margin-bottom: var(--space-md, 16px) !important;
-  }
-
-  #cat-modal #cat-name {
-    min-height: 48px !important;
-    font-size: 16px !important;
-  }
-
-  #cat-modal .cat-icon-selected {
-    margin-bottom: var(--space-sm, 8px) !important;
-  }
-
-  #cat-modal .cat-icon-picker {
-    max-height: min(30dvh, 240px) !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    padding-right: 2px !important;
-    padding-bottom: var(--space-sm, 8px) !important;
-  }
-
-  /* When the keyboard is open, keep Save/Cancel below the picker instead of floating over icons. */
-  #cat-modal .cat-modal-sheet:focus-within .cat-icon-picker {
-    max-height: min(18dvh, 145px) !important;
-  }
-
-  #cat-modal .cat-icon-grid {
-    padding-bottom: var(--space-md, 16px) !important;
-  }
-
-  #cat-modal .cat-modal-sheet > .modal-actions {
-    order: 4 !important;
-    position: static !important;
-    z-index: 20 !important;
-    margin-top: var(--space-sm, 8px) !important;
-    padding-top: var(--space-sm, 8px) !important;
-    padding-bottom: max(var(--space-sm, 8px), env(safe-area-inset-bottom, 0px)) !important;
-    background: color-mix(in srgb, var(--color-surface, #faf9f6) 96%, transparent) !important;
-    border-top: 1px solid var(--color-border, rgba(0,0,0,.08)) !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
 </style>`;
 
 function shouldPatchHtml(request) {
@@ -127,11 +65,14 @@ function shouldPatchHtml(request) {
 
 function patchInjectedStyles(html) {
   html = html.replace(/<style id="noteclip-category-modal-hotfix">[\s\S]*?<\/style>/g, '');
+  html = html.replace(/<style id="noteclip-nav-dot-source-pending">[\s\S]*?<\/style>/g, '');
+  html = html.replace(/<link id="noteclip-category-modal-source-css"[^>]*>/g, '');
   if (html.includes(LEGACY_CALENDAR_NAV_ICON)) {
     html = html.replace(LEGACY_CALENDAR_NAV_ICON, CONSISTENT_CALENDAR_NAV_ICON);
   }
-  if (html.includes('</head>')) return html.replace('</head>', `${HOTFIX_STYLE}\n</head>`);
-  return HOTFIX_STYLE + html;
+  const headInjection = `${CATEGORY_MODAL_LINK}\n${NAV_DOT_STYLE}`;
+  if (html.includes('</head>')) return html.replace('</head>', `${headInjection}\n</head>`);
+  return headInjection + html;
 }
 
 async function patchHtmlResponse(request, response) {
