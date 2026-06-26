@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v73-category-modal-standalone-fix';
+const CACHE_VERSION = 'note-clip-v74-category-card-polish';
 
 const PRECACHE_URLS = [
   './',
@@ -6,6 +6,7 @@ const PRECACHE_URLS = [
   './css/styles.css',
   './css/category-modal-source.css',
   './css/bottom-nav-source.css',
+  './css/category-card-polish.css',
   './js/i18n.js',
   './js/storage.js',
   './js/dashboard.js',
@@ -22,31 +23,17 @@ const PRECACHE_URLS = [
   './js/onboarding.js',
   './app.js',
   './js/fab-hotfix.js',
+  './js/category-card-polish.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
 ];
 
 const LEGACY_CALENDAR_NAV_ICON = '<span class="nav-icon nav-stationery nav-calendar" aria-hidden="true"><span class="nav-glyph"></span></span>';
-const CONSISTENT_CALENDAR_NAV_ICON = `<svg width="24" height="24" viewBox="0 0 28 28" class="nav-icon" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-  <rect x="5" y="6" width="18" height="17" rx="2" fill="currentColor" fill-opacity="0.08"/>
-  <rect x="5" y="6" width="18" height="17" rx="2"/>
-  <line x1="9" y1="3.5" x2="9" y2="8"/>
-  <line x1="19" y1="3.5" x2="19" y2="8"/>
-  <line x1="5" y1="11" x2="23" y2="11"/>
-  <line x1="9" y1="15" x2="11" y2="15"/>
-  <line x1="14" y1="15" x2="16" y2="15"/>
-  <line x1="19" y1="15" x2="21" y2="15"/>
-  <line x1="9" y1="19" x2="11" y2="19"/>
-  <line x1="14" y1="19" x2="16" y2="19"/>
-</svg>`;
+const CONSISTENT_CALENDAR_NAV_ICON = `<svg width="24" height="24" viewBox="0 0 28 28" class="nav-icon" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="6" width="18" height="17" rx="2" fill="currentColor" fill-opacity="0.08"/><rect x="5" y="6" width="18" height="17" rx="2"/><line x1="9" y1="3.5" x2="9" y2="8"/><line x1="19" y1="3.5" x2="19" y2="8"/><line x1="5" y1="11" x2="23" y2="11"/><line x1="9" y1="15" x2="11" y2="15"/><line x1="14" y1="15" x2="16" y2="15"/><line x1="19" y1="15" x2="21" y2="15"/><line x1="9" y1="19" x2="11" y2="19"/><line x1="14" y1="19" x2="16" y2="19"/></svg>`;
 
-const CATEGORY_MODAL_LINK_ID = 'noteclip-category-modal-source-css';
-const CATEGORY_MODAL_LINK = `<link id="${CATEGORY_MODAL_LINK_ID}" rel="stylesheet" href="./css/category-modal-source.css">`;
-const BOTTOM_NAV_LINK_ID = 'noteclip-light-nav-contrast';
-const BOTTOM_NAV_LINK = `<link id="${BOTTOM_NAV_LINK_ID}" rel="stylesheet" href="./css/bottom-nav-source.css">`;
-const FAB_HOTFIX_SCRIPT_ID = 'noteclip-fab-hotfix';
-const FAB_HOTFIX_SCRIPT = `<script id="${FAB_HOTFIX_SCRIPT_ID}" src="./js/fab-hotfix.js"></script>`;
+const HEAD_LINKS = `<link id="noteclip-category-modal-source-css" rel="stylesheet" href="./css/category-modal-source.css">\n<link id="noteclip-light-nav-contrast" rel="stylesheet" href="./css/bottom-nav-source.css">\n<link id="noteclip-category-card-polish" rel="stylesheet" href="./css/category-card-polish.css">`;
+const BODY_SCRIPTS = `<script id="noteclip-fab-hotfix" src="./js/fab-hotfix.js"></script>\n<script id="noteclip-category-card-polish-js" src="./js/category-card-polish.js"></script>`;
 
 function shouldPatchHtml(request) {
   const url = new URL(request.url);
@@ -59,32 +46,22 @@ function patchInjectedStyles(html) {
   html = html.replace(/<style id="noteclip-light-nav-contrast">[\s\S]*?<\/style>/g, '');
   html = html.replace(/<link id="noteclip-category-modal-source-css"[^>]*>/g, '');
   html = html.replace(/<link id="noteclip-light-nav-contrast"[^>]*>/g, '');
+  html = html.replace(/<link id="noteclip-category-card-polish"[^>]*>/g, '');
   html = html.replace(/<script id="noteclip-fab-hotfix"[^>]*><\/script>/g, '');
+  html = html.replace(/<script id="noteclip-category-card-polish-js"[^>]*><\/script>/g, '');
   html = html.replace(/\s*<button class="nav-tab" data-tab="shared"[\s\S]*?<\/button>/g, '');
   html = html.replace(/\s*<section id="pane-shared"[\s\S]*?<\/section>/g, '');
-  if (html.includes(LEGACY_CALENDAR_NAV_ICON)) {
-    html = html.replace(LEGACY_CALENDAR_NAV_ICON, CONSISTENT_CALENDAR_NAV_ICON);
-  }
-  const headInjection = `${CATEGORY_MODAL_LINK}\n${BOTTOM_NAV_LINK}`;
-  if (html.includes('</head>')) html = html.replace('</head>', `${headInjection}\n</head>`);
-  else html = headInjection + html;
-
-  if (html.includes('</body>')) return html.replace('</body>', `${FAB_HOTFIX_SCRIPT}\n</body>`);
-  return html + FAB_HOTFIX_SCRIPT;
+  if (html.includes(LEGACY_CALENDAR_NAV_ICON)) html = html.replace(LEGACY_CALENDAR_NAV_ICON, CONSISTENT_CALENDAR_NAV_ICON);
+  html = html.includes('</head>') ? html.replace('</head>', `${HEAD_LINKS}\n</head>`) : HEAD_LINKS + html;
+  return html.includes('</body>') ? html.replace('</body>', `${BODY_SCRIPTS}\n</body>`) : html + BODY_SCRIPTS;
 }
 
 async function patchHtmlResponse(request, response) {
   if (!response || !response.ok || !shouldPatchHtml(request)) return response;
-
   const contentType = response.headers.get('content-type') || '';
   if (contentType && !contentType.includes('text/html')) return response;
-
   const html = await response.text();
-  return new Response(patchInjectedStyles(html), {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers,
-  });
+  return new Response(patchInjectedStyles(html), { status: response.status, statusText: response.statusText, headers: response.headers });
 }
 
 async function precache() {
@@ -92,59 +69,30 @@ async function precache() {
   await Promise.all(PRECACHE_URLS.map(async url => {
     const request = new Request(url, { cache: 'reload' });
     const response = await fetch(request);
-    if (response.ok) {
-      await cache.put(request, await patchHtmlResponse(request, response));
-    }
+    if (response.ok) await cache.put(request, await patchHtmlResponse(request, response));
   }));
 }
 
-self.addEventListener('install', event => {
-  event.waitUntil(precache().then(() => self.skipWaiting()));
-});
-
+self.addEventListener('install', event => { event.waitUntil(precache().then(() => self.skipWaiting())); });
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
-      .then(() => {
-        self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
-          clients.forEach(client => client.postMessage({ type: 'RELOAD_READY' }));
-        });
-      })
-  );
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim()).then(() => { self.clients.matchAll({ includeUncontrolled: true }).then(clients => { clients.forEach(client => client.postMessage({ type: 'RELOAD_READY' })); }); }));
 });
-
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   if (!event.request.url.startsWith(self.location.origin)) return;
-
   event.respondWith(caches.match(event.request).then(async cached => {
     if (cached) return patchHtmlResponse(event.request, cached);
-
     const response = await fetch(event.request);
     if (response.ok) {
       const normalized = await patchHtmlResponse(event.request, response.clone());
-      const cacheClone = normalized.clone();
-      caches.open(CACHE_VERSION).then(cache => cache.put(event.request, cacheClone));
+      caches.open(CACHE_VERSION).then(cache => cache.put(event.request, normalized.clone()));
       return normalized;
     }
     return response;
   }));
 });
-
-self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
-});
-
-// ── Background push notifications ────────────────────────────────────────────
+self.addEventListener('message', event => { if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting(); });
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
-  event.waitUntil(
-    self.registration.showNotification(data.title || 'Note Clip Reminder', {
-      body: data.body || '',
-      icon: './icons/icon-192.png',
-      tag:  data.tag  || 'note-clip-reminder',
-    })
-  );
+  event.waitUntil(self.registration.showNotification(data.title || 'Note Clip Reminder', { body: data.body || '', icon: './icons/icon-192.png', tag: data.tag || 'note-clip-reminder' }));
 });
