@@ -5,7 +5,7 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Issue: #1 — Stabilization cleanup: move UI hotfixes into source and smoke-test mobile workflows
 
 ## Current stage
-Mobile stabilization cleanup + UI polish pass + Stage 14 PDF Attachment MVP.
+Mobile stabilization cleanup + UI polish pass + Stage 14B Full-Screen PDF Reader.
 
 ## Rule
 Before each stabilization item:
@@ -63,36 +63,35 @@ Decisions:
 Status: Code-level implemented, live phone verified
 
 ### 14. PDF Attachment MVP
+Status: Code-level implemented, live phone verified with observation: first reader view was too small.
+
+### 14B. Full-Screen PDF Reader
 Status: Code-level implemented, awaiting live phone verification
 
 Objective:
-- Enable PDF attachments using the same attachment/storage framework as photos.
+- Replace the cramped embedded PDF reader with an edge-to-edge reader and floating close button.
 
 Tasks:
-- [x] Make category-card + > PDF active.
-- [x] Open PDF file picker from PDF action.
-- [x] Create a new note in that category with the PDF attached.
-- [x] Store PDF attachment metadata on the note record.
-- [x] Show PDF badge on note cards.
-- [x] Show PDF cards inside edit note modal.
-- [x] Allow adding a PDF to an existing saved note.
-- [x] Allow tapping PDF to open a full-screen viewer.
-- [x] Allow deleting PDF from a note.
-- [x] Enforce existing 5 MB per-attachment / 250 MB total safety limits.
-- [x] Bump service worker cache so PDF assets load.
+- [x] Make PDF viewer fill the entire viewport.
+- [x] Remove header bar from PDF reader.
+- [x] Add floating translucent X close button at top-right.
+- [x] Respect iPhone safe-area insets.
+- [x] Prevent background body scroll while PDF reader is open.
+- [x] Keep PDF card compact inside the note editor.
+- [x] Update PDF card copy to say Open PDF full screen.
+- [x] Add Escape key close for desktop testing.
+- [x] Bump service worker cache so reader polish loads.
 
 Implementation notes:
-- Added `js/pdf-attachments.js`.
-- Updated `js/category-card-add-menu.js` so PDF launches `App.PdfAttachments.createPdfNote(cat.id)`.
-- Added PDF card/viewer styles to `css/attachment-meter.css`.
-- Updated `sw.js` to precache and inject `js/pdf-attachments.js`.
-- Cache bumped to `note-clip-v81-pdf-attachments-mvp`.
+- Updated `js/pdf-attachments.js` to create a true full-screen overlay using `pdf-reader-open` body state.
+- Added `App.PdfAttachments.closeViewer()`.
+- Updated `css/attachment-meter.css` with `.pdf-floating-close`, full-screen iframe rules, and safe-area positioning.
+- Cache bumped to `note-clip-v82-fullscreen-pdf-reader`.
 
 Commits:
-- `044e8d838d4253a3d13d3cdcbcac777dd76cab11` — Add PDF attachment MVP.
-- `69b900b449f0de1f6abb80b8f21c53f4a36dc1eb` — Enable PDF action from category create menu.
-- `8589b8081eb6e4ad9d4599d9c93a6d6bc2be51f7` — Style PDF attachment previews.
-- `78fdefbef81fccdc365229ad24275f5ecad28fc0` — Load PDF attachment MVP.
+- `6bc1b19d07d6adf081778257097b1c8eac2bd817` — Make PDF viewer full screen.
+- `fa1441ff63850ec6464e705d441d1e6332409bb8` — Polish full screen PDF reader.
+- `f57d169c24fa57d6e0d0e3efa6c19b603d141f21` — Bump cache for full screen PDF reader.
 
 ## Attachment feature roadmap
 
@@ -105,9 +104,9 @@ Pending. Add document capture, crop/straighten, and PDF creation.
 ## Latest code checkpoint
 - `sw.js` still owns HTML patching until `index.html` can be safely full-file edited.
 - `js/photo-attachments.js` owns local photo attachment behavior and storage checks.
-- `js/pdf-attachments.js` owns local PDF attachment behavior and storage checks.
+- `js/pdf-attachments.js` owns local PDF attachment behavior, storage checks, and full-screen reader.
 - `js/attachment-meter.js` owns attachment stats, Settings meter, and Manage Storage actions.
-- `css/attachment-meter.css` owns storage meter, storage actions, and PDF preview/viewer visuals.
+- `css/attachment-meter.css` owns storage meter, storage actions, PDF cards, and full-screen reader visuals.
 
 ## Smoke test checklist
 - [ ] Dashboard loads.
@@ -121,12 +120,14 @@ Pending. Add document capture, crop/straighten, and PDF creation.
 - [x] Manage Storage View opens image viewer.
 - [x] Manage Storage Delete removes only the attachment.
 - [x] Storage meter updates after deleting attachment.
-- [ ] PDF from category-card + opens file picker.
-- [ ] Selected PDF creates note in correct category.
-- [ ] PDF badge appears on note card.
-- [ ] PDF card appears inside edit note modal.
-- [ ] Add PDF works on existing saved note.
-- [ ] Tapping PDF opens full-screen viewer.
+- [x] PDF from category-card + opens file picker.
+- [x] Selected PDF creates note in correct category.
+- [x] PDF badge appears on note card.
+- [x] PDF card appears inside edit note modal.
+- [x] Add PDF works on existing saved note.
+- [ ] Tapping PDF opens true full-screen reader.
+- [ ] Floating X closes PDF reader.
+- [ ] PDF reader uses nearly full phone screen.
 - [ ] Deleting PDF removes it from note.
 - [ ] Photo workflow still works.
 - [ ] Notes add/edit/delete works.
