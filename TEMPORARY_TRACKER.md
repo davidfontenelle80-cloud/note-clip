@@ -84,11 +84,27 @@ Commit:
 - `3c5c6bee956aa7217049098447e112974711f49f` — Remove bottom nav dot override source.
 
 ### 4. Bottom nav styling consolidation
-Status: Pending
+Status: Code-level implemented, awaiting live phone verification
 
 Tasks:
-- [ ] Reduce overlapping nav style systems.
-- [ ] Keep approved visual design.
+- [x] Reduce overlapping nav style systems.
+- [x] Keep approved visual design.
+
+Implementation notes:
+- Added `css/bottom-nav-source.css` with the approved light-mode bottom-nav polish.
+- `sw.js` now precaches `css/bottom-nav-source.css`.
+- `sw.js` injects `<link id="noteclip-light-nav-contrast" rel="stylesheet" href="./css/bottom-nav-source.css">` into HTML.
+- This intentionally uses the same id as the former app.js inline style guard, so `enhanceLightModeNavIcons()` exits early and does not inject its duplicate inline style.
+- Cache bumped to `note-clip-v69-bottom-nav-source`.
+
+Verification notes:
+- Repo verified after commit: `css/bottom-nav-source.css` exists and contains the approved nav polish rules.
+- Repo verified after commit: `sw.js` precaches `./css/bottom-nav-source.css`.
+- Repo verified after commit: `sw.js` removes stale inline `noteclip-light-nav-contrast` style blocks and injects the source CSS link.
+
+Commits:
+- `9cc7a6cbd696937a078260eaaf48b58b31451622` — Move bottom nav light styling into source file.
+- `a71bf0f6625897b0172e1cae38da0b2f3c1bb450` — Load bottom nav styling from source file.
 
 ### 5. Retired Shared tab cleanup
 Status: Pending
@@ -118,7 +134,11 @@ Tasks:
 - `css/category-modal-source.css` owns category modal mobile layout CSS.
 - `sw.js` still injects the stylesheet link for `css/category-modal-source.css` until later HTML/source cleanup.
 - `sw.js` no longer injects the bottom-nav selected-dot override.
+- `css/bottom-nav-source.css` now owns the light-mode bottom-nav polish.
+- `sw.js` now injects a source CSS link for bottom-nav polish and prevents the app.js duplicate inline style from being added.
 - Recent commits:
+  - `a71bf0f6625897b0172e1cae38da0b2f3c1bb450` — Load bottom nav styling from source file.
+  - `9cc7a6cbd696937a078260eaaf48b58b31451622` — Move bottom nav light styling into source file.
   - `3c5c6bee956aa7217049098447e112974711f49f` — Remove bottom nav dot override source.
   - `8c50bd2aba58cbfbe523d3cba899427f511621a9` — Add Item 2 verification note.
   - `ad012d36687e33bfaed022d0f9c1fb40f5b1e26d` — Update tracker after category CSS source move.
