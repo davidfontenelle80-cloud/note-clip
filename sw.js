@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v81-pdf-attachments-mvp';
+const CACHE_VERSION = 'note-clip-v82-fullscreen-pdf-reader';
 
 const PRECACHE_URLS = [
   './',
