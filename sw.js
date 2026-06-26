@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v67-category-css-source';
+const CACHE_VERSION = 'note-clip-v68-nav-dot-source-removed';
 
 const PRECACHE_URLS = [
   './',
@@ -39,24 +39,8 @@ const CONSISTENT_CALENDAR_NAV_ICON = `<svg width="24" height="24" viewBox="0 0 2
   <line x1="14" y1="19" x2="16" y2="19"/>
 </svg>`;
 
-const NAV_DOT_STYLE_ID = 'noteclip-nav-dot-source-pending';
 const CATEGORY_MODAL_LINK_ID = 'noteclip-category-modal-source-css';
 const CATEGORY_MODAL_LINK = `<link id="${CATEGORY_MODAL_LINK_ID}" rel="stylesheet" href="./css/category-modal-source.css">`;
-
-const NAV_DOT_STYLE = `<style id="${NAV_DOT_STYLE_ID}">
-  /* Temporary until Item 3 removes the active-tab dot at the original nav source. */
-  .nav-tab.active::after,
-  .nav-tab.active:after,
-  .nav-tab[aria-current="page"]::after,
-  .nav-tab[aria-current="page"]:after {
-    content: none !important;
-    display: none !important;
-    width: 0 !important;
-    height: 0 !important;
-    box-shadow: none !important;
-    background: transparent !important;
-  }
-</style>`;
 
 function shouldPatchHtml(request) {
   const url = new URL(request.url);
@@ -70,9 +54,8 @@ function patchInjectedStyles(html) {
   if (html.includes(LEGACY_CALENDAR_NAV_ICON)) {
     html = html.replace(LEGACY_CALENDAR_NAV_ICON, CONSISTENT_CALENDAR_NAV_ICON);
   }
-  const headInjection = `${CATEGORY_MODAL_LINK}\n${NAV_DOT_STYLE}`;
-  if (html.includes('</head>')) return html.replace('</head>', `${headInjection}\n</head>`);
-  return headInjection + html;
+  if (html.includes('</head>')) return html.replace('</head>', `${CATEGORY_MODAL_LINK}\n</head>`);
+  return CATEGORY_MODAL_LINK + html;
 }
 
 async function patchHtmlResponse(request, response) {
