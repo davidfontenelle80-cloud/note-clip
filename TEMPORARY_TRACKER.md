@@ -158,6 +158,25 @@ Tasks:
 - [ ] Test Lists + workflow.
 - [ ] Fix autofocus/keyboard overlap only if confirmed.
 
+### 8. Greeting logic fix
+Status: Code-level implemented, awaiting live phone verification
+
+Tasks:
+- [x] Treat midnight through 11:59 a.m. as morning.
+- [x] Keep afternoon/evening/night thresholds intact after noon.
+- [x] Keep greeting icon in sync with greeting text.
+- [x] Bump service worker cache so `js/dashboard.js` reloads.
+
+Implementation notes:
+- Added `_dayPeriod()` in `js/dashboard.js`.
+- `getGreeting()` and `greetingIcon()` now both use `_dayPeriod()`.
+- Early morning hours like 4:47 a.m. now resolve to `greeting_morning`, not `greeting_night`.
+- Cache bumped to `note-clip-v71-greeting-logic-fix`.
+
+Commits:
+- `a90eaa5233640dce0a8007dab0e304e44eb83516` — Fix early morning greeting logic.
+- `7552b8f7b603f7962ef9cf0f54d8787962cc07f5` — Bump cache for greeting logic fix.
+
 ## Latest code checkpoint
 - `sw.js` no longer contains the category modal CSS block.
 - `css/category-modal-source.css` owns category modal mobile layout CSS.
@@ -167,7 +186,10 @@ Tasks:
 - `sw.js` now injects a source CSS link for bottom-nav polish and prevents the app.js duplicate inline style from being added.
 - `sw.js` strips the retired Shared tab from served HTML before app wiring.
 - `sw.js` still owns some HTML patching until `index.html` can be safely full-file edited.
+- `js/dashboard.js` greeting logic now treats early morning as morning.
 - Recent commits:
+  - `7552b8f7b603f7962ef9cf0f54d8787962cc07f5` — Bump cache for greeting logic fix.
+  - `a90eaa5233640dce0a8007dab0e304e44eb83516` — Fix early morning greeting logic.
   - `3ba895af664f219893ba42916f50c391b5cb18e7` — Strip retired Shared tab from served HTML.
   - `a71bf0f6625897b0172e1cae38da0b2f3c1bb450` — Load bottom nav styling from source file.
   - `9cc7a6cbd696937a078260eaaf48b58b31451622` — Move bottom nav light styling into source file.
@@ -183,6 +205,7 @@ Tasks:
 
 ## Smoke test checklist
 - [ ] Dashboard loads.
+- [ ] Dashboard greeting says Good morning in early morning hours.
 - [ ] Bottom nav tabs switch correctly.
 - [ ] Active tab has glow/card but no dot.
 - [ ] Categories + opens Add Category.
