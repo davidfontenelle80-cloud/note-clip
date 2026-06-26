@@ -37,12 +37,22 @@ Commits:
 - `81b14f000eab0c28d1bf4b27258f24de4c9d4dbb` — Bump cache for category modal source patch.
 
 ### 2. Category modal CSS source cleanup
-Status: Pending
+Status: Code-level implemented, awaiting live phone verification
 
 Tasks:
-- [ ] Move keyboard-safe modal behavior into source CSS.
-- [ ] Keep icon picker scrollable on mobile.
-- [ ] Ensure Save/Cancel do not float over icon cards.
+- [x] Move keyboard-safe modal behavior into source CSS.
+- [x] Keep icon picker scrollable on mobile.
+- [x] Ensure Save/Cancel do not float over icon cards.
+
+Implementation notes:
+- Added `css/category-modal-source.css` with mobile-safe category modal rules.
+- Removed category-modal CSS rules from the service-worker inline style block.
+- `sw.js` now precaches `css/category-modal-source.css` and injects a stylesheet link for it until the later source-markup cleanup can place the link directly in `index.html`.
+- The remaining `sw.js` inline style is now only the temporary bottom-nav selected-dot override for Item 3.
+
+Commits:
+- `5c3dcd634a9d533e4314b23d76254a5bda6013a1` — Move category modal layout CSS into source file.
+- `55249539a708ad416b900728a7f7dcfd1c1fc5a5` — Load category modal CSS from source file.
 
 ### 3. Bottom nav selected-dot source removal
 Status: Pending
@@ -82,9 +92,13 @@ Tasks:
 - [ ] Fix autofocus/keyboard overlap only if confirmed.
 
 ## Latest code checkpoint
-- `sw.js` still contains temporary UI hotfix CSS injection for category modal and bottom-nav selected dot.
-- Category modal behavior now also has a source-level patch in `app.js`; next pass should move the CSS portion into `css/styles.css` and then remove it from `sw.js` after verification.
+- `sw.js` no longer contains the category modal CSS block.
+- `css/category-modal-source.css` owns category modal mobile layout CSS.
+- `sw.js` still injects the stylesheet link for `css/category-modal-source.css` until later HTML/source cleanup.
+- `sw.js` still contains temporary UI CSS injection for the bottom-nav selected dot only.
 - Recent commits:
+  - `55249539a708ad416b900728a7f7dcfd1c1fc5a5` — Load category modal CSS from source file.
+  - `5c3dcd634a9d533e4314b23d76254a5bda6013a1` — Move category modal layout CSS into source file.
   - `81b14f000eab0c28d1bf4b27258f24de4c9d4dbb` — Bump cache for category modal source patch.
   - `bf27a4799fcc0a1f35495b33a7a1c06d2fad92af` — Move category modal workflow into source patch.
   - `fc92b0fee79d1d389e0f45f2f8d7ef3b30cfbc0b` — category modal keyboard polish.
