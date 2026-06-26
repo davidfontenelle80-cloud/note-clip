@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v71-greeting-logic-fix';
+const CACHE_VERSION = 'note-clip-v72-fab-route-hotfix';
 
 const PRECACHE_URLS = [
   './',
@@ -21,6 +21,7 @@ const PRECACHE_URLS = [
   './js/firebase/cloud-sync.js',
   './js/onboarding.js',
   './app.js',
+  './js/fab-hotfix.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
@@ -44,6 +45,8 @@ const CATEGORY_MODAL_LINK_ID = 'noteclip-category-modal-source-css';
 const CATEGORY_MODAL_LINK = `<link id="${CATEGORY_MODAL_LINK_ID}" rel="stylesheet" href="./css/category-modal-source.css">`;
 const BOTTOM_NAV_LINK_ID = 'noteclip-light-nav-contrast';
 const BOTTOM_NAV_LINK = `<link id="${BOTTOM_NAV_LINK_ID}" rel="stylesheet" href="./css/bottom-nav-source.css">`;
+const FAB_HOTFIX_SCRIPT_ID = 'noteclip-fab-hotfix';
+const FAB_HOTFIX_SCRIPT = `<script id="${FAB_HOTFIX_SCRIPT_ID}" src="./js/fab-hotfix.js"></script>`;
 
 function shouldPatchHtml(request) {
   const url = new URL(request.url);
@@ -56,14 +59,18 @@ function patchInjectedStyles(html) {
   html = html.replace(/<style id="noteclip-light-nav-contrast">[\s\S]*?<\/style>/g, '');
   html = html.replace(/<link id="noteclip-category-modal-source-css"[^>]*>/g, '');
   html = html.replace(/<link id="noteclip-light-nav-contrast"[^>]*>/g, '');
+  html = html.replace(/<script id="noteclip-fab-hotfix"[^>]*><\/script>/g, '');
   html = html.replace(/\s*<button class="nav-tab" data-tab="shared"[\s\S]*?<\/button>/g, '');
   html = html.replace(/\s*<section id="pane-shared"[\s\S]*?<\/section>/g, '');
   if (html.includes(LEGACY_CALENDAR_NAV_ICON)) {
     html = html.replace(LEGACY_CALENDAR_NAV_ICON, CONSISTENT_CALENDAR_NAV_ICON);
   }
   const headInjection = `${CATEGORY_MODAL_LINK}\n${BOTTOM_NAV_LINK}`;
-  if (html.includes('</head>')) return html.replace('</head>', `${headInjection}\n</head>`);
-  return headInjection + html;
+  if (html.includes('</head>')) html = html.replace('</head>', `${headInjection}\n</head>`);
+  else html = headInjection + html;
+
+  if (html.includes('</body>')) return html.replace('</body>', `${FAB_HOTFIX_SCRIPT}\n</body>`);
+  return html + FAB_HOTFIX_SCRIPT;
 }
 
 async function patchHtmlResponse(request, response) {
