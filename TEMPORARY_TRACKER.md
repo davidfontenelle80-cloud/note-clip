@@ -50,9 +50,15 @@ Implementation notes:
 - `sw.js` now precaches `css/category-modal-source.css` and injects a stylesheet link for it until the later source-markup cleanup can place the link directly in `index.html`.
 - The remaining `sw.js` inline style is now only the temporary bottom-nav selected-dot override for Item 3.
 
+Verification notes:
+- Repo verified after commit: `css/category-modal-source.css` exists and contains only category modal layout rules.
+- Repo verified after commit: `sw.js` includes `./css/category-modal-source.css` in `PRECACHE_URLS`.
+- Repo verified after commit: old `<style id="noteclip-category-modal-hotfix">` category modal block is removed from `sw.js` and replaced with a source CSS link plus a temporary nav-dot-only style.
+
 Commits:
 - `5c3dcd634a9d533e4314b23d76254a5bda6013a1` — Move category modal layout CSS into source file.
 - `55249539a708ad416b900728a7f7dcfd1c1fc5a5` — Load category modal CSS from source file.
+- `ad012d36687e33bfaed022d0f9c1fb40f5b1e26d` — Update tracker after category CSS source move.
 
 ### 3. Bottom nav selected-dot source removal
 Status: Pending
@@ -97,6 +103,7 @@ Tasks:
 - `sw.js` still injects the stylesheet link for `css/category-modal-source.css` until later HTML/source cleanup.
 - `sw.js` still contains temporary UI CSS injection for the bottom-nav selected dot only.
 - Recent commits:
+  - `ad012d36687e33bfaed022d0f9c1fb40f5b1e26d` — Update tracker after category CSS source move.
   - `55249539a708ad416b900728a7f7dcfd1c1fc5a5` — Load category modal CSS from source file.
   - `5c3dcd634a9d533e4314b23d76254a5bda6013a1` — Move category modal layout CSS into source file.
   - `81b14f000eab0c28d1bf4b27258f24de4c9d4dbb` — Bump cache for category modal source patch.
