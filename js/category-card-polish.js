@@ -16,9 +16,8 @@
     const pop=document.createElement('div');
     pop.className='category-action-popover';
     pop.innerHTML=`
-      <button type="button" data-action="rename"><span>✎</span><span>Rename</span></button>
-      <button type="button" data-action="icon"><span>▦</span><span>Change Icon</span></button>
-      <button type="button" class="danger" data-action="delete"><span>⌫</span><span>Delete Category</span></button>`;
+      <button type="button" data-action="edit"><span>✎</span><span>Edit</span></button>
+      <button type="button" class="danger" data-action="delete"><span>⌫</span><span>Delete</span></button>`;
 
     pop.addEventListener('click', e=>{
       const action=e.target.closest('button')?.dataset.action;
@@ -33,7 +32,7 @@
     const r=anchor.getBoundingClientRect();
     const w=220;
     const left=Math.max(12,Math.min(window.innerWidth-w-12,r.right-w));
-    const top=Math.max(12,Math.min(window.innerHeight-170,r.bottom+8));
+    const top=Math.max(12,Math.min(window.innerHeight-130,r.bottom+8));
     pop.style.left=left+'px';
     pop.style.top=top+'px';
   }
