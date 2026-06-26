@@ -63,11 +63,25 @@ Commits:
 - `8c50bd2aba58cbfbe523d3cba899427f511621a9` — Add Item 2 verification note.
 
 ### 3. Bottom nav selected-dot source removal
-Status: Pending
+Status: Code-level implemented, awaiting live phone verification
 
 Tasks:
-- [ ] Remove selected-tab dot at source.
-- [ ] Keep approved glow/card/icon/label active state.
+- [x] Remove selected-tab dot at source.
+- [x] Keep approved glow/card/icon/label active state.
+
+Implementation notes:
+- Removed the temporary `NAV_DOT_STYLE` override from `sw.js`.
+- `sw.js` no longer injects `.nav-tab.active::after` / `:after` dot-hiding CSS.
+- This leaves the approved active tab indication to the existing glow/card/icon/label styles.
+- Cache bumped to `note-clip-v68-nav-dot-source-removed`.
+
+Verification notes:
+- Repo verified after commit: `sw.js` no longer defines `NAV_DOT_STYLE`.
+- Repo verified after commit: `sw.js` no longer injects `noteclip-nav-dot-source-pending` style content.
+- Repo verified after commit: `sw.js` still removes any stale cached `noteclip-nav-dot-source-pending` block from HTML before injecting current source assets.
+
+Commit:
+- `3c5c6bee956aa7217049098447e112974711f49f` — Remove bottom nav dot override source.
 
 ### 4. Bottom nav styling consolidation
 Status: Pending
@@ -103,8 +117,9 @@ Tasks:
 - `sw.js` no longer contains the category modal CSS block.
 - `css/category-modal-source.css` owns category modal mobile layout CSS.
 - `sw.js` still injects the stylesheet link for `css/category-modal-source.css` until later HTML/source cleanup.
-- `sw.js` still contains temporary UI CSS injection for the bottom-nav selected dot only.
+- `sw.js` no longer injects the bottom-nav selected-dot override.
 - Recent commits:
+  - `3c5c6bee956aa7217049098447e112974711f49f` — Remove bottom nav dot override source.
   - `8c50bd2aba58cbfbe523d3cba899427f511621a9` — Add Item 2 verification note.
   - `ad012d36687e33bfaed022d0f9c1fb40f5b1e26d` — Update tracker after category CSS source move.
   - `55249539a708ad416b900728a7f7dcfd1c1fc5a5` — Load category modal CSS from source file.
