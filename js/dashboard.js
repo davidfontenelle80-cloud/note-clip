@@ -23,22 +23,26 @@
   }
 
   // ── Greeting ──────────────────────────────────────────────────────
+  function _dayPeriod(hour = new Date().getHours()) {
+    // Treat after-midnight / pre-dawn as morning because it is the new day.
+    // This avoids showing "Good night" to early risers around 4–5 a.m.
+    if (hour >= 0  && hour < 12) return 'morning';
+    if (hour >= 12 && hour < 17) return 'afternoon';
+    if (hour >= 17 && hour < 21) return 'evening';
+    return 'night';
+  }
+
   function getGreeting(name) {
     if (!name) return App.I18n.t('greeting_welcome');
-    const h = new Date().getHours();
-    if (h >= 5  && h < 12) return App.I18n.t('greeting_morning');
-    if (h >= 12 && h < 17) return App.I18n.t('greeting_afternoon');
-    if (h >= 17 && h < 21) return App.I18n.t('greeting_evening');
+    const period = _dayPeriod();
+    if (period === 'morning') return App.I18n.t('greeting_morning');
+    if (period === 'afternoon') return App.I18n.t('greeting_afternoon');
+    if (period === 'evening') return App.I18n.t('greeting_evening');
     return App.I18n.t('greeting_night');
   }
 
   function greetingIcon() {
-    const h = new Date().getHours();
-    let period;
-    if (h >= 5  && h < 12) period = 'morning';
-    else if (h >= 12 && h < 17) period = 'afternoon';
-    else if (h >= 17 && h < 21) period = 'evening';
-    else period = 'night';
+    const period = _dayPeriod();
     return `<span class="greeting-stationery-icon greeting-${period}" aria-hidden="true"><span></span></span>`;
   }
 
