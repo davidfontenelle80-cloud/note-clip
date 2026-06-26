@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v69-bottom-nav-source';
+const CACHE_VERSION = 'note-clip-v70-shared-tab-cleanup';
 
 const PRECACHE_URLS = [
   './',
@@ -56,6 +56,8 @@ function patchInjectedStyles(html) {
   html = html.replace(/<style id="noteclip-light-nav-contrast">[\s\S]*?<\/style>/g, '');
   html = html.replace(/<link id="noteclip-category-modal-source-css"[^>]*>/g, '');
   html = html.replace(/<link id="noteclip-light-nav-contrast"[^>]*>/g, '');
+  html = html.replace(/\s*<button class="nav-tab" data-tab="shared"[\s\S]*?<\/button>/g, '');
+  html = html.replace(/\s*<section id="pane-shared"[\s\S]*?<\/section>/g, '');
   if (html.includes(LEGACY_CALENDAR_NAV_ICON)) {
     html = html.replace(LEGACY_CALENDAR_NAV_ICON, CONSISTENT_CALENDAR_NAV_ICON);
   }
