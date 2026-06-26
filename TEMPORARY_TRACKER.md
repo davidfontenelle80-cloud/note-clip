@@ -5,7 +5,7 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Issue: #1 — Stabilization cleanup: move UI hotfixes into source and smoke-test mobile workflows
 
 ## Current stage
-Mobile stabilization cleanup + UI polish pass + attachment roadmap Stage A/B.
+Mobile stabilization cleanup + UI polish pass + Stage 13 Photo Attachments MVP.
 
 ## Rule
 Before each stabilization item:
@@ -45,30 +45,11 @@ Status: Code-level implemented, live phone verified after standalone modal fallb
 ### 10. Notes category card polish
 Status: Code-level implemented, awaiting live phone verification
 
-Tasks:
-- [x] Replace always-visible Edit/Delete circles with one clean more menu.
-- [x] Keep tap-on-card behavior opening category notes.
-- [x] Keep Edit/Delete behavior available from the menu.
-- [x] Make category icons larger and more visually balanced.
-- [x] Add subtle category accent corners.
-- [x] Lighten paper texture and improve spacing/shadows.
-- [x] Bump service worker cache so polish assets load.
-
 ### 11. Editable category accent colors
 Status: Code-level implemented, awaiting live phone verification
 
-Tasks:
-- [x] Add Card Accent Color to Add/Edit Category modal.
-- [x] Add No Color option.
-- [x] Save selected accent color on the category record.
-- [x] Apply saved category color back onto cards after render.
-- [x] Bump service worker cache so accent script loads.
-
 ### 12. Category card create menu / attachment roadmap Stage A-B
 Status: Code-level implemented, awaiting live phone verification
-
-Objective:
-- Add the category-card plus workflow now, without enabling risky attachment storage yet.
 
 Tasks:
 - [x] Add a small + button to each category card.
@@ -76,34 +57,52 @@ Tasks:
 - [x] Tapping three-dot menu still opens Edit/Delete.
 - [x] Tapping category-card + opens Create in [Category].
 - [x] New Note works and preselects that category.
-- [x] Photo appears as Coming next placeholder.
 - [x] PDF appears as Coming next placeholder.
-- [x] No storage schema change yet for attachments.
 - [x] Bump service worker cache so new script loads.
 
+### 13. Photo Attachments MVP
+Status: Code-level implemented, awaiting live phone verification
+
+Objective:
+- Enable first local attachment type: photos/images.
+
+Tasks:
+- [x] Make category-card + > Photo active.
+- [x] Open image picker/camera from Photo action.
+- [x] Compress selected photo before saving.
+- [x] Create a new note in that category with the photo attached.
+- [x] Store photo attachment metadata on the note record.
+- [x] Show photo thumbnails on note cards.
+- [x] Show attachment gallery inside edit note modal.
+- [x] Allow adding another photo to an existing saved note.
+- [x] Allow tapping photo to open full-screen viewer.
+- [x] Allow deleting a photo from a note.
+- [x] Keep PDF as Coming next.
+- [x] Bump service worker cache so photo attachment script loads.
+
 Implementation notes:
-- Added `js/category-card-add-menu.js`.
-- Added category-card + button styling and create-menu styling to `css/category-card-polish.css`.
-- `sw.js` now precaches and injects `js/category-card-add-menu.js`.
-- Cache bumped to `note-clip-v77-category-create-menu`.
-- New Note opens the existing note modal and sets the selected category.
-- Photo/PDF intentionally show Coming next until local attachment storage is built.
+- Added `js/photo-attachments.js`.
+- Uses image file input and client-side canvas compression.
+- Stores MVP image data as compressed Data URL inside `note.attachments`.
+- Adds note-card thumbnails and edit-modal attachment gallery without changing the base `js/notes.js` save flow.
+- Added photo preview/viewer styles to `css/category-card-polish.css`.
+- `js/category-card-add-menu.js` now routes Photo to `App.PhotoAttachments.createPhotoNote(cat.id)`.
+- `sw.js` now precaches and injects `js/photo-attachments.js`.
+- Cache bumped to `note-clip-v78-photo-attachments-mvp`.
 
 Commits:
-- `89fd6cf17659417fa5117764bd8850c5e089cf4b` — Add category card create menu.
-- `6a7dee74d3787c6ea9e213c5d1ccd643684dade6` — Style category card create menu.
-- `e7d108984961f44602b78a1b8618180660e5178e` — Load category card create menu.
+- `2945feec0ba458e8130a94f58a2ca07944a09713` — Add photo attachment MVP.
+- `6065293d4013fc31317d022cd1f820a0fa70073a` — Enable photo action from category create menu.
+- `dd40b9fab2516e6497a1fb957dfa965809a5756e` — Style photo attachment previews.
+- `e74e4cfa3e748c0bb7fc4e9a53182c45d707e6ae` — Load photo attachment MVP.
 
 ## Attachment feature roadmap
 
-### Stage C — Local attachment MVP
-Pending. Add image/PDF file picker, local storage strategy, attachment metadata on notes, and safe file-size limits.
+### Stage 14 — PDF attachment MVP
+Pending. Add PDF file picker, PDF metadata, PDF preview card/open behavior, and delete support.
 
-### Stage D — Attachment viewer/delete
-Pending. Add full-screen image viewer, PDF card/open behavior, delete attachment, and note render support.
-
-### Stage E — Backup/sync attachments
-Pending. Add cloud backup/sync after local storage is stable.
+### Stage 15 — Attachment backup/sync
+Pending. Move beyond local MVP storage after attachment behavior is stable.
 
 ## Latest code checkpoint
 - `sw.js` still owns HTML patching until `index.html` can be safely full-file edited.
@@ -111,6 +110,7 @@ Pending. Add cloud backup/sync after local storage is stable.
 - `js/fab-hotfix.js` owns robust floating + button routing, category modal fallback, and category accent editing.
 - `css/category-card-polish.css`, `js/category-card-polish.js`, and `js/cat-accent-apply.js` own the refreshed category-card UI and editable corner accent.
 - `js/category-card-add-menu.js` owns the category-card + create menu.
+- `js/photo-attachments.js` owns local photo attachment MVP behavior.
 
 ## Smoke test checklist
 - [ ] Dashboard loads.
@@ -127,15 +127,15 @@ Pending. Add cloud backup/sync after local storage is stable.
 - [ ] Category-card + appears on each category card.
 - [ ] Category-card + opens Create in [Category].
 - [ ] New Note from category-card + opens note modal with that category selected.
-- [ ] Photo placeholder shows Coming next.
+- [ ] Photo from category-card + opens image picker/camera.
+- [ ] Selected photo creates note in correct category.
+- [ ] Photo thumbnail appears on note card.
+- [ ] Photo appears inside edit note modal.
+- [ ] Add Photo works on existing saved note.
+- [ ] Tapping photo opens full-screen viewer.
+- [ ] Deleting photo removes it from note.
 - [ ] PDF placeholder shows Coming next.
 - [ ] Delete category still confirms/deletes correctly.
-- [ ] Category Name is visible immediately.
-- [ ] Type category name.
-- [ ] Select icon.
-- [ ] Save category.
-- [ ] Edit category.
-- [ ] Delete category.
 - [ ] Notes add/edit/delete works.
 - [ ] Lists add/edit/check/delete works.
 - [ ] Calendar opens and date tap works.
