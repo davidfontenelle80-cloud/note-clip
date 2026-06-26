@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v79-attachment-storage-safety';
+const CACHE_VERSION = 'note-clip-v80-storage-manager-actions';
 
 const PRECACHE_URLS = [
   './',
