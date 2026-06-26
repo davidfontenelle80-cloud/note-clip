@@ -1,4 +1,4 @@
-/* category-card-add-menu.js — Stage B category card create menu */
+/* category-card-add-menu.js — category card create menu */
 (function(App){
   'use strict';
 
@@ -44,13 +44,13 @@
     pop.className='category-create-popover';
     pop.innerHTML='<div class="category-create-title">Create in '+esc(cat.name)+'</div>'+
       '<button type="button" data-action="note"><span>📝</span><span>New Note</span></button>'+
-      '<button type="button" data-action="photo"><span>📷</span><span>Photo</span><em>Coming next</em></button>'+
+      '<button type="button" data-action="photo"><span>📷</span><span>Photo</span></button>'+
       '<button type="button" data-action="pdf"><span>📄</span><span>PDF</span><em>Coming next</em></button>';
     pop.addEventListener('click',function(e){
       const action=e.target.closest('button')?.dataset.action;
       if(!action)return;
       if(action==='note') createNoteInCategory(cat.id);
-      if(action==='photo') comingSoon('Photo attachments');
+      if(action==='photo') { closeMenu(); App.PhotoAttachments?.createPhotoNote?.(cat.id); }
       if(action==='pdf') comingSoon('PDF attachments');
     });
 
