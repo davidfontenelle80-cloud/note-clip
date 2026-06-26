@@ -5,7 +5,7 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Issue: #1 — Stabilization cleanup: move UI hotfixes into source and smoke-test mobile workflows
 
 ## Current stage
-Mobile stabilization cleanup.
+Mobile stabilization cleanup + UI polish pass.
 
 ## Rule
 Before each stabilization item:
@@ -17,118 +17,6 @@ Before each stabilization item:
 
 ## Stabilization checklist
 
-### 1. Category modal source cleanup
-Status: Code-level implemented, awaiting live phone verification
-
-Tasks:
-- [x] Move category modal workflow into source code via `app.js` source patch.
-- [x] Ensure Add/Edit Category visual DOM flow is: Category Name, Category Icon, icon picker, actions.
-- [x] Remove forced scroll/focus behavior after icon tap by overriding `_setCatIcon()` in source.
-- [x] Keep icon selection updating hidden input, selected class, and preview.
-
-Implementation notes:
-- `app.js` now runs `patchCategoryModalWorkflow()` after the existing note modal i18n guard.
-- The patch normalizes Add/Edit Category modal ordering after the original `js/notes.js` modal opens.
-- The patch overrides `App.Notes._setCatIcon()` so icon taps do not force-scroll or focus the name field.
-- Cache bumped in `sw.js` to `note-clip-v66-category-source-patch` so changed `app.js` is picked up.
-
-Commits:
-- `bf27a4799fcc0a1f35495b33a7a1c06d2fad92af` — Move category modal workflow into source patch.
-- `81b14f000eab0c28d1bf4b27258f24de4c9d4dbb` — Bump cache for category modal source patch.
-
-### 2. Category modal CSS source cleanup
-Status: Code-level implemented, awaiting live phone verification
-
-Tasks:
-- [x] Move keyboard-safe modal behavior into source CSS.
-- [x] Keep icon picker scrollable on mobile.
-- [x] Ensure Save/Cancel do not float over icon cards.
-
-Implementation notes:
-- Added `css/category-modal-source.css` with mobile-safe category modal rules.
-- Removed category-modal CSS rules from the service-worker inline style block.
-- `sw.js` now precaches `css/category-modal-source.css` and injects a stylesheet link for it until the later source-markup cleanup can place the link directly in `index.html`.
-- The remaining `sw.js` inline style is now only the temporary bottom-nav selected-dot override for Item 3.
-
-Verification notes:
-- Repo verified after commit: `css/category-modal-source.css` exists and contains only category modal layout rules.
-- Repo verified after commit: `sw.js` includes `./css/category-modal-source.css` in `PRECACHE_URLS`.
-- Repo verified after commit: old `<style id="noteclip-category-modal-hotfix">` category modal block is removed from `sw.js` and replaced with a source CSS link plus a temporary nav-dot-only style.
-- Issue #1 has not yet been refreshed after Item 2; tracker is source of truth until next issue sync.
-
-Commits:
-- `5c3dcd634a9d533e4314b23d76254a5bda6013a1` — Move category modal layout CSS into source file.
-- `55249539a708ad416b900728a7f7dcfd1c1fc5a5` — Load category modal CSS from source file.
-- `ad012d36687e33bfaed022d0f9c1fb40f5b1e26d` — Update tracker after category CSS source move.
-- `8c50bd2aba58cbfbe523d3cba899427f511621a9` — Add Item 2 verification note.
-
-### 3. Bottom nav selected-dot source removal
-Status: Code-level implemented, awaiting live phone verification
-
-Tasks:
-- [x] Remove selected-tab dot at source.
-- [x] Keep approved glow/card/icon/label active state.
-
-Implementation notes:
-- Removed the temporary `NAV_DOT_STYLE` override from `sw.js`.
-- `sw.js` no longer injects `.nav-tab.active::after` / `:after` dot-hiding CSS.
-- This leaves the approved active tab indication to the existing glow/card/icon/label styles.
-- Cache bumped to `note-clip-v68-nav-dot-source-removed`.
-
-Verification notes:
-- Repo verified after commit: `sw.js` no longer defines `NAV_DOT_STYLE`.
-- Repo verified after commit: `sw.js` no longer injects `noteclip-nav-dot-source-pending` style content.
-- Repo verified after commit: `sw.js` still removes any stale cached `noteclip-nav-dot-source-pending` block from HTML before injecting current source assets.
-
-Commit:
-- `3c5c6bee956aa7217049098447e112974711f49f` — Remove bottom nav dot override source.
-
-### 4. Bottom nav styling consolidation
-Status: Code-level implemented, awaiting live phone verification
-
-Tasks:
-- [x] Reduce overlapping nav style systems.
-- [x] Keep approved visual design.
-
-Implementation notes:
-- Added `css/bottom-nav-source.css` with the approved light-mode bottom-nav polish.
-- `sw.js` now precaches `css/bottom-nav-source.css`.
-- `sw.js` injects `<link id="noteclip-light-nav-contrast" rel="stylesheet" href="./css/bottom-nav-source.css">` into HTML.
-- This intentionally uses the same id as the former app.js inline style guard, so `enhanceLightModeNavIcons()` exits early and does not inject its duplicate inline style.
-- Cache bumped to `note-clip-v69-bottom-nav-source`.
-
-Verification notes:
-- Repo verified after commit: `css/bottom-nav-source.css` exists and contains the approved nav polish rules.
-- Repo verified after commit: `sw.js` precaches `./css/bottom-nav-source.css`.
-- Repo verified after commit: `sw.js` removes stale inline `noteclip-light-nav-contrast` style blocks and injects the source CSS link.
-
-Commits:
-- `9cc7a6cbd696937a078260eaaf48b58b31451622` — Move bottom nav light styling into source file.
-- `a71bf0f6625897b0172e1cae38da0b2f3c1bb450` — Load bottom nav styling from source file.
-
-### 5. Retired Shared tab cleanup
-Status: Code-level implemented with fallback retained, awaiting live phone verification
-
-Tasks:
-- [x] Remove retired Shared tab from served markup before app wiring.
-- [ ] Remove runtime removal only after direct `index.html` source replacement is safe.
-- [x] Preserve stored shared data unless separately approved.
-
-Implementation notes:
-- `sw.js` now strips the retired `<button class="nav-tab" data-tab="shared">...</button>` block from served HTML.
-- `sw.js` also strips any stale `<section id="pane-shared">...</section>` block if present in old cached HTML.
-- Existing `app.js` runtime `removeSharedTabChrome()` remains as a safe fallback for old uncontrolled/cached pages.
-- No storage schema or old shared data was changed.
-- Cache bumped to `note-clip-v70-shared-tab-cleanup`.
-
-Verification notes:
-- Repo verified after commit: `sw.js` contains explicit shared-tab and shared-pane removal patterns.
-- Repo verified after commit: `sw.js` keeps cache, push notification, and stylesheet-link behavior intact.
-- Direct `index.html` full-file replacement was not attempted because the file is large and the tool truncates the inline style block; preserving app safety took priority.
-
-Commit:
-- `3ba895af664f219893ba42916f50c391b5cb18e7` — Strip retired Shared tab from served HTML.
-
 ### 6. Service worker UI hotfix cleanup
 Status: BLOCKED / deferred for safe-source-edit limitation
 
@@ -138,18 +26,8 @@ Tasks:
 - [ ] Bump cache version once when completed.
 
 Audit notes:
-- `sw.js` still has HTML patching responsibilities: adding source CSS links, swapping the legacy calendar icon, and stripping the retired Shared tab from served HTML.
-- Full cleanup requires safely editing `index.html` directly so it includes `css/category-modal-source.css`, `css/bottom-nav-source.css`, the corrected calendar icon, and no Shared tab markup.
-- Direct `index.html` replacement is not currently safe because the GitHub file output truncates the long inline style block. Replacing the whole file from a partial/truncated copy could corrupt the app.
-- No further service worker cleanup was performed to avoid breaking the currently working app.
-- Cache and push notification behavior remain intact.
-
-Recommended resolution:
-- Use a local clone or Codex full-file access to edit `index.html` safely.
-- After `index.html` directly owns those changes, remove `patchInjectedStyles()` HTML rewriting from `sw.js` and keep `sw.js` as cache/push only.
-
-Commit:
-- `339b5f2d8c33b7da3425df0e386c038de35ec034` — Audit service worker cleanup blocker.
+- `sw.js` still has HTML patching responsibilities until `index.html` can be safely edited directly.
+- Use local clone/Codex full-file access later.
 
 ### 7. List modal keyboard check
 Status: Pending
@@ -159,7 +37,7 @@ Tasks:
 - [ ] Fix autofocus/keyboard overlap only if confirmed.
 
 ### 8. Greeting logic fix
-Status: Code-level implemented, awaiting live phone verification
+Status: Code-level implemented, live phone verified
 
 Tasks:
 - [x] Treat midnight through 11:59 a.m. as morning.
@@ -167,18 +45,12 @@ Tasks:
 - [x] Keep greeting icon in sync with greeting text.
 - [x] Bump service worker cache so `js/dashboard.js` reloads.
 
-Implementation notes:
-- Added `_dayPeriod()` in `js/dashboard.js`.
-- `getGreeting()` and `greetingIcon()` now both use `_dayPeriod()`.
-- Early morning hours like 4:47 a.m. now resolve to `greeting_morning`, not `greeting_night`.
-- Cache bumped to `note-clip-v71-greeting-logic-fix`.
-
 Commits:
 - `a90eaa5233640dce0a8007dab0e304e44eb83516` — Fix early morning greeting logic.
 - `7552b8f7b603f7962ef9cf0f54d8787962cc07f5` — Bump cache for greeting logic fix.
 
 ### 9. FAB category creation routing fix
-Status: Code-level implemented, awaiting live phone verification
+Status: Code-level implemented, live phone verified after standalone modal fallback
 
 Tasks:
 - [x] Ensure the floating + button opens Add Category while Notes is in By Category view.
@@ -189,51 +61,56 @@ Tasks:
 
 Implementation notes:
 - Added `js/fab-hotfix.js`.
-- The new script installs a capture-phase click handler on `#fab` so older click handlers cannot misroute the tap.
-- It detects active tab from active bottom nav or active pane.
-- It detects Notes category view by looking for `.category-grid`, `.category-card`, or an active category toggle.
-- `sw.js` now precaches and injects `./js/fab-hotfix.js` after the app scripts.
-- Cache bumped to `note-clip-v72-fab-route-hotfix`.
+- Follow-up fixed real issue: original `_openCatModal` was private inside `js/notes.js`; standalone fallback now opens Add/Edit Category modal directly.
+- Cache bumped to `note-clip-v73-category-modal-standalone-fix`.
 
 Commits:
 - `6a074e51011a054e33a0182f0730f0e5cd609a52` — Add robust FAB routing hotfix.
 - `ccfe4a25d47528e35a5fafcb152a07174cdb3667` — Load robust FAB routing hotfix.
+- `219c147a03bba2835642d2e37bf9037a117632a2` — Fix category add and edit modal routing.
+- `d7ff4515a0ce1a25efa603aa1dee33a176856bf1` — Bump cache for category modal standalone fix.
+
+### 10. Notes category card polish
+Status: Code-level implemented, awaiting live phone verification
+
+Tasks:
+- [x] Replace always-visible Edit/Delete circles with one clean more menu.
+- [x] Keep tap-on-card behavior opening category notes.
+- [x] Keep Rename/Change Icon/Delete behavior available from the menu.
+- [x] Make category icons larger and more visually balanced.
+- [x] Add subtle category accent corners.
+- [x] Lighten paper texture and improve spacing/shadows.
+- [x] Bump service worker cache so polish assets load.
+
+Implementation notes:
+- Added `css/category-card-polish.css` for refreshed card styling.
+- Added `js/category-card-polish.js` to transform existing rendered category cards without changing storage data.
+- The script hides old edit/delete buttons and appends a `•••` category action button.
+- The menu calls existing edit/delete buttons internally, preserving current behavior and confirmations.
+- `sw.js` now precaches and injects the card polish CSS/JS.
+- Cache bumped to `note-clip-v74-category-card-polish`.
+
+Commits:
+- `bb947d14561d3b064581823e76c0b93307cc244d` — Add polished category card UI.
+- `8d330bcd6f84aa2f33f49761495a080cd544952a` — Add category card more menu behavior.
+- `7b739704796ef178a8edec0c17dbc16dd9c6718e` — Load category card polish assets.
 
 ## Latest code checkpoint
-- `sw.js` no longer contains the category modal CSS block.
-- `css/category-modal-source.css` owns category modal mobile layout CSS.
-- `sw.js` still injects the stylesheet link for `css/category-modal-source.css` until later HTML/source cleanup.
-- `sw.js` no longer injects the bottom-nav selected-dot override.
-- `css/bottom-nav-source.css` now owns the light-mode bottom-nav polish.
-- `sw.js` now injects a source CSS link for bottom-nav polish and prevents the app.js duplicate inline style from being added.
-- `sw.js` strips the retired Shared tab from served HTML before app wiring.
-- `sw.js` still owns some HTML patching until `index.html` can be safely full-file edited.
+- `sw.js` still owns HTML patching until `index.html` can be safely full-file edited.
 - `js/dashboard.js` greeting logic now treats early morning as morning.
-- `js/fab-hotfix.js` now owns robust floating + button routing.
-- Recent commits:
-  - `ccfe4a25d47528e35a5fafcb152a07174cdb3667` — Load robust FAB routing hotfix.
-  - `6a074e51011a054e33a0182f0730f0e5cd609a52` — Add robust FAB routing hotfix.
-  - `7552b8f7b603f7962ef9cf0f54d8787962cc07f5` — Bump cache for greeting logic fix.
-  - `a90eaa5233640dce0a8007dab0e304e44eb83516` — Fix early morning greeting logic.
-  - `3ba895af664f219893ba42916f50c391b5cb18e7` — Strip retired Shared tab from served HTML.
-  - `a71bf0f6625897b0172e1cae38da0b2f3c1bb450` — Load bottom nav styling from source file.
-  - `9cc7a6cbd696937a078260eaaf48b58b31451622` — Move bottom nav light styling into source file.
-  - `3c5c6bee956aa7217049098447e112974711f49f` — Remove bottom nav dot override source.
-  - `8c50bd2aba58cbfbe523d3cba899427f511621a9` — Add Item 2 verification note.
-  - `ad012d36687e33bfaed022d0f9c1fb40f5b1e26d` — Update tracker after category CSS source move.
-  - `55249539a708ad416b900728a7f7dcfd1c1fc5a5` — Load category modal CSS from source file.
-  - `5c3dcd634a9d533e4314b23d76254a5bda6013a1` — Move category modal layout CSS into source file.
-  - `81b14f000eab0c28d1bf4b27258f24de4c9d4dbb` — Bump cache for category modal source patch.
-  - `bf27a4799fcc0a1f35495b33a7a1c06d2fad92af` — Move category modal workflow into source patch.
-  - `fc92b0fee79d1d389e0f45f2f8d7ef3b30cfbc0b` — category modal keyboard polish.
-  - `abf9316b250bce6fb83b5183eeddfc0c7dfaa9a4` — initial category modal hotfix.
+- `js/fab-hotfix.js` owns robust floating + button routing and category modal fallback.
+- `css/category-card-polish.css` and `js/category-card-polish.js` own the refreshed category-card UI.
 
 ## Smoke test checklist
 - [ ] Dashboard loads.
-- [ ] Dashboard greeting says Good morning in early morning hours.
-- [ ] Bottom nav tabs switch correctly.
-- [ ] Active tab has glow/card but no dot.
-- [ ] Categories + opens Add Category.
+- [x] Dashboard greeting says Good morning in early morning hours.
+- [x] Bottom nav tabs switch correctly.
+- [x] Active tab has glow/card but no dot.
+- [x] Categories + opens Add Category.
+- [ ] Category cards show only the more button, not separate edit/delete circles.
+- [ ] More button opens Rename / Change Icon / Delete Category menu.
+- [ ] Rename opens edit category modal.
+- [ ] Delete category still confirms/deletes correctly.
 - [ ] Category Name is visible immediately.
 - [ ] Type category name.
 - [ ] Select icon.
