@@ -1,10 +1,11 @@
-const CACHE_VERSION = 'note-clip-v68-nav-dot-source-removed';
+const CACHE_VERSION = 'note-clip-v69-bottom-nav-source';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
   './css/styles.css',
   './css/category-modal-source.css',
+  './css/bottom-nav-source.css',
   './js/i18n.js',
   './js/storage.js',
   './js/dashboard.js',
@@ -41,6 +42,8 @@ const CONSISTENT_CALENDAR_NAV_ICON = `<svg width="24" height="24" viewBox="0 0 2
 
 const CATEGORY_MODAL_LINK_ID = 'noteclip-category-modal-source-css';
 const CATEGORY_MODAL_LINK = `<link id="${CATEGORY_MODAL_LINK_ID}" rel="stylesheet" href="./css/category-modal-source.css">`;
+const BOTTOM_NAV_LINK_ID = 'noteclip-light-nav-contrast';
+const BOTTOM_NAV_LINK = `<link id="${BOTTOM_NAV_LINK_ID}" rel="stylesheet" href="./css/bottom-nav-source.css">`;
 
 function shouldPatchHtml(request) {
   const url = new URL(request.url);
@@ -50,12 +53,15 @@ function shouldPatchHtml(request) {
 function patchInjectedStyles(html) {
   html = html.replace(/<style id="noteclip-category-modal-hotfix">[\s\S]*?<\/style>/g, '');
   html = html.replace(/<style id="noteclip-nav-dot-source-pending">[\s\S]*?<\/style>/g, '');
+  html = html.replace(/<style id="noteclip-light-nav-contrast">[\s\S]*?<\/style>/g, '');
   html = html.replace(/<link id="noteclip-category-modal-source-css"[^>]*>/g, '');
+  html = html.replace(/<link id="noteclip-light-nav-contrast"[^>]*>/g, '');
   if (html.includes(LEGACY_CALENDAR_NAV_ICON)) {
     html = html.replace(LEGACY_CALENDAR_NAV_ICON, CONSISTENT_CALENDAR_NAV_ICON);
   }
-  if (html.includes('</head>')) return html.replace('</head>', `${CATEGORY_MODAL_LINK}\n</head>`);
-  return CATEGORY_MODAL_LINK + html;
+  const headInjection = `${CATEGORY_MODAL_LINK}\n${BOTTOM_NAV_LINK}`;
+  if (html.includes('</head>')) return html.replace('</head>', `${headInjection}\n</head>`);
+  return headInjection + html;
 }
 
 async function patchHtmlResponse(request, response) {
