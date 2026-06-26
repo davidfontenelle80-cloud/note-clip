@@ -107,12 +107,27 @@ Commits:
 - `a71bf0f6625897b0172e1cae38da0b2f3c1bb450` — Load bottom nav styling from source file.
 
 ### 5. Retired Shared tab cleanup
-Status: Pending
+Status: Code-level implemented with fallback retained, awaiting live phone verification
 
 Tasks:
-- [ ] Remove retired Shared tab from source markup.
-- [ ] Remove runtime removal only after source no longer needs it.
-- [ ] Preserve stored shared data unless separately approved.
+- [x] Remove retired Shared tab from served markup before app wiring.
+- [ ] Remove runtime removal only after direct `index.html` source replacement is safe.
+- [x] Preserve stored shared data unless separately approved.
+
+Implementation notes:
+- `sw.js` now strips the retired `<button class="nav-tab" data-tab="shared">...</button>` block from served HTML.
+- `sw.js` also strips any stale `<section id="pane-shared">...</section>` block if present in old cached HTML.
+- Existing `app.js` runtime `removeSharedTabChrome()` remains as a safe fallback for old uncontrolled/cached pages.
+- No storage schema or old shared data was changed.
+- Cache bumped to `note-clip-v70-shared-tab-cleanup`.
+
+Verification notes:
+- Repo verified after commit: `sw.js` contains explicit shared-tab and shared-pane removal patterns.
+- Repo verified after commit: `sw.js` keeps cache, push notification, and stylesheet-link behavior intact.
+- Direct `index.html` full-file replacement was not attempted because the file is large and the tool truncates the inline style block; preserving app safety took priority.
+
+Commit:
+- `3ba895af664f219893ba42916f50c391b5cb18e7` — Strip retired Shared tab from served HTML.
 
 ### 6. Service worker UI hotfix cleanup
 Status: Pending
@@ -136,7 +151,9 @@ Tasks:
 - `sw.js` no longer injects the bottom-nav selected-dot override.
 - `css/bottom-nav-source.css` now owns the light-mode bottom-nav polish.
 - `sw.js` now injects a source CSS link for bottom-nav polish and prevents the app.js duplicate inline style from being added.
+- `sw.js` strips the retired Shared tab from served HTML before app wiring.
 - Recent commits:
+  - `3ba895af664f219893ba42916f50c391b5cb18e7` — Strip retired Shared tab from served HTML.
   - `a71bf0f6625897b0172e1cae38da0b2f3c1bb450` — Load bottom nav styling from source file.
   - `9cc7a6cbd696937a078260eaaf48b58b31451622` — Move bottom nav light styling into source file.
   - `3c5c6bee956aa7217049098447e112974711f49f` — Remove bottom nav dot override source.
