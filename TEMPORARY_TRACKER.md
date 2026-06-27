@@ -6,34 +6,28 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Stage 16I — Color Save Handoff Repair
 
 ## Current status
-Stage 16I is authorized.
+Stage 16I is code implemented, not live approved.
 
 ## User-confirmed issue
-The pastel swatches now appear in the category editor, but choosing a color and saving does not apply the color to the card.
+The pastel swatches appeared in the category editor, but choosing a color and saving did not apply the color to the card.
 
-## Objective
-Repair the handoff between the safe picker and the existing category save button.
+## Implemented
+- Repaired `js/category-color-safe-picker.js` so it binds directly to the category modal Save button.
+- Removed dependency on catching the exported `_saveCat` wrapper at the right time.
+- Added a short retry for app readiness so the picker cannot miss `App.Notes` during load.
+- Save now writes `name`, `icon`, and selected `color` to `App.Storage.updateCategory` / `addCategory`.
+- Existing card color helper still applies the saved color after render.
+- Cache bumped to `note-clip-v102-color-save-handoff`.
 
-## Scope
-Allowed:
+## Files changed
 - `js/category-color-safe-picker.js`
 - `sw.js`
 - `TEMPORARY_TRACKER.md`
 
-Not allowed:
-- MutationObserver loops.
-- Re-enable old risky `category-color-true-match.js`.
-- Scanner files.
-- Attachment files.
-- Firebase/cloud files.
-- Storage schema changes.
-- Broad layout redesign.
-
-## Required behavior
-- Swatch tap stores selected color in `#cat-color`.
-- Save button stores selected color in category record.
-- Existing card color helper applies the color after render.
-- App must not freeze.
+## Commits
+- `0e63791aead646082cc102a40ac1e8323fc88afe` — Authorize color save handoff repair.
+- `cdc689392744b7d724caabbcebfb397a7ce6f530` — Repair safe color picker save button.
+- `52d3087a8391a51473e999c0cf8dac07462e91bc` — Bump cache for color save handoff.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
@@ -46,4 +40,4 @@ Not allowed:
 - [ ] Confirm app does not freeze.
 
 ## Stop condition
-Stop after Stage 16I only.
+Stop after Stage 16I live verification.
