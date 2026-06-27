@@ -3,7 +3,7 @@
 Repo: `davidfontenelle80-cloud/note-clip`
 
 ## Current stage
-Stage 15E — Auto-first document workflow
+Stage 15F — Level Two Scanner Polish
 
 ## Rule
 Before each stabilization item:
@@ -14,86 +14,92 @@ Before each stabilization item:
 5. Mark the item complete only after the code-level check passes.
 
 ## Current status
-Stage 15E is code implemented, not live approved.
+Stage 15F is code implemented, not live approved.
 
 ## Previous checkpoint
-Stage 15D added four-point page correction.
+Stage 15E added the auto-first corrected preview workflow.
 
-Stage 15D commits:
-- `57c70fc31c12a4543f7c05f6a7d1db2aa2d4b23d` — Add four-corner page correction.
-- `eadf636196a0ee098adda74b89be7c4d67c45710` — Update cache version for scanner.
-- `2b0cf9a4d814a9a8cecdb9e4aed9408ef4ce809b` — Sync tracker with Stage 15D.
+Stage 15E commits:
+- `e002b2a53173bd458acd4ed2f2996408d109125d` — Add auto-first scanner review flow.
+- `1ad14cb6ffed1a1a42a63ac61a366e13a7d61835` — Bump cache for auto-first scanner.
+- `ce848dc84dcbe6f85f30c2c56064ed59bab86e2c` — Update tracker for Stage 15E.
 
-## Stage 15E objective
-Make the workflow match the modern document app pattern:
-- Corrected page preview first.
-- Manual corner edit only when the user taps Adjust.
-- Save PDF from corrected preview.
+## Stage 15F objective
+Improve the scanner toward Level Two quality inside the PWA:
+- Better auto crop behavior.
+- Confidence scoring.
+- Clear Crop and Auto Crop wording.
+- Cleaner document enhancement.
+- Tighter PDF margins.
+- Manual corner adjustment only when needed.
 
-## Stage 15E implemented
-- After image capture/selection, the app automatically detects the page area.
-- The app immediately creates a corrected page preview.
-- The review screen opens on the corrected preview, not the corner editor.
-- User can save directly if the preview looks right.
-- User can tap Adjust Corners if the page detection is wrong.
-- Adjust Corners opens the four-point editor.
-- Preview returns from the editor back to the corrected-preview screen.
-- Filters remain available: Enhanced, Color, and B&W.
-- Rotate updates the corrected preview.
-- PDF naming remains in the review screen.
-- Save PDF uses the corrected preview when available.
-- Existing PDF attachment save behavior is preserved.
-- Existing storage checks are preserved.
-- Cache bumped to `note-clip-v89-auto-first-scanner`.
+## Stage 15F implemented
+- Improved document area detection with brighter-paper and edge-gradient sampling.
+- Added detection confidence score.
+- Added confidence display in the review screen.
+- If confidence is low, app warns that manual adjustment may be needed.
+- Changed wording to Crop and Auto Crop.
+- Auto Crop reruns the corner detection and refreshes the corrected preview.
+- Crop opens the four-corner manual editor.
+- Manual editor now says Crop document.
+- Manual editor includes Auto Crop, Preview, and Save PDF.
+- Added Retake button from review screen.
+- Improved Enhanced, Color, and B&W filters.
+- Added light sharpening for non-color modes.
+- Tightened PDF margins from prior output.
+- Save source marker updated to `scan-level-two-auto-crop`.
+- Cache bumped to `note-clip-v90-level-two-scanner`.
 
-## Stage 15E files changed
+## Stage 15F files changed
 - `js/document-scanner-edge.js`
 - `sw.js`
 - `TEMPORARY_TRACKER.md`
 
-## Stage 15E commits
-- `e002b2a53173bd458acd4ed2f2996408d109125d` — Add auto-first scanner review flow.
-- `1ad14cb6ffed1a1a42a63ac61a366e13a7d61835` — Bump cache for auto-first scanner.
+## Stage 15F commits
+- `aff79878e11212cb30c0888549fa7e5cbcb412c2` — Add level two scanner polish.
+- `1798160a851224099175bad659ef4391c6fa9231` — Bump cache for level two scanner.
 
 ## Code-level verification
-- `js/document-scanner-edge.js` now starts with Stage 15E auto-first workflow.
-- Initial review screen is corrected preview first.
-- Manual corner editor is behind Adjust Corners.
-- Save path uses `scan-auto-first` as the source marker.
-- `sw.js` cache version is `note-clip-v89-auto-first-scanner`.
-- No cloud sync, OCR, AI search, or unrelated app areas were added.
+- `js/document-scanner-edge.js` now starts with Stage 15F level-two scanner code.
+- Auto Crop exists in the corrected-preview screen and manual crop screen.
+- Crop opens the four-corner editor.
+- Detection confidence is calculated and displayed.
+- Save uses source marker `scan-level-two-auto-crop`.
+- `sw.js` cache version is `note-clip-v90-level-two-scanner`.
+- No cloud sync, text recognition, AI search, or unrelated app areas were added.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache on phone.
 - [ ] Category card → Scan Document.
 - [ ] Capture/select a receipt or paper document.
-- [ ] Confirm the first review screen shows a corrected page preview, not crop handles.
-- [ ] Confirm the corrected preview removes most background.
-- [ ] Confirm the corrected preview is squared/flattened.
-- [ ] Rename the PDF.
-- [ ] Try Enhanced, Color, and B&W.
-- [ ] Tap Rotate and confirm preview updates.
-- [ ] Tap Save PDF directly without manual adjustment.
-- [ ] Confirm saved PDF opens and looks like the corrected preview.
-- [ ] Repeat scan and tap Adjust Corners.
-- [ ] Confirm four corner handles appear only after Adjust Corners.
+- [ ] Confirm first review screen shows corrected page preview.
+- [ ] Confirm confidence text appears.
+- [ ] Confirm Auto Crop button appears.
+- [ ] Tap Auto Crop and confirm preview refreshes.
+- [ ] Tap Crop and confirm four-corner editor opens.
 - [ ] Drag all four corners.
-- [ ] Tap Preview.
-- [ ] Confirm it returns to corrected preview.
-- [ ] Save PDF after adjustment.
-- [ ] Confirm new note title matches entered name.
+- [ ] Tap Preview and confirm it returns to corrected-preview screen.
+- [ ] Try Enhanced, Color, and B&W.
+- [ ] Confirm Enhanced improves contrast/readability.
+- [ ] Confirm B&W creates high contrast text mode.
+- [ ] Tap Retake and confirm scanner restarts.
+- [ ] Rename the PDF.
+- [ ] Tap Save PDF.
+- [ ] Confirm saved PDF is tighter, flatter, and removes most background.
+- [ ] Confirm saved PDF opens full screen.
 - [ ] Confirm storage meter still works.
 - [ ] Confirm Photo review/naming still works.
 - [ ] Confirm PDF review/naming still works.
 - [ ] Confirm Notes, Lists, Calendar, and Settings still open.
 
 ## Known limitations
-- Stage 15E still uses the iOS image capture handoff.
-- It does not yet show live edge overlay before the shutter.
-- It does not yet auto-capture while the camera is open.
-- The current goal is the OneDrive-style post-capture corrected preview workflow.
+- Stage 15F is still post-capture scanning inside a web/PWA app.
+- It does not include native VisionKit.
+- It does not include live edge overlay before taking the picture.
+- It does not include auto shutter capture.
+- It does not include OCR/text recognition.
 
 ## Next authorized stage
-Stage 15E live phone verification only.
+Stage 15F live phone verification only.
 
-Do not begin cloud sync, OCR, AI search, or live camera overlay until Stage 15E is live-approved.
+Do not begin cloud sync, OCR, AI search, or live camera overlay until Stage 15F is live-approved.
