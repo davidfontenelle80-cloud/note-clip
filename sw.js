@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v91-auto-crop-repair';
+const CACHE_VERSION = 'note-clip-v92-category-interactions';
 
 const PRECACHE_URLS = [
   './',
