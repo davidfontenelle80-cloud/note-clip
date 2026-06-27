@@ -3,7 +3,7 @@
 Repo: `davidfontenelle80-cloud/note-clip`
 
 ## Current stage
-Stage 15D — Four Point Page Correction
+Stage 15E — Auto-first document workflow
 
 ## Rule
 Before each stabilization item:
@@ -13,42 +13,87 @@ Before each stabilization item:
 4. Verify the changed files and commit.
 5. Mark the item complete only after the code-level check passes.
 
-## Repo sync update
-The repo currently includes Stage 15D code in `js/document-scanner-edge.js` and cache version `note-clip-v88-four-corner-scanner` in `sw.js`.
+## Current status
+Stage 15E is code implemented, not live approved.
 
-Stage 15D status: code implemented, not live approved.
+## Previous checkpoint
+Stage 15D added four-point page correction.
 
-Files changed in Stage 15D:
-- `js/document-scanner-edge.js`
-- `sw.js`
-
-Commits:
+Stage 15D commits:
 - `57c70fc31c12a4543f7c05f6a7d1db2aa2d4b23d` — Add four-corner page correction.
 - `eadf636196a0ee098adda74b89be7c4d67c45710` — Update cache version for scanner.
+- `2b0cf9a4d814a9a8cecdb9e4aed9408ef4ce809b` — Sync tracker with Stage 15D.
 
-## Next authorized work
-Stage 15E — Auto-first document workflow.
+## Stage 15E objective
+Make the workflow match the modern document app pattern:
+- Corrected page preview first.
+- Manual corner edit only when the user taps Adjust.
+- Save PDF from corrected preview.
 
-Required behavior for Stage 15E:
-- Auto-select document corners first.
-- Auto-create the corrected page preview first.
-- Show manual corner adjustment only if the user taps Adjust.
-- Preserve PDF naming.
-- Preserve PDF viewer.
-- Preserve storage limits.
-- Do not add cloud sync.
-- Do not add text recognition.
-- Do not modify unrelated app areas.
+## Stage 15E implemented
+- After image capture/selection, the app automatically detects the page area.
+- The app immediately creates a corrected page preview.
+- The review screen opens on the corrected preview, not the corner editor.
+- User can save directly if the preview looks right.
+- User can tap Adjust Corners if the page detection is wrong.
+- Adjust Corners opens the four-point editor.
+- Preview returns from the editor back to the corrected-preview screen.
+- Filters remain available: Enhanced, Color, and B&W.
+- Rotate updates the corrected preview.
+- PDF naming remains in the review screen.
+- Save PDF uses the corrected preview when available.
+- Existing PDF attachment save behavior is preserved.
+- Existing storage checks are preserved.
+- Cache bumped to `note-clip-v89-auto-first-scanner`.
 
-## Live test checklist
-- [ ] PWA cache updates.
-- [ ] Document action opens image capture.
-- [ ] Selected page is auto-corrected before manual edit.
-- [ ] Adjust opens corner editor.
-- [ ] Save creates named PDF.
-- [ ] PDF opens full screen.
-- [ ] Existing photo and PDF flows still work.
+## Stage 15E files changed
+- `js/document-scanner-edge.js`
+- `sw.js`
+- `TEMPORARY_TRACKER.md`
+
+## Stage 15E commits
+- `e002b2a53173bd458acd4ed2f2996408d109125d` — Add auto-first scanner review flow.
+- `1ad14cb6ffed1a1a42a63ac61a366e13a7d61835` — Bump cache for auto-first scanner.
+
+## Code-level verification
+- `js/document-scanner-edge.js` now starts with Stage 15E auto-first workflow.
+- Initial review screen is corrected preview first.
+- Manual corner editor is behind Adjust Corners.
+- Save path uses `scan-auto-first` as the source marker.
+- `sw.js` cache version is `note-clip-v89-auto-first-scanner`.
+- No cloud sync, OCR, AI search, or unrelated app areas were added.
+
+## Live phone test checklist
+- [ ] Force refresh/update PWA cache on phone.
+- [ ] Category card → Scan Document.
+- [ ] Capture/select a receipt or paper document.
+- [ ] Confirm the first review screen shows a corrected page preview, not crop handles.
+- [ ] Confirm the corrected preview removes most background.
+- [ ] Confirm the corrected preview is squared/flattened.
+- [ ] Rename the PDF.
+- [ ] Try Enhanced, Color, and B&W.
+- [ ] Tap Rotate and confirm preview updates.
+- [ ] Tap Save PDF directly without manual adjustment.
+- [ ] Confirm saved PDF opens and looks like the corrected preview.
+- [ ] Repeat scan and tap Adjust Corners.
+- [ ] Confirm four corner handles appear only after Adjust Corners.
+- [ ] Drag all four corners.
+- [ ] Tap Preview.
+- [ ] Confirm it returns to corrected preview.
+- [ ] Save PDF after adjustment.
+- [ ] Confirm new note title matches entered name.
+- [ ] Confirm storage meter still works.
+- [ ] Confirm Photo review/naming still works.
+- [ ] Confirm PDF review/naming still works.
+- [ ] Confirm Notes, Lists, Calendar, and Settings still open.
 
 ## Known limitations
-- Stage 15D correction happens after image capture.
-- Stage 15E should improve the workflow so the corrected result is shown first.
+- Stage 15E still uses the iOS image capture handoff.
+- It does not yet show live edge overlay before the shutter.
+- It does not yet auto-capture while the camera is open.
+- The current goal is the OneDrive-style post-capture corrected preview workflow.
+
+## Next authorized stage
+Stage 15E live phone verification only.
+
+Do not begin cloud sync, OCR, AI search, or live camera overlay until Stage 15E is live-approved.
