@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v90-level-two-scanner';
+const CACHE_VERSION = 'note-clip-v91-auto-crop-repair';
 
 const PRECACHE_URLS = [
   './',
