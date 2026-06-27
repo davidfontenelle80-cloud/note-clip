@@ -6,45 +6,41 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Stage 16G — Safe Pastel Color Loop
 
 ## Current status
-Stage 16G is authorized.
+Stage 16G is code implemented, not live approved.
 
 ## User-confirmed status
 - App is unfrozen after emergency unfreeze.
 - Existing color behavior is working again.
-- Request is to add more pastel colors into the same working color setup only.
+- Request was to add more pastel colors into the same working color setup only.
 
-## Objective
-Add more pastel category color options without reintroducing the broken custom color override.
+## Implemented
+- Expanded the safe fallback category color loop from 8 colors to 20 colors.
+- Added classic note/sticky-note style colors including Canary Yellow, Soft Cream, Warm Vanilla, and Light Amber equivalents.
+- Added additional soft pastel pink, rose, peach, apricot, mint, sage, sky, powder blue, lavender, lilac, aqua, gray, and green-family colors.
+- Kept the existing working color flow.
+- Did not re-enable `js/category-color-true-match.js`.
+- Did not add modal save interception.
+- Kept pencil as `✏️` through the safe helper.
+- Cache bumped to `note-clip-v100-safe-pastel-loop`.
 
-## Scope
-Allowed:
-- Existing working category accent/color file only.
-- Service worker cache bump.
-- Tracker update.
+## Files changed
+- `js/cat-accent-apply.js`
+- `sw.js`
+- `TEMPORARY_TRACKER.md`
 
-Not allowed:
-- `js/category-color-true-match.js` override script.
-- Modal save interception.
-- Scanner files.
-- Attachment files.
-- Firebase/cloud files.
-- Storage schema changes.
-- Broad layout redesign.
-
-## Required behavior
-- Keep existing working color flow.
-- Add more pastel colors to the loop/options.
-- Do not freeze the app.
-- Do not change scanner or attachments.
+## Commits
+- `1cc4493e0ba4ddbdcb3723d82b977c02489c2e4e` — Authorize safe pastel color loop.
+- `c91a19b9ac9ff5e26645f5633197ac60cc59f281` — Expand safe pastel category color loop.
+- `330a0f39d962f4f629ee3a52b635be8bc6fd1f07` — Bump cache for safe pastel loop.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
-- [ ] Open category edit.
 - [ ] Confirm app is not frozen.
-- [ ] Confirm more pastel colors appear or cycle.
-- [ ] Pick color and save.
-- [ ] Confirm color still changes.
+- [ ] Confirm category cards cycle through more pastel colors.
+- [ ] Confirm Canary Yellow / note-style yellow appears in the loop.
+- [ ] Confirm pencil shows as `✏️`.
+- [ ] Confirm color behavior still works.
 - [ ] Confirm scanner still opens.
 
 ## Stop condition
-Stop after Stage 16G only.
+Stop after Stage 16G live verification.
