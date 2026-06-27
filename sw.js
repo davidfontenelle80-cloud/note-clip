@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v99-emergency-unfreeze';
+const CACHE_VERSION = 'note-clip-v100-safe-pastel-loop';
 
 const PRECACHE_URLS = [
   './',
