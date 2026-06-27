@@ -11,7 +11,7 @@
   function safe(v){return String(v||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
   function text(hex){
     if(!valid(hex))return '#24180a';
-    var n=hex.replace('#');
+    var n=String(hex).replace('#','');
     var r=parseInt(n.slice(0,2),16),g=parseInt(n.slice(2,4),16),b=parseInt(n.slice(4,6),16);
     return (r*299+g*587+b*114)/1000 < 150 ? '#fffaf0' : '#24180a';
   }
