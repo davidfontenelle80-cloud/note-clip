@@ -14,20 +14,21 @@ The pastel swatches appeared in the category editor, but choosing a color and sa
 ## Audit findings
 - `js/storage.js` is not the problem: `updateCategory(id, patch)` merges arbitrary patch fields and saves them, so `color` is supported.
 - The original `js/notes.js` `_saveCat` source function saves only `name` and `icon`, not `color`.
-- The earlier direct `_saveCat` override still did not apply live, so the safest targeted repair is to intercept the category modal Save click in capture phase before the inline old handler can discard the color.
+- The previous capture handler was too narrow because it only caught buttons whose inline `onclick` contained `_saveCat`.
+- The live modal can still show a primary Save button while the handler misses it.
 
 ## Implemented
-- Updated `js/category-color-safe-picker.js` with a capture-phase Save handler.
-- When the category modal Save button is tapped and `#cat-color` exists, the handler:
-  - prevents the old inline save handler from running,
-  - reads `cat-name`, `cat-icon`, and `cat-color`,
-  - writes all three fields through `App.Storage.updateCategory` / `addCategory`,
-  - closes the modal,
-  - re-renders Notes,
-  - triggers the existing color helper refresh.
+- Updated `js/category-color-safe-picker.js` with broader Save detection.
+- It now treats a category modal button as Save if:
+  - its inline handler contains `_saveCat`, or
+  - its text contains `Save`, or
+  - it has the `btn-primary` class.
+- Selected swatch color is now stored immediately on `#cat-modal.dataset.selectedColor` and in `#cat-color`.
+- Save uses modal dataset color first, then hidden input, then current category color fallback.
+- If the edit id is missing, save attempts a backup lookup by category name before adding a new category.
 - No MutationObserver loop was added.
 - Old risky `category-color-true-match.js` remains disabled.
-- Cache bumped to `note-clip-v104-capture-color-save`.
+- Cache bumped to `note-clip-v105-broader-color-save`.
 
 ## Files changed
 - `js/category-color-safe-picker.js`
@@ -35,8 +36,8 @@ The pastel swatches appeared in the category editor, but choosing a color and sa
 - `TEMPORARY_TRACKER.md`
 
 ## Commits
-- `ab020fc791c8c0bfc0d7909682a70b89c8eefc9a` — Capture category color save click.
-- `8a96475d173de1d3c3ead56b7583c441151545d6` — Bump cache for capture color save.
+- `3958c4d69ee604719c11aae44b0bbce7fda9f650` — Broaden category color save detection.
+- `227bf84fc4828beb0f080a7458e905f3b9771628` — Bump cache for broader color save detection.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
