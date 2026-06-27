@@ -81,9 +81,10 @@
       if(!more){
         more=document.createElement('button');
         more.type='button';
-        more.className='cat-more-btn';
-        more.setAttribute('aria-label','Manage category');
-        more.textContent='•••';
+        more.className='cat-more-btn cat-edit-btn';
+        more.setAttribute('aria-label','Edit category');
+        more.setAttribute('title','Edit category');
+        more.textContent='✎';
         more.addEventListener('click',e=>{
           e.preventDefault();
           e.stopPropagation();
@@ -92,6 +93,11 @@
           showMenu(more,editBtn,deleteBtn);
         });
         actionWrap.appendChild(more);
+      } else {
+        more.classList.add('cat-edit-btn');
+        more.setAttribute('aria-label','Edit category');
+        more.setAttribute('title','Edit category');
+        if(more.textContent.trim()==='•••') more.textContent='✎';
       }
       installLongPress(card,more,editBtn,deleteBtn);
     });
