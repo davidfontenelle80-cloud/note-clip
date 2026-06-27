@@ -5,7 +5,7 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Issue: #1 — Stabilization cleanup: move UI hotfixes into source and smoke-test mobile workflows
 
 ## Current stage
-Mobile stabilization cleanup + UI polish pass + Stage 15 Document Scanner MVP.
+Mobile stabilization cleanup + UI polish pass + Stage 15B Scanner Auto-Crop Polish.
 
 ## Rule
 Before each stabilization item:
@@ -24,10 +24,6 @@ Tasks:
 - [ ] Remove UI CSS/link/markup patching from `sw.js` after source files are complete.
 - [x] Keep cache and push behavior intact.
 - [ ] Bump cache version once when completed.
-
-Audit notes:
-- `sw.js` still has HTML patching responsibilities until `index.html` can be safely edited directly.
-- Use local clone/Codex full-file access later.
 
 ### 7. List modal keyboard check
 Status: Pending
@@ -53,12 +49,6 @@ Status: Code-level implemented, live phone verified
 ### 13B. Attachment Storage Safety
 Status: Code-level implemented, live phone verified
 
-Decisions:
-- Total app attachment safety cap: 250 MB.
-- Per attachment cap after compression: 5 MB.
-- Warning threshold: 80% of the 250 MB cap.
-- Current MVP still stores compressed Data URLs inside notes until later blob/file storage work.
-
 ### 13C. Storage Manager Actions
 Status: Code-level implemented, live phone verified
 
@@ -69,47 +59,41 @@ Status: Code-level implemented, live phone verified with observation: first read
 Status: Code-level implemented, awaiting live phone verification
 
 ### 15. Document Scanner MVP
+Status: Code-level implemented, live phone verified with observation: output looked like a photo, not a scanner.
+
+### 15B. Scanner Auto-Crop Polish
 Status: Code-level implemented, awaiting live phone verification
 
 Objective:
-- Add Scan Document from the category + menu so a camera/photo capture can become a saved PDF attachment.
-
-Scope:
-- MVP scanner only.
-- Uses camera/photo picker.
-- Enhances contrast/brightness.
-- Converts captured image into a one-page PDF.
-- Saves scanned PDF into the selected category as a note attachment.
-- Uses existing storage guardrails.
+- Improve scan quality so scanned documents look more like document PDFs and less like raw camera photos.
 
 Tasks:
-- [x] Add `js/document-scanner.js`.
-- [x] Add Scan Document action to category-card + menu.
-- [x] Open camera/image picker for scan.
-- [x] Enhance captured image for document readability.
-- [x] Convert captured image into a one-page PDF Data URL.
-- [x] Save scan as PDF attachment in selected category.
-- [x] Reuse existing PDF viewer/card behavior.
-- [x] Reuse existing 5 MB per-attachment / 250 MB total safety limits.
-- [x] Precache and inject scanner script through `sw.js`.
-- [x] Bump service worker cache.
+- [x] Add automatic paper edge bounding-box detection.
+- [x] Auto-crop the scan to the detected paper area.
+- [x] Add review screen before saving.
+- [x] Add Rotate action for sideways/upside-down captures.
+- [x] Add Use Full Page fallback.
+- [x] Enhance contrast/brightness after crop.
+- [x] Convert cropped/enhanced image into a PDF that fills the page better.
+- [x] Reuse existing PDF card/viewer/storage behavior.
+- [x] Load scanner polish through service worker.
 
 Implementation notes:
-- Added `js/document-scanner.js`.
-- Updated `js/category-card-add-menu.js` to show `Scan Document`.
-- Updated `sw.js` to precache and inject `js/document-scanner.js`.
-- Cache bumped to `note-clip-v83-document-scanner-mvp`.
-- Current MVP does not yet do auto-edge detection or manual crop. That belongs to the next scanner polish stage.
+- Added `js/document-scanner-edge.js` as an override after the original scanner MVP.
+- Added `js/document-scanner-styles.js` for scanner review styling, but the current loader path still needs live confirmation because the service worker was successfully updated for the edge script and not for the style helper.
+- Updated `sw.js` to precache and inject `js/document-scanner-edge.js`.
+- Cache bumped to `note-clip-v84-scanner-auto-crop`.
+- This is still not full Apple/Microsoft Lens quality: no true perspective warp or draggable corner handles yet. It is an automatic bounding crop + rotate + enhanced PDF stage.
 
 Commits:
-- `6f49262f383e1c1f4b900a57fa89dfae9a3cf0e2` — Add document scanner MVP.
-- `dc2097daed77cbc8237e6a1902228d6170dd446d` — Add scan document action to category menu.
-- `c4f5c02d89e96c328d37600ea706301fa1487a8b` — Load document scanner MVP.
+- `f6fc784383f77ccfb140923dd3d4deeba544d988` — Add auto crop scanner polish.
+- `5f83df2d839965cd2832a40d1c234b78a101e164` — Load scanner auto crop polish.
+- `f176a4783910b514e484e7e72abf511b49a32ed1` — Inject scanner review styles.
 
 ## Attachment feature roadmap
 
-### Stage 15B — Scanner crop/edge polish
-Pending. Add manual crop first, then automatic edge detection after scanner MVP is stable.
+### Stage 15C — Manual corner crop / perspective correction
+Pending. Add draggable corners and true perspective correction if browser support is sufficient.
 
 ### Stage 16 — Attachment backup/sync
 Pending. Move beyond local MVP storage after attachment behavior is stable.
@@ -122,8 +106,8 @@ Pending. Add document text extraction/search after scanner flow is stable.
 - `js/photo-attachments.js` owns local photo attachment behavior and storage checks.
 - `js/pdf-attachments.js` owns local PDF attachment behavior, storage checks, and full-screen reader.
 - `js/document-scanner.js` owns scan-to-PDF MVP.
+- `js/document-scanner-edge.js` owns auto-crop/rotate/review scanner polish.
 - `js/attachment-meter.js` owns attachment stats, Settings meter, and Manage Storage actions.
-- `css/attachment-meter.css` owns storage meter, storage actions, PDF cards, and full-screen reader visuals.
 
 ## Smoke test checklist
 - [ ] Dashboard loads.
@@ -147,7 +131,10 @@ Pending. Add document text extraction/search after scanner flow is stable.
 - [ ] PDF reader uses nearly full phone screen.
 - [ ] Scan Document appears in category-card + menu.
 - [ ] Scan Document opens camera/photo picker.
-- [ ] Scan creates a PDF note in correct category.
+- [ ] Scan review screen appears.
+- [ ] Auto-crop removes most background.
+- [ ] Rotate action works.
+- [ ] Save PDF creates cropped scanned PDF note.
 - [ ] Scanned PDF opens in PDF viewer.
 - [ ] Photo workflow still works.
 - [ ] Notes add/edit/delete works.
