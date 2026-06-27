@@ -20,7 +20,7 @@
     const btn=saveButton();
     const raw=(btn&&btn.getAttribute('onclick'))||'';
     const match=raw.match(/_saveCat\('([^']*)'\)/);
-    return match?match[1]:'';
+    return match?match[1]:(document.getElementById('cat-modal')?.dataset.catId||'');
   }
 
   function currentColor(){
@@ -50,6 +50,7 @@
     const modal=document.getElementById('cat-modal');
     if(!modal)return;
     ensureStyle();
+    if(!modal.dataset.catId) modal.dataset.catId=currentId();
     if(!modal.querySelector('.safe-cat-color-wrap')){
       const color=currentColor();
       const buttons=COLORS.map(function(item){
@@ -64,34 +65,29 @@
     modal.querySelectorAll('.safe-cat-color-btn').forEach(function(btn){btn.onclick=function(){setColor(btn.dataset.color);};});
   }
 
-  function patchNotesSave(){
-    if(!App.Notes||App.Notes.__safeColorSavePatched)return false;
-    const originalSave=App.Notes._saveCat;
-    App.Notes.__safeColorSavePatched=true;
-    App.Notes._saveCat=function(id){
-      const colorEl=document.getElementById('cat-color');
-      if(colorEl&&valid(colorEl.value)){
-        const name=(document.getElementById('cat-name')&&document.getElementById('cat-name').value.trim())||'';
-        const icon=(document.getElementById('cat-icon')&&document.getElementById('cat-icon').value.trim())||'📝';
-        if(!name){App.showToast&&App.showToast(App.I18n&&App.I18n.t?App.I18n.t('toast_cat_name_req'):'Category name required','error');return;}
-        if(id)App.Storage.updateCategory(id,{name:name,icon:icon,color:colorEl.value});
-        else App.Storage.addCategory({name:name,icon:icon,color:colorEl.value});
-        App.Notes._closeModal&&App.Notes._closeModal();
-        App.Notes.render&&App.Notes.render();
-        App.showToast&&App.showToast(id?'Category updated':'Category added','success');
-        setTimeout(function(){document.dispatchEvent(new Event('click'));},80);
-        return;
-      }
-      return originalSave.call(App.Notes,id);
-    };
+  function saveWithColor(id){
+    const colorEl=document.getElementById('cat-color');
+    const name=(document.getElementById('cat-name')&&document.getElementById('cat-name').value.trim())||'';
+    const icon=(document.getElementById('cat-icon')&&document.getElementById('cat-icon').value.trim())||'📝';
+    const color=colorEl&&valid(colorEl.value)?colorEl.value:currentColor();
+    if(!name){App.showToast&&App.showToast(App.I18n&&App.I18n.t?App.I18n.t('toast_cat_name_req'):'Category name required','error');return;}
+    if(id)App.Storage.updateCategory(id,{name:name,icon:icon,color:color});
+    else App.Storage.addCategory({name:name,icon:icon,color:color});
+    App.Notes&&App.Notes._closeModal&&App.Notes._closeModal();
+    App.Notes&&App.Notes.render&&App.Notes.render();
+    App.showToast&&App.showToast(id?'Category updated':'Category added','success');
+    setTimeout(function(){document.dispatchEvent(new Event('click'));},80);
+  }
 
+  function patchOpeners(){
+    if(!App.Notes||App.Notes.__safeColorOpenersPatched)return false;
+    App.Notes.__safeColorOpenersPatched=true;
     const originalEdit=App.Notes._editCat;
     App.Notes._editCat=function(id){
       const result=originalEdit.call(App.Notes,id);
       setTimeout(injectPicker,20);
       return result;
     };
-
     const originalFab=App.Notes.onFab;
     App.Notes.onFab=function(){
       const result=originalFab.call(App.Notes);
@@ -101,13 +97,32 @@
     return true;
   }
 
+  function installCaptureSave(){
+    if(window.__noteClipSafeColorCapture)return;
+    window.__noteClipSafeColorCapture=true;
+    document.addEventListener('click',function(e){
+      const btn=e.target&&e.target.closest&&e.target.closest('#cat-modal button');
+      if(!btn)return;
+      const onclick=btn.getAttribute('onclick')||'';
+      if(onclick.indexOf('_saveCat')===-1)return;
+      const colorEl=document.getElementById('cat-color');
+      if(!colorEl)return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      const modal=document.getElementById('cat-modal');
+      saveWithColor((modal&&modal.dataset.catId)||currentId()||'');
+    },true);
+  }
+
   function install(){
+    installCaptureSave();
     let tries=0;
     const tick=function(){
       tries++;
-      patchNotesSave();
+      patchOpeners();
       injectPicker();
-      if((!App.Notes||!App.Notes.__safeColorSavePatched)&&tries<30)setTimeout(tick,100);
+      if((!App.Notes||!App.Notes.__safeColorOpenersPatched)&&tries<30)setTimeout(tick,100);
     };
     tick();
   }
