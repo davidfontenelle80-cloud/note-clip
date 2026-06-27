@@ -3,37 +3,53 @@
 Repo: `davidfontenelle80-cloud/note-clip`
 
 ## Current stage
-Stage 16D-Final — Category Action Rail
+Stage 16E — Category Editor Cleanup + Color Save Fix
 
 ## Current status
-Stage 16D-Final is code implemented, not live approved.
+Stage 16E is authorized.
 
-## Implemented
-- Category edit pencil is nudged down toward the plus button to form a clearer action rail.
-- Pencil behavior remains management menu.
-- Plus behavior remains create menu.
-- Exact color matching from Stage 16D remains in place.
-- Scanner, storage, cloud, attachments, and global FAB were not changed.
+## User-confirmed bug
+The category editor shows mixed UI systems at once:
+- New Card color picker.
+- Old Card Accent Color / Preview corner area.
+- Icon picker overlaps below the old color area.
 
-## Files changed
+The selected color also did not update the card reliably after save.
+
+## Objective
+Clean up the category editor and make color selection save/apply correctly.
+
+## Required behavior
+- Show only one color system: Card color.
+- Hide/remove old Card Accent Color / Preview corner UI.
+- Keep category icon picker visible and usable.
+- Selected color must save into the category record.
+- Full card must update to the selected color after Save.
+- Preserve pencil/manage behavior.
+- Preserve plus/create behavior.
+- Preserve card body open behavior.
+- Preserve global FAB.
+- Do not touch scanner, cloud, storage schema, attachments, or broad layout.
+
+## Files allowed
+- `js/category-color-true-match.js`
 - `js/cat-accent-apply.js`
+- `sw.js`
 - `TEMPORARY_TRACKER.md`
-
-## Commits
-- `41623184567055ba2cf531881980250e95ff1ab0` — Authorize action rail patch.
-- `81972fab1db98d6ce9a3a119fe3a153233be1e23` — Align edit action above create action.
-
-## Observation
-- Service worker cache bump for this last tiny visual adjustment was blocked by the GitHub connector filter. The changed helper file is already loaded in the app, but the phone may require a hard refresh/cache update to show it.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
-- [ ] Pencil appears closer above plus on each card.
-- [ ] Pencil opens management menu.
-- [ ] Plus opens create menu.
-- [ ] Card body opens category.
-- [ ] Exact color match still works.
-- [ ] Global FAB still works.
+- [ ] Open category edit.
+- [ ] Confirm old Card Accent Color / Preview corner UI is gone.
+- [ ] Confirm Card color picker appears once.
+- [ ] Confirm Category Icon picker still appears cleanly below color picker.
+- [ ] Pick a pastel color and Save.
+- [ ] Confirm full card color changes to selected color.
+- [ ] Pick a bold color and Save.
+- [ ] Confirm full card color changes to selected color.
+- [ ] Confirm pencil opens management menu.
+- [ ] Confirm plus opens create menu.
+- [ ] Confirm scanner still opens.
 
 ## Stop condition
-Stop here unless live test shows the visual nudge needs adjustment.
+Stop after Stage 16E only.
