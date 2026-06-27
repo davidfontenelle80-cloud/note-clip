@@ -12,8 +12,12 @@
   function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
   function valid(hex){return /^#[0-9a-f]{6}$/i.test(String(hex||''));}
 
+  function allModalButtons(){ return [].slice.call(document.querySelectorAll('#cat-modal button')); }
   function saveButton(){
-    return [].slice.call(document.querySelectorAll('#cat-modal button')).find(function(b){return (b.getAttribute('onclick')||'').indexOf('_saveCat')>-1;});
+    return allModalButtons().find(function(b){
+      const raw=(b.getAttribute('onclick')||'')+' '+(b.textContent||'')+' '+(b.className||'');
+      return raw.indexOf('_saveCat')>-1 || /\bsave\b/i.test(raw) || /btn-primary/.test(raw);
+    });
   }
 
   function currentId(){
@@ -39,8 +43,10 @@
 
   function setColor(hex){
     if(!valid(hex))return;
+    const modal=document.getElementById('cat-modal');
     const input=document.getElementById('cat-color');
     if(input)input.value=hex;
+    if(modal)modal.dataset.selectedColor=hex;
     document.querySelectorAll('.safe-cat-color-btn').forEach(function(btn){
       btn.classList.toggle('selected',String(btn.dataset.color).toLowerCase()===hex.toLowerCase());
     });
@@ -53,6 +59,7 @@
     if(!modal.dataset.catId) modal.dataset.catId=currentId();
     if(!modal.querySelector('.safe-cat-color-wrap')){
       const color=currentColor();
+      modal.dataset.selectedColor=color;
       const buttons=COLORS.map(function(item){
         const name=item[0],hex=item[1];
         return '<button type="button" class="safe-cat-color-btn '+(hex.toLowerCase()===color.toLowerCase()?'selected':'')+'" data-color="'+hex+'" aria-label="'+esc(name)+'" style="--swatch:'+hex+'"></button>';
@@ -65,17 +72,26 @@
     modal.querySelectorAll('.safe-cat-color-btn').forEach(function(btn){btn.onclick=function(){setColor(btn.dataset.color);};});
   }
 
+  function inferIdByName(name){
+    const state=App.Storage&&App.Storage.getState&&App.Storage.getState();
+    if(!state||!name)return '';
+    const found=state.categories.find(function(c){return c.name===name;});
+    return found?found.id:'';
+  }
+
   function saveWithColor(id){
+    const modal=document.getElementById('cat-modal');
     const colorEl=document.getElementById('cat-color');
     const name=(document.getElementById('cat-name')&&document.getElementById('cat-name').value.trim())||'';
     const icon=(document.getElementById('cat-icon')&&document.getElementById('cat-icon').value.trim())||'📝';
-    const color=colorEl&&valid(colorEl.value)?colorEl.value:currentColor();
+    const color=(modal&&valid(modal.dataset.selectedColor))?modal.dataset.selectedColor:(colorEl&&valid(colorEl.value)?colorEl.value:currentColor());
+    const finalId=id||currentId()||inferIdByName(name);
     if(!name){App.showToast&&App.showToast(App.I18n&&App.I18n.t?App.I18n.t('toast_cat_name_req'):'Category name required','error');return;}
-    if(id)App.Storage.updateCategory(id,{name:name,icon:icon,color:color});
+    if(finalId)App.Storage.updateCategory(finalId,{name:name,icon:icon,color:color});
     else App.Storage.addCategory({name:name,icon:icon,color:color});
     App.Notes&&App.Notes._closeModal&&App.Notes._closeModal();
     App.Notes&&App.Notes.render&&App.Notes.render();
-    App.showToast&&App.showToast(id?'Category updated':'Category added','success');
+    App.showToast&&App.showToast(finalId?'Category updated':'Category added','success');
     setTimeout(function(){document.dispatchEvent(new Event('click'));},80);
   }
 
@@ -97,20 +113,23 @@
     return true;
   }
 
+  function isSaveButton(btn){
+    if(!btn)return false;
+    const raw=(btn.getAttribute('onclick')||'')+' '+(btn.textContent||'')+' '+(btn.className||'');
+    return raw.indexOf('_saveCat')>-1 || /\bsave\b/i.test(raw) || /btn-primary/.test(raw);
+  }
+
   function installCaptureSave(){
-    if(window.__noteClipSafeColorCapture)return;
-    window.__noteClipSafeColorCapture=true;
+    if(window.__noteClipSafeColorCaptureV2)return;
+    window.__noteClipSafeColorCaptureV2=true;
     document.addEventListener('click',function(e){
       const btn=e.target&&e.target.closest&&e.target.closest('#cat-modal button');
-      if(!btn)return;
-      const onclick=btn.getAttribute('onclick')||'';
-      if(onclick.indexOf('_saveCat')===-1)return;
-      const colorEl=document.getElementById('cat-color');
-      if(!colorEl)return;
+      if(!isSaveButton(btn))return;
+      const modal=document.getElementById('cat-modal');
+      if(!modal||!modal.querySelector('.safe-cat-color-wrap'))return;
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
-      const modal=document.getElementById('cat-modal');
       saveWithColor((modal&&modal.dataset.catId)||currentId()||'');
     },true);
   }
