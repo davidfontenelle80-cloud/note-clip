@@ -17,7 +17,9 @@
       var color=ok(cat.color)?cat.color:FALLBACKS[i%FALLBACKS.length];
       cards[i].style.setProperty('--cat-accent',color);
       cards[i].style.setProperty('--cat-card-bg',color);
+      cards[i].style.setProperty('--cat-card-bg-soft',color);
       cards[i].style.setProperty('--cat-card-text',textFor(color));
+      cards[i].style.background=color;
       cards[i].classList.remove('no-accent');
     }
   }
