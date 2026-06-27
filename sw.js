@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v97-category-editor-cleanup';
+const CACHE_VERSION = 'note-clip-v98-color-save-repair';
 
 const PRECACHE_URLS = [
   './',
