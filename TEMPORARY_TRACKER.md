@@ -5,7 +5,7 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Issue: #1 — Stabilization cleanup: move UI hotfixes into source and smoke-test mobile workflows
 
 ## Current stage
-Mobile stabilization cleanup + UI polish pass + Stage 14B Full-Screen PDF Reader.
+Mobile stabilization cleanup + UI polish pass + Stage 15 Document Scanner MVP.
 
 ## Rule
 Before each stabilization item:
@@ -68,43 +68,60 @@ Status: Code-level implemented, live phone verified with observation: first read
 ### 14B. Full-Screen PDF Reader
 Status: Code-level implemented, awaiting live phone verification
 
+### 15. Document Scanner MVP
+Status: Code-level implemented, awaiting live phone verification
+
 Objective:
-- Replace the cramped embedded PDF reader with an edge-to-edge reader and floating close button.
+- Add Scan Document from the category + menu so a camera/photo capture can become a saved PDF attachment.
+
+Scope:
+- MVP scanner only.
+- Uses camera/photo picker.
+- Enhances contrast/brightness.
+- Converts captured image into a one-page PDF.
+- Saves scanned PDF into the selected category as a note attachment.
+- Uses existing storage guardrails.
 
 Tasks:
-- [x] Make PDF viewer fill the entire viewport.
-- [x] Remove header bar from PDF reader.
-- [x] Add floating translucent X close button at top-right.
-- [x] Respect iPhone safe-area insets.
-- [x] Prevent background body scroll while PDF reader is open.
-- [x] Keep PDF card compact inside the note editor.
-- [x] Update PDF card copy to say Open PDF full screen.
-- [x] Add Escape key close for desktop testing.
-- [x] Bump service worker cache so reader polish loads.
+- [x] Add `js/document-scanner.js`.
+- [x] Add Scan Document action to category-card + menu.
+- [x] Open camera/image picker for scan.
+- [x] Enhance captured image for document readability.
+- [x] Convert captured image into a one-page PDF Data URL.
+- [x] Save scan as PDF attachment in selected category.
+- [x] Reuse existing PDF viewer/card behavior.
+- [x] Reuse existing 5 MB per-attachment / 250 MB total safety limits.
+- [x] Precache and inject scanner script through `sw.js`.
+- [x] Bump service worker cache.
 
 Implementation notes:
-- Updated `js/pdf-attachments.js` to create a true full-screen overlay using `pdf-reader-open` body state.
-- Added `App.PdfAttachments.closeViewer()`.
-- Updated `css/attachment-meter.css` with `.pdf-floating-close`, full-screen iframe rules, and safe-area positioning.
-- Cache bumped to `note-clip-v82-fullscreen-pdf-reader`.
+- Added `js/document-scanner.js`.
+- Updated `js/category-card-add-menu.js` to show `Scan Document`.
+- Updated `sw.js` to precache and inject `js/document-scanner.js`.
+- Cache bumped to `note-clip-v83-document-scanner-mvp`.
+- Current MVP does not yet do auto-edge detection or manual crop. That belongs to the next scanner polish stage.
 
 Commits:
-- `6bc1b19d07d6adf081778257097b1c8eac2bd817` — Make PDF viewer full screen.
-- `fa1441ff63850ec6464e705d441d1e6332409bb8` — Polish full screen PDF reader.
-- `f57d169c24fa57d6e0d0e3efa6c19b603d141f21` — Bump cache for full screen PDF reader.
+- `6f49262f383e1c1f4b900a57fa89dfae9a3cf0e2` — Add document scanner MVP.
+- `dc2097daed77cbc8237e6a1902228d6170dd446d` — Add scan document action to category menu.
+- `c4f5c02d89e96c328d37600ea706301fa1487a8b` — Load document scanner MVP.
 
 ## Attachment feature roadmap
 
-### Stage 15 — Attachment backup/sync
+### Stage 15B — Scanner crop/edge polish
+Pending. Add manual crop first, then automatic edge detection after scanner MVP is stable.
+
+### Stage 16 — Attachment backup/sync
 Pending. Move beyond local MVP storage after attachment behavior is stable.
 
-### Stage 16 — Document scanner
-Pending. Add document capture, crop/straighten, and PDF creation.
+### Stage 17 — OCR/search inside documents
+Pending. Add document text extraction/search after scanner flow is stable.
 
 ## Latest code checkpoint
 - `sw.js` still owns HTML patching until `index.html` can be safely full-file edited.
 - `js/photo-attachments.js` owns local photo attachment behavior and storage checks.
 - `js/pdf-attachments.js` owns local PDF attachment behavior, storage checks, and full-screen reader.
+- `js/document-scanner.js` owns scan-to-PDF MVP.
 - `js/attachment-meter.js` owns attachment stats, Settings meter, and Manage Storage actions.
 - `css/attachment-meter.css` owns storage meter, storage actions, PDF cards, and full-screen reader visuals.
 
@@ -128,7 +145,10 @@ Pending. Add document capture, crop/straighten, and PDF creation.
 - [ ] Tapping PDF opens true full-screen reader.
 - [ ] Floating X closes PDF reader.
 - [ ] PDF reader uses nearly full phone screen.
-- [ ] Deleting PDF removes it from note.
+- [ ] Scan Document appears in category-card + menu.
+- [ ] Scan Document opens camera/photo picker.
+- [ ] Scan creates a PDF note in correct category.
+- [ ] Scanned PDF opens in PDF viewer.
 - [ ] Photo workflow still works.
 - [ ] Notes add/edit/delete works.
 - [ ] Lists add/edit/check/delete works.
