@@ -1,5 +1,11 @@
 (function(){
-  var FALLBACKS=['#FFF4B8','#FFD6DE','#DDEEFF','#DDF5E4','#E9DFFF','#FFE1CC','#D9F7F3','#F2F3F5'];
+  var FALLBACKS=[
+    '#FFF4B8','#FFD6DE','#DDEEFF','#DDF5E4',
+    '#E9DFFF','#FFE1CC','#D9F7F3','#F2F3F5',
+    '#FDE2F3','#E2F0CB','#CDE7F0','#FCE1A8',
+    '#E8DAEF','#D6EAF8','#D5F5E3','#FAE5D3',
+    '#FADBD8','#EAECEE','#D7BDE2','#A9DFBF'
+  ];
   function ok(x){return /^#[0-9a-f]{6}$/i.test(String(x||''));}
   function textFor(hex){
     if(!ok(hex))return '#24180a';
@@ -23,8 +29,9 @@
       cards[i].classList.remove('no-accent');
       var edit=cards[i].querySelector('.cat-more-btn');
       if(edit){
+        edit.textContent='✏️';
         edit.style.marginTop='48px';
-        edit.style.fontSize='21px';
+        edit.style.fontSize='20px';
       }
     }
   }
