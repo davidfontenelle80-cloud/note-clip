@@ -14,50 +14,51 @@ Before each stabilization item:
 5. Mark the item complete only after the code-level check passes.
 
 ## Current status
-Stage 16D is authorized. Stage 16C remains code implemented and needs live approval.
+Stage 16D is partially code implemented, not live approved.
 
-## Stage 16D objective
-Fix the category color mismatch and improve the card action layout in one tight sweep.
+## Implemented
+- Added a category color picker override with Pastel and Bold color groups.
+- Category editor now saves the selected color.
+- Card display now uses the selected color directly instead of hidden pastel conversion.
+- Strong colors get light text for readability.
+- Pastel colors keep dark text for readability.
+- Whole card uses the chosen color.
+- Cache bumped to `note-clip-v95-true-color-match`.
 
-## Required behavior
-- The selected category color must match the final card color.
-- Stop hidden pastel conversion after selection.
-- Provide both pastel and stronger color choices in the category editor.
-- The whole category card should use the chosen color.
-- Text must remain readable.
-- Pencil/edit button should sit above the plus button as a vertical action rail.
-- Pencil still opens category management.
-- Plus still opens category create menu.
-- Card body still opens category notes.
-- Long press still opens category management.
-- Global FAB remains unchanged.
+## Not completed
+- Pencil-above-plus positioning was attempted through CSS and JS, but GitHub connector safety blocked the positioning patches.
+- Existing pencil button remains available and still opens management.
+- Plus button remains unchanged and still opens creation.
 
-## Files likely allowed
+## Files changed
+- `js/category-color-true-match.js`
 - `js/cat-accent-apply.js`
-- `js/category-card-polish.js`
-- `css/category-card-pastel-color.css`
-- possible tiny category color override file
 - `sw.js`
 - `TEMPORARY_TRACKER.md`
 
-## Files not allowed
-- Scanner files
-- Photo/PDF attachment files
-- Storage/cloud/Firebase files
-- Notes data model unless inspection proves color saving cannot work otherwise
-- Dashboard/list/calendar/settings files
+## Commits
+- `22aa834a7a58150403153c1708e09ee4ffc39f38` — Authorize true color match stage.
+- `fee077d681e1a699462c3460fc665a9f549f72bc` — Add true matching category color picker.
+- `4fd48145fa9ba10fc69db78bb4ac4c1170966817` — Use exact card colors.
+- `75f8fd7c235e269640d396e4175e4082591ba16c` — Make selected color display exactly.
+- `529d40fd443638a822d8320f47e572f97d121b95` — Bump cache for true color picker.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
-- [ ] Pencil appears above plus on each card.
-- [ ] Pencil opens management menu.
-- [ ] Plus opens create menu.
-- [ ] Card body opens category.
-- [ ] Color choices include pastel and stronger colors.
-- [ ] Selected color matches the full card color.
-- [ ] Text remains readable.
-- [ ] Global FAB still works.
-- [ ] Scanner still opens.
+- [ ] Open category edit.
+- [ ] Confirm color choices include Pastel and Bold groups.
+- [ ] Pick a pastel color and save.
+- [ ] Confirm the whole card matches that selected color.
+- [ ] Pick a bold color and save.
+- [ ] Confirm the whole card matches that selected color.
+- [ ] Confirm text remains readable on bold and pastel colors.
+- [ ] Confirm pencil opens management menu.
+- [ ] Confirm plus opens create menu.
+- [ ] Confirm card body opens category.
+- [ ] Confirm global FAB still works.
+- [ ] Confirm scanner still opens.
 
-## Stop condition
-Stop after Stage 16D only. Do not add OCR, cloud sync, scanner changes, or broad redesign.
+## Next authorized stage
+Stage 16D live phone verification for color matching only. Pencil-above-plus positioning remains blocked and should be handled as a separate tiny patch if connector allows.
+
+Do not begin OCR, cloud sync, scanner changes, or broad redesign.
