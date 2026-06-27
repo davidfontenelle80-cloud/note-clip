@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v104-capture-color-save';
+const CACHE_VERSION = 'note-clip-v105-broader-color-save';
 
 const PRECACHE_URLS = [
   './',
