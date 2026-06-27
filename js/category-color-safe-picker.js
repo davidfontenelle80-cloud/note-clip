@@ -1,4 +1,4 @@
-/* category-color-safe-picker.js — safe one-time category color picker */
+/* category-color-safe-picker.js — safe category color picker */
 (function(App){
   'use strict';
 
@@ -12,10 +12,15 @@
   function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
   function valid(hex){return /^#[0-9a-f]{6}$/i.test(String(hex||''));}
 
+  function saveButton(){
+    return [].slice.call(document.querySelectorAll('#cat-modal button')).find(function(b){return (b.getAttribute('onclick')||'').indexOf('_saveCat')>-1 || b.dataset.safeColorSave==='1';});
+  }
+
   function currentId(){
-    const btn=[].slice.call(document.querySelectorAll('#cat-modal button')).find(function(b){return (b.getAttribute('onclick')||'').indexOf('_saveCat')>-1;});
-    const match=(btn&&btn.getAttribute('onclick')||'').match(/_saveCat\('([^']*)'\)/);
-    return match?match[1]:'';
+    const btn=saveButton();
+    const raw=(btn&&btn.getAttribute('onclick'))||'';
+    const match=raw.match(/_saveCat\('([^']*)'\)/);
+    return match?match[1]:(document.getElementById('cat-modal')?.dataset.catId||'');
   }
 
   function currentColor(){
@@ -41,57 +46,83 @@
     });
   }
 
-  function injectPicker(){
-    const modal=document.getElementById('cat-modal');
-    if(!modal||modal.querySelector('.safe-cat-color-wrap'))return;
-    ensureStyle();
-    const color=currentColor();
-    const buttons=COLORS.map(function(item){
-      const name=item[0],hex=item[1];
-      return '<button type="button" class="safe-cat-color-btn '+(hex.toLowerCase()===color.toLowerCase()?'selected':'')+'" data-color="'+hex+'" aria-label="'+esc(name)+'" style="--swatch:'+hex+'"></button>';
-    }).join('');
-    const html='<div class="form-group safe-cat-color-wrap"><div class="safe-cat-color-label">Card color</div><input id="cat-color" type="hidden" value="'+esc(color)+'"><div class="safe-cat-color-grid">'+buttons+'</div></div>';
-    const name=document.getElementById('cat-name');
-    const group=name&&name.closest('.form-group');
-    if(group)group.insertAdjacentHTML('afterend',html);
-    modal.querySelectorAll('.safe-cat-color-btn').forEach(function(btn){btn.onclick=function(){setColor(btn.dataset.color);};});
+  function saveCategory(id){
+    const color=document.getElementById('cat-color')&&document.getElementById('cat-color').value;
+    const name=(document.getElementById('cat-name')&&document.getElementById('cat-name').value.trim())||'';
+    const icon=(document.getElementById('cat-icon')&&document.getElementById('cat-icon').value.trim())||'📝';
+    if(!name){App.showToast&&App.showToast(App.I18n&&App.I18n.t?App.I18n.t('toast_cat_name_req'):'Category name required','error');return;}
+    if(id)App.Storage.updateCategory(id,{name:name,icon:icon,color:valid(color)?color:'#FFF475'});
+    else App.Storage.addCategory({name:name,icon:icon,color:valid(color)?color:'#FFF475'});
+    App.Notes._closeModal&&App.Notes._closeModal();
+    App.Notes.render&&App.Notes.render();
+    App.showToast&&App.showToast(id?'Category updated':'Category added','success');
+    setTimeout(function(){document.dispatchEvent(new Event('click'));},80);
   }
 
-  function patchSave(){
-    if(!App.Notes||App.Notes.__safeColorPickerPatched)return;
-    App.Notes.__safeColorPickerPatched=true;
-    const originalSave=App.Notes._saveCat;
-    App.Notes._saveCat=function(id){
-      const color=document.getElementById('cat-color')&&document.getElementById('cat-color').value;
-      if(valid(color)){
-        const name=(document.getElementById('cat-name')&&document.getElementById('cat-name').value.trim())||'';
-        const icon=(document.getElementById('cat-icon')&&document.getElementById('cat-icon').value.trim())||'📝';
-        if(!name){App.showToast&&App.showToast(App.I18n&&App.I18n.t?App.I18n.t('toast_cat_name_req'):'Category name required','error');return;}
-        if(id)App.Storage.updateCategory(id,{name:name,icon:icon,color:color});
-        else App.Storage.addCategory({name:name,icon:icon,color:color});
-        App.Notes._closeModal&&App.Notes._closeModal();
-        App.Notes.render&&App.Notes.render();
-        App.showToast&&App.showToast(id?'Category updated':'Category added','success');
-        setTimeout(function(){document.dispatchEvent(new Event('click'));},80);
-        return;
-      }
-      return originalSave.call(App.Notes,id);
+  function bindSave(){
+    const modal=document.getElementById('cat-modal');
+    const btn=saveButton();
+    if(!modal||!btn||btn.dataset.safeColorSave==='1')return;
+    const id=currentId();
+    modal.dataset.catId=id;
+    btn.dataset.safeColorSave='1';
+    btn.removeAttribute('onclick');
+    btn.onclick=function(ev){
+      ev.preventDefault();
+      ev.stopPropagation();
+      saveCategory(modal.dataset.catId||'');
+      return false;
     };
+  }
+
+  function injectPicker(){
+    const modal=document.getElementById('cat-modal');
+    if(!modal)return;
+    ensureStyle();
+    if(!modal.querySelector('.safe-cat-color-wrap')){
+      const color=currentColor();
+      const buttons=COLORS.map(function(item){
+        const name=item[0],hex=item[1];
+        return '<button type="button" class="safe-cat-color-btn '+(hex.toLowerCase()===color.toLowerCase()?'selected':'')+'" data-color="'+hex+'" aria-label="'+esc(name)+'" style="--swatch:'+hex+'"></button>';
+      }).join('');
+      const html='<div class="form-group safe-cat-color-wrap"><div class="safe-cat-color-label">Card color</div><input id="cat-color" type="hidden" value="'+esc(color)+'"><div class="safe-cat-color-grid">'+buttons+'</div></div>';
+      const name=document.getElementById('cat-name');
+      const group=name&&name.closest('.form-group');
+      if(group)group.insertAdjacentHTML('afterend',html);
+    }
+    modal.querySelectorAll('.safe-cat-color-btn').forEach(function(btn){btn.onclick=function(){setColor(btn.dataset.color);};});
+    bindSave();
+  }
+
+  function patchOpeners(){
+    if(!App.Notes||App.Notes.__safeColorPickerPatched)return false;
+    App.Notes.__safeColorPickerPatched=true;
     const originalEdit=App.Notes._editCat;
     App.Notes._editCat=function(id){
       const result=originalEdit.call(App.Notes,id);
-      setTimeout(injectPicker,0);
+      setTimeout(injectPicker,20);
       return result;
     };
     const originalFab=App.Notes.onFab;
     App.Notes.onFab=function(){
       const result=originalFab.call(App.Notes);
-      setTimeout(injectPicker,0);
+      setTimeout(injectPicker,20);
       return result;
     };
+    return true;
   }
 
-  function install(){patchSave();setTimeout(injectPicker,0);}
+  function install(){
+    let tries=0;
+    const tick=function(){
+      tries++;
+      patchOpeners();
+      injectPicker();
+      if((!App.Notes||!App.Notes.__safeColorPickerPatched) && tries<20)setTimeout(tick,100);
+    };
+    tick();
+  }
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);
   else install();
 })(window.App=window.App||{});
