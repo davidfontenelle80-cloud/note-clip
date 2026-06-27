@@ -3,51 +3,46 @@
 Repo: `davidfontenelle80-cloud/note-clip`
 
 ## Current stage
-Stage 16I — Color Save Handoff Repair
+Stage 16J — Category Note Context Default
 
 ## Current status
-Stage 16I is code implemented, not live approved.
+Stage 16J is code implemented, not live approved.
 
 ## User-confirmed issue
-The pastel swatches appeared in the category editor, but choosing a color and saving did not apply the color to the card.
+When opening a category such as Work and creating a new note from that category view, the note category dropdown defaulted to `None` instead of the selected category.
 
-## Audit findings
-- `js/storage.js` is not the problem: `updateCategory(id, patch)` merges arbitrary patch fields and saves them, so `color` is supported.
-- The original `js/notes.js` `_saveCat` source function saves only `name` and `icon`, not `color`.
-- The previous capture handler was too narrow because it only caught buttons whose inline `onclick` contained `_saveCat`.
-- The live modal can still show a primary Save button while the handler misses it.
+## Root cause
+`js/notes.js` stores the active category internally as `_filterCatId` when `App.Notes._viewCat(catId)` runs. However, when the FAB opens a new note, `onFab()` calls `_openNoteModal(null)`, and the new note default object uses `categoryId: null`.
 
 ## Implemented
-- Updated `js/category-color-safe-picker.js` with broader Save detection.
-- It now treats a category modal button as Save if:
-  - its inline handler contains `_saveCat`, or
-  - its text contains `Save`, or
-  - it has the `btn-primary` class.
-- Selected swatch color is now stored immediately on `#cat-modal.dataset.selectedColor` and in `#cat-color`.
-- Save uses modal dataset color first, then hidden input, then current category color fallback.
-- If the edit id is missing, save attempts a backup lookup by category name before adding a new category.
-- No MutationObserver loop was added.
-- Old risky `category-color-true-match.js` remains disabled.
-- Cache bumped to `note-clip-v105-broader-color-save`.
+- Added `js/category-note-context.js`.
+- The helper remembers the category selected through `App.Notes._viewCat(catId)`.
+- It clears that remembered category when leaving the category note-list view.
+- It wraps `App.Notes._openNoteModal(null)` and `App.Notes.onFab()` so new notes opened from a category view default to that category.
+- It does not affect editing existing notes.
+- It does not affect the category card `+` menu, which already sets the category.
+- No storage schema, scanner, attachment, or cloud files were changed.
+- Cache bumped to `note-clip-v106-category-note-context`.
 
 ## Files changed
-- `js/category-color-safe-picker.js`
+- `js/category-note-context.js`
 - `sw.js`
 - `TEMPORARY_TRACKER.md`
 
 ## Commits
-- `3958c4d69ee604719c11aae44b0bbce7fda9f650` — Broaden category color save detection.
-- `227bf84fc4828beb0f080a7458e905f3b9771628` — Bump cache for broader color save detection.
+- `8861f8e07df7d0072f3103920adf20049b5df540` — Default new notes to selected category.
+- `70d5ca14958caf73c1045e634492db4a3b201872` — Bump cache for category note context.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
-- [ ] Open category edit.
-- [ ] Pick Canary Yellow and Save.
-- [ ] Confirm card changes color.
-- [ ] Reopen category edit and confirm Canary Yellow remains selected.
-- [ ] Pick another pastel and Save.
-- [ ] Confirm card changes color.
-- [ ] Confirm app does not freeze.
+- [ ] Tap Work category card body.
+- [ ] Tap global `+` from inside Work.
+- [ ] Confirm note Category defaults to Work, not None.
+- [ ] Save note.
+- [ ] Confirm note appears under Work.
+- [ ] Go back to Categories / All Notes.
+- [ ] Create note from global `+` outside a category and confirm it does not incorrectly force Work.
+- [ ] Confirm category card `+` New Note still defaults to that category.
 
 ## Stop condition
-Stop after Stage 16I live verification.
+Stop after Stage 16J live verification.
