@@ -3,46 +3,49 @@
 Repo: `davidfontenelle80-cloud/note-clip`
 
 ## Current stage
-Stage 16J — Category Note Context Default
+Stage 17A — Release Candidate Functional Audit
 
 ## Current status
-Stage 16J is code implemented, not live approved.
+Stage 17A is authorized and in progress.
 
-## User-confirmed issue
-When opening a category such as Work and creating a new note from that category view, the note category dropdown defaulted to `None` instead of the selected category.
+## Goal
+Move from feature work into release-candidate stabilization. No new features. Only verified bug fixes, cleanup that lowers risk, and QA documentation.
 
-## Root cause
-`js/notes.js` stores the active category internally as `_filterCatId` when `App.Notes._viewCat(catId)` runs. However, when the FAB opens a new note, `onFab()` calls `_openNoteModal(null)`, and the new note default object uses `categoryId: null`.
+## Stage 17A scope
+Audit and stabilize the core workflows touched most recently:
+- Notes create/edit/save/delete/archive/complete.
+- Category navigation and category context.
+- Category edit/manage/create menus.
+- Category color picker/pastel swatches.
+- Service worker script injection order.
+- Duplicate/risky helper scripts.
 
-## Implemented
-- Added `js/category-note-context.js`.
-- The helper remembers the category selected through `App.Notes._viewCat(catId)`.
-- It clears that remembered category when leaving the category note-list view.
-- It wraps `App.Notes._openNoteModal(null)` and `App.Notes.onFab()` so new notes opened from a category view default to that category.
-- It does not affect editing existing notes.
-- It does not affect the category card `+` menu, which already sets the category.
-- No storage schema, scanner, attachment, or cloud files were changed.
-- Cache bumped to `note-clip-v106-category-note-context`.
+## Guardrails
+- Do not add OCR.
+- Do not add cloud attachment sync.
+- Do not rewrite the app.
+- Do not touch Firebase/cloud config.
+- Do not modify scanner/photo/PDF code unless a confirmed regression is found.
+- Prefer small fixes over broad refactors.
+- Bump service worker cache for any loaded JS/CSS change.
 
-## Files changed
-- `js/category-note-context.js`
-- `sw.js`
+## Current known good checkpoint
+Stage 16J added category context so opening a category and creating a note from there defaults the note category to the selected category.
+
+## Stage 17A audit checklist
+- [ ] Verify service worker still injects required scripts in safe order.
+- [ ] Verify no disabled/risky color script is re-enabled.
+- [ ] Verify category context helper cannot break notes outside a category.
+- [ ] Verify category card `+` New Note still defaults to the chosen card category.
+- [ ] Verify global FAB outside category view does not force stale category.
+- [ ] Verify notes save path still requires title/body and saves category.
+- [ ] Verify category color helper is display-only and does not intercept core note saving.
+- [ ] Verify old temporary scripts are either disabled or safe.
+
+## Files allowed for Stage 17A
 - `TEMPORARY_TRACKER.md`
-
-## Commits
-- `8861f8e07df7d0072f3103920adf20049b5df540` — Default new notes to selected category.
-- `70d5ca14958caf73c1045e634492db4a3b201872` — Bump cache for category note context.
-
-## Live phone test checklist
-- [ ] Force refresh/update PWA cache.
-- [ ] Tap Work category card body.
-- [ ] Tap global `+` from inside Work.
-- [ ] Confirm note Category defaults to Work, not None.
-- [ ] Save note.
-- [ ] Confirm note appears under Work.
-- [ ] Go back to Categories / All Notes.
-- [ ] Create note from global `+` outside a category and confirm it does not incorrectly force Work.
-- [ ] Confirm category card `+` New Note still defaults to that category.
+- `sw.js`
+- small helper scripts only if a verified bug is found
 
 ## Stop condition
-Stop after Stage 16J live verification.
+Stop Stage 17A after notes/categories audit and report. Do not proceed into scanner/attachments until Stage 17A is approved or a separate Stage 17B is authorized.
