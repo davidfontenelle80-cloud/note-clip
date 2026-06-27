@@ -13,14 +13,14 @@
   function valid(hex){return /^#[0-9a-f]{6}$/i.test(String(hex||''));}
 
   function saveButton(){
-    return [].slice.call(document.querySelectorAll('#cat-modal button')).find(function(b){return (b.getAttribute('onclick')||'').indexOf('_saveCat')>-1 || b.dataset.safeColorSave==='1';});
+    return [].slice.call(document.querySelectorAll('#cat-modal button')).find(function(b){return (b.getAttribute('onclick')||'').indexOf('_saveCat')>-1;});
   }
 
   function currentId(){
     const btn=saveButton();
     const raw=(btn&&btn.getAttribute('onclick'))||'';
     const match=raw.match(/_saveCat\('([^']*)'\)/);
-    return match?match[1]:(document.getElementById('cat-modal')?.dataset.catId||'');
+    return match?match[1]:'';
   }
 
   function currentColor(){
@@ -46,35 +46,6 @@
     });
   }
 
-  function saveCategory(id){
-    const color=document.getElementById('cat-color')&&document.getElementById('cat-color').value;
-    const name=(document.getElementById('cat-name')&&document.getElementById('cat-name').value.trim())||'';
-    const icon=(document.getElementById('cat-icon')&&document.getElementById('cat-icon').value.trim())||'📝';
-    if(!name){App.showToast&&App.showToast(App.I18n&&App.I18n.t?App.I18n.t('toast_cat_name_req'):'Category name required','error');return;}
-    if(id)App.Storage.updateCategory(id,{name:name,icon:icon,color:valid(color)?color:'#FFF475'});
-    else App.Storage.addCategory({name:name,icon:icon,color:valid(color)?color:'#FFF475'});
-    App.Notes._closeModal&&App.Notes._closeModal();
-    App.Notes.render&&App.Notes.render();
-    App.showToast&&App.showToast(id?'Category updated':'Category added','success');
-    setTimeout(function(){document.dispatchEvent(new Event('click'));},80);
-  }
-
-  function bindSave(){
-    const modal=document.getElementById('cat-modal');
-    const btn=saveButton();
-    if(!modal||!btn||btn.dataset.safeColorSave==='1')return;
-    const id=currentId();
-    modal.dataset.catId=id;
-    btn.dataset.safeColorSave='1';
-    btn.removeAttribute('onclick');
-    btn.onclick=function(ev){
-      ev.preventDefault();
-      ev.stopPropagation();
-      saveCategory(modal.dataset.catId||'');
-      return false;
-    };
-  }
-
   function injectPicker(){
     const modal=document.getElementById('cat-modal');
     if(!modal)return;
@@ -91,18 +62,36 @@
       if(group)group.insertAdjacentHTML('afterend',html);
     }
     modal.querySelectorAll('.safe-cat-color-btn').forEach(function(btn){btn.onclick=function(){setColor(btn.dataset.color);};});
-    bindSave();
   }
 
-  function patchOpeners(){
-    if(!App.Notes||App.Notes.__safeColorPickerPatched)return false;
-    App.Notes.__safeColorPickerPatched=true;
+  function patchNotesSave(){
+    if(!App.Notes||App.Notes.__safeColorSavePatched)return false;
+    const originalSave=App.Notes._saveCat;
+    App.Notes.__safeColorSavePatched=true;
+    App.Notes._saveCat=function(id){
+      const colorEl=document.getElementById('cat-color');
+      if(colorEl&&valid(colorEl.value)){
+        const name=(document.getElementById('cat-name')&&document.getElementById('cat-name').value.trim())||'';
+        const icon=(document.getElementById('cat-icon')&&document.getElementById('cat-icon').value.trim())||'📝';
+        if(!name){App.showToast&&App.showToast(App.I18n&&App.I18n.t?App.I18n.t('toast_cat_name_req'):'Category name required','error');return;}
+        if(id)App.Storage.updateCategory(id,{name:name,icon:icon,color:colorEl.value});
+        else App.Storage.addCategory({name:name,icon:icon,color:colorEl.value});
+        App.Notes._closeModal&&App.Notes._closeModal();
+        App.Notes.render&&App.Notes.render();
+        App.showToast&&App.showToast(id?'Category updated':'Category added','success');
+        setTimeout(function(){document.dispatchEvent(new Event('click'));},80);
+        return;
+      }
+      return originalSave.call(App.Notes,id);
+    };
+
     const originalEdit=App.Notes._editCat;
     App.Notes._editCat=function(id){
       const result=originalEdit.call(App.Notes,id);
       setTimeout(injectPicker,20);
       return result;
     };
+
     const originalFab=App.Notes.onFab;
     App.Notes.onFab=function(){
       const result=originalFab.call(App.Notes);
@@ -116,9 +105,9 @@
     let tries=0;
     const tick=function(){
       tries++;
-      patchOpeners();
+      patchNotesSave();
       injectPicker();
-      if((!App.Notes||!App.Notes.__safeColorPickerPatched) && tries<20)setTimeout(tick,100);
+      if((!App.Notes||!App.Notes.__safeColorSavePatched)&&tries<30)setTimeout(tick,100);
     };
     tick();
   }
