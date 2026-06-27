@@ -3,7 +3,7 @@
 Repo: `davidfontenelle80-cloud/note-clip`
 
 ## Current stage
-Stage 16B — Category Back Button Polish
+Stage 16C — Card Edit Icon + Full Pastel Color
 
 ## Rule
 Before each stabilization item:
@@ -14,63 +14,57 @@ Before each stabilization item:
 5. Mark the item complete only after the code-level check passes.
 
 ## Current status
-Stage 16B is code implemented, not live approved.
+Stage 16C is authorized. Stage 16B remains code implemented and needs live approval.
 
-## Stage 16A checkpoint
-Stage 16A cleaned up category-card interactions:
-- Card body opens category notes.
-- Card `+` opens creation menu.
-- Card `...` opens management menu.
-- Long press opens management menu.
-- Global FAB unchanged.
-- Cache bumped to `note-clip-v92-category-interactions`.
+## Recent checkpoints
+Stage 16A cleaned up category-card interactions.
+Stage 16B changed the category return button to `← Back` and bumped cache to `note-clip-v93-back-button-polish`.
 
-Stage 16A commits:
-- `efce784da04630cb4356dbf0e176673bf3c0a861` — Authorize category interaction cleanup.
-- `52b32b089d87375b268ff2ac472350e55b931b7a` — Clarify category card management actions.
-- `8f746fdf660585e5f3f6584ab4064f6f83d91624` — Clarify category create menu labels.
-- `a52fa60e3c6ec6626eea6973fc48faec20f19d8e` — Add category card press feedback.
-- `11ed944e19c886945e46097aa4ef1d0d28fed49e` — Bump cache for category interaction cleanup.
-- `d7f994ca46f9b30cf89a926729eaa3418e76123e` — Update tracker for Stage 16A.
+## Stage 16C objective
+Improve clarity and polish on category cards without changing layout or app behavior.
 
-## Stage 16B objective
-Make the in-category navigation button clearer and more iOS-like without changing layout or category behavior.
+## Stage 16C scope
+Allowed:
+- Replace the category manage `...` visual with a pencil/edit icon.
+- Make category card color apply to the whole card, not only the corner accent.
+- Use lighter pastel card colors for readability.
+- Preserve card body tap, card `+`, management menu, long press, and global FAB behavior.
+- Minimal CSS/JS only.
+- Service worker cache bump.
+- Tracker update.
 
-## Stage 16B implemented
-- Added `js/category-back-button-polish.js` as a tiny override instead of editing the full `notes.js` file.
-- The in-category button text changes from `← Categories` to `← Back`.
-- The button gets a slightly larger, clearer touch target.
-- The button keeps the existing category-grid return behavior.
-- Card interactions, global FAB, scanner, storage, cloud sync, attachments, and notes data were not changed.
-- Cache bumped to `note-clip-v93-back-button-polish`.
-
-## Files changed
-- `js/category-back-button-polish.js`
+Files likely allowed:
+- `js/category-card-polish.js`
+- `js/cat-accent-apply.js`
+- `css/category-card-polish.css`
 - `sw.js`
 - `TEMPORARY_TRACKER.md`
 
-## Commits
-- `1fee91afdc71f8a570905912741925432db57c0b` — Authorize back button polish.
-- `d3326f40de7441d0671389951147c0436c8edd3e` — Add category back button polish.
-- `db068340e77a82e0ba3bd5d5ed3fcde7751e4c7d` — Bump cache for back button polish.
+Files not allowed:
+- Scanner files
+- Photo/PDF attachment files
+- Storage/cloud/Firebase files
+- Notes data model
+- Dashboard/list/calendar/settings files unless absolutely required
 
-## Code-level verification
-- `notes.js` was not edited directly.
-- The override only targets the Notes pane category return button.
-- `sw.js` precaches and injects the new override file.
-- Cache version is `note-clip-v93-back-button-polish`.
+## Required behavior
+- Category manage button displays a pencil/edit icon, not `...`.
+- Management menu still opens from that button.
+- Long press still opens management menu.
+- The selected category color should tint the whole card softly.
+- Text remains readable on all colors.
+- The category create `+` button remains unchanged.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
-- [ ] Open a category.
-- [ ] Confirm button says `← Back`.
-- [ ] Confirm button is easier to tap.
-- [ ] Tap it and confirm it returns to category grid.
-- [ ] Confirm category card `+`, `...`, and card body still work.
+- [ ] Confirm card manage button shows a pencil/edit icon.
+- [ ] Tap pencil and confirm management menu opens.
+- [ ] Tap card `+` and confirm create menu still opens.
+- [ ] Tap card body and confirm category opens.
+- [ ] Long press card body and confirm management menu opens.
+- [ ] Change category color and confirm whole card changes softly.
+- [ ] Confirm text remains readable.
 - [ ] Confirm global FAB still works.
-- [ ] Confirm scanner still opens.
 
-## Next authorized stage
-Stage 16B live phone verification only.
-
-Do not begin OCR, cloud sync, scanner changes, or redesign.
+## Stop condition
+Stop after Stage 16C only. Do not add OCR, cloud sync, scanner changes, or redesign.
