@@ -11,13 +11,17 @@ Stage 16I is code implemented, not live approved.
 ## User-confirmed issue
 The pastel swatches appeared in the category editor, but choosing a color and saving did not apply the color to the card.
 
+## Root cause found
+The original `App.Notes._saveCat` source-of-truth save function saved only `name` and `icon`. It ignored the selected `color`, so the UI selection was being discarded on Save.
+
 ## Implemented
-- Repaired `js/category-color-safe-picker.js` so it binds directly to the category modal Save button.
-- Removed dependency on catching the exported `_saveCat` wrapper at the right time.
-- Added a short retry for app readiness so the picker cannot miss `App.Notes` during load.
-- Save now writes `name`, `icon`, and selected `color` to `App.Storage.updateCategory` / `addCategory`.
+- Patched `js/category-color-safe-picker.js` to override the actual `App.Notes._saveCat` trigger after `App.Notes` is ready.
+- Existing Save button can keep calling `App.Notes._saveCat(...)`.
+- Patched save now stores `name`, `icon`, and selected `color`.
 - Existing card color helper still applies the saved color after render.
-- Cache bumped to `note-clip-v102-color-save-handoff`.
+- No MutationObserver loop was added.
+- Old risky `category-color-true-match.js` remains disabled.
+- Cache bumped to `note-clip-v103-color-trigger-save`.
 
 ## Files changed
 - `js/category-color-safe-picker.js`
@@ -25,9 +29,8 @@ The pastel swatches appeared in the category editor, but choosing a color and sa
 - `TEMPORARY_TRACKER.md`
 
 ## Commits
-- `0e63791aead646082cc102a40ac1e8323fc88afe` — Authorize color save handoff repair.
-- `cdc689392744b7d724caabbcebfb397a7ce6f530` — Repair safe color picker save button.
-- `52d3087a8391a51473e999c0cf8dac07462e91bc` — Bump cache for color save handoff.
+- `7563909059decb01563af470badc81307d91d175` — Patch actual category save color trigger.
+- `c54d4393b7efda3a849f7a12863f80ddd1f9a3e5` — Bump cache for actual color save trigger.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
