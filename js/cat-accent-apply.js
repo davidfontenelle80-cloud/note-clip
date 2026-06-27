@@ -21,6 +21,11 @@
       cards[i].style.setProperty('--cat-card-text',textFor(color));
       cards[i].style.background=color;
       cards[i].classList.remove('no-accent');
+      var edit=cards[i].querySelector('.cat-more-btn');
+      if(edit){
+        edit.style.marginTop='48px';
+        edit.style.fontSize='21px';
+      }
     }
   }
   document.addEventListener('DOMContentLoaded',run);
