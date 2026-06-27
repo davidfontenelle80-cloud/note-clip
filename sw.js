@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v86-scanner-save-fix';
+const CACHE_VERSION = 'note-clip-v87-attachment-review-naming';
 
 const PRECACHE_URLS = [
   './',
