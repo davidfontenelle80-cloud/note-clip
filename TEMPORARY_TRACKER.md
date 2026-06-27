@@ -14,7 +14,7 @@ Before each stabilization item:
 5. Mark the item complete only after the code-level check passes.
 
 ## Current status
-Stage 16C is authorized. Stage 16B remains code implemented and needs live approval.
+Stage 16C is code implemented, not live approved.
 
 ## Recent checkpoints
 Stage 16A cleaned up category-card interactions.
@@ -23,37 +23,38 @@ Stage 16B changed the category return button to `← Back` and bumped cache to `
 ## Stage 16C objective
 Improve clarity and polish on category cards without changing layout or app behavior.
 
-## Stage 16C scope
-Allowed:
-- Replace the category manage `...` visual with a pencil/edit icon.
-- Make category card color apply to the whole card, not only the corner accent.
-- Use lighter pastel card colors for readability.
-- Preserve card body tap, card `+`, management menu, long press, and global FAB behavior.
-- Minimal CSS/JS only.
-- Service worker cache bump.
-- Tracker update.
+## Stage 16C implemented
+- Replaced the visual category manage button from `...` to a pencil/edit icon.
+- Kept the same management menu behavior from the pencil button.
+- Kept long-press management shortcut.
+- Added full-card pastel color styling with a new small CSS override file.
+- Updated category color application so the selected color softly tints the whole card.
+- Kept the corner accent very subtle instead of dominant.
+- Preserved readable dark text on pastel colors.
+- Preserved category card `+` create button.
+- Preserved card body tap, management menu, long press, global FAB, scanner, storage, cloud sync, and attachments.
+- Cache bumped to `note-clip-v94-card-pastel-polish`.
 
-Files likely allowed:
+## Files changed
 - `js/category-card-polish.js`
 - `js/cat-accent-apply.js`
-- `css/category-card-polish.css`
+- `css/category-card-pastel-color.css`
 - `sw.js`
 - `TEMPORARY_TRACKER.md`
 
-Files not allowed:
-- Scanner files
-- Photo/PDF attachment files
-- Storage/cloud/Firebase files
-- Notes data model
-- Dashboard/list/calendar/settings files unless absolutely required
+## Commits
+- `7ea79805df6e3ade769a14741b586d2cef9ab03e` — Authorize card color polish.
+- `048b51470fa1178382805c9c43ad1ecf3dfa7711` — Use pencil category manage button.
+- `9496edf36e719aea9eecce180d6d6ae126dea85b` — Apply category color to full card.
+- `147e58f58aa9c3e8c569c6a3c84f7c45e898d166` — Add full pastel card color styling.
+- `7cb06121a850b04fe24cafd4fd97cde9c7023dab` — Bump cache for card pastel polish.
 
-## Required behavior
-- Category manage button displays a pencil/edit icon, not `...`.
-- Management menu still opens from that button.
-- Long press still opens management menu.
-- The selected category color should tint the whole card softly.
-- Text remains readable on all colors.
-- The category create `+` button remains unchanged.
+## Code-level verification
+- Scanner files were not changed.
+- Storage/cloud/Firebase files were not changed.
+- Category create `+` behavior was not changed.
+- Management menu still routes through the same edit/delete actions.
+- `sw.js` precaches and injects the new CSS override.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
@@ -62,9 +63,12 @@ Files not allowed:
 - [ ] Tap card `+` and confirm create menu still opens.
 - [ ] Tap card body and confirm category opens.
 - [ ] Long press card body and confirm management menu opens.
-- [ ] Change category color and confirm whole card changes softly.
+- [ ] Change category color and confirm the whole card changes softly.
 - [ ] Confirm text remains readable.
 - [ ] Confirm global FAB still works.
+- [ ] Confirm scanner still opens.
 
-## Stop condition
-Stop after Stage 16C only. Do not add OCR, cloud sync, scanner changes, or redesign.
+## Next authorized stage
+Stage 16C live phone verification only.
+
+Do not begin OCR, cloud sync, scanner changes, or redesign.
