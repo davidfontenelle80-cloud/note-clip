@@ -3,7 +3,7 @@
 Repo: `davidfontenelle80-cloud/note-clip`
 
 ## Current stage
-Stage 15F Repair — Auto Crop Fix
+Stage 16A — Category Card Interaction Cleanup
 
 ## Rule
 Before each stabilization item:
@@ -14,40 +14,58 @@ Before each stabilization item:
 5. Mark the item complete only after the code-level check passes.
 
 ## Current status
-Stage 15F Repair is code implemented, not live approved.
+Stage 16A is authorized. Scanner Stage 15F Repair remains code implemented but not live approved.
 
-## Issue found in live test
-Auto Crop reused the same poor crop and showed a misleading high score.
+## Previous scanner checkpoint
+Stage 15F Repair fixed Auto Crop confidence behavior and bumped cache to `note-clip-v91-auto-crop-repair`.
 
-## Repair implemented
-- Auto Crop scoring is now stricter.
-- The app now checks the page area against the surrounding background.
-- Oversized crops and edge-touching crops receive lower scores.
-- If Auto Crop returns almost the same points again, the app opens manual Crop mode.
-- If Auto Crop is unsure, the app opens manual Crop mode.
-- Save source marker is now `scan-level-two-auto-crop-repair`.
-- Cache bumped to `note-clip-v91-auto-crop-repair`.
-
-## Files changed
-- `js/document-scanner-edge.js`
-- `sw.js`
-
-## Commits
+Scanner repair commits:
 - `97dce5b7ca800030ec38f754b758ee9f05c823d3` — Repair scanner auto crop confidence.
 - `1761655b28beee0b9599f1a108ab0d05fd9dce05` — Bump cache for auto crop repair.
+- `c5f32dac4129f900990efc56769d7d23771f6e73` — Update tracker for auto crop fix.
+
+## Stage 16A objective
+Final interaction polish for category cards without changing scanner, storage, cloud sync, attachments, notes data, dashboard layout, or navigation.
+
+## Stage 16A scope
+Allowed:
+- Category card interaction JS/CSS only.
+- Service worker cache bump if loaded files change.
+- Tracker update.
+
+Required behavior:
+- Tap category card body: open/view notes for that category.
+- Tap small category-card `+`: open category-specific create menu.
+- Tap category-card `...`: open category management menu.
+- Optional long-press card body: open same management menu as `...`.
+- Global floating `+`: unchanged.
+- Do not mix create actions and management actions in the same menu.
+- Add subtle press feedback only if low risk.
+
+Files likely allowed:
+- `js/category-card-add-menu.js`
+- `js/category-card-polish.js`
+- `css/category-card-polish.css`
+- `sw.js`
+- `TEMPORARY_TRACKER.md`
+
+Files not allowed:
+- `js/document-scanner-edge.js`
+- scanner/PDF/photo attachment files
+- Firebase/cloud sync files
+- `storage.js`
+- unrelated dashboard/list/calendar/settings files unless inspection proves category-card interactions live there
 
 ## Live phone test checklist
-- [ ] Force refresh/update PWA cache.
-- [ ] Scan the Costco receipt again.
-- [ ] Confirm the score is not fake-high when crop is bad.
-- [ ] Tap Auto Crop.
-- [ ] If the crop is unchanged, confirm manual Crop mode opens.
-- [ ] If the crop improves, confirm preview changes.
-- [ ] Save PDF.
-- [ ] Confirm PDF output is tighter and flatter.
-- [ ] Confirm Photo and PDF flows still work.
+- [ ] Tap card body opens that category's notes.
+- [ ] Tap small `+` opens only create menu.
+- [ ] Create menu actions save into that category.
+- [ ] Tap `...` opens only management menu.
+- [ ] Management menu has Rename, Change Color, Edit Icon, Delete if currently supported.
+- [ ] Long-press opens management menu if implemented.
+- [ ] Global FAB behavior is unchanged.
+- [ ] Scanner still opens.
+- [ ] Photo/PDF review flows still work.
 
-## Next authorized stage
-Stage 15F Repair live phone verification only.
-
-Do not begin cloud sync, OCR, AI search, or live camera overlay until this repair is live-approved.
+## Stop condition
+Stop after Stage 16A only. Do not add OCR, cloud sync, live camera overlay, or broad redesign.
