@@ -6,36 +6,29 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Stage 16H — Safe Category Color Picker
 
 ## Current status
-Stage 16H is authorized.
+Stage 16H is code implemented, not live approved.
 
 ## User-confirmed issue
-Pastel colors were added to the fallback card loop, but they do not appear in the category editor color selection UI.
+Pastel colors were added to the fallback card loop, but they did not appear in the category editor color selection UI.
 
-## Objective
-Add the notepad-style pastel colors to the actual category editor picker safely, without reintroducing the broken override behavior.
+## Implemented
+- Added a new safe category color picker script: `js/category-color-safe-picker.js`.
+- The script injects pastel swatches only when the category modal opens.
+- No MutationObserver loop was added.
+- The script patches category save once so selected `cat.color` is stored.
+- The existing card color helper applies the chosen color to the whole card.
+- The old risky `category-color-true-match.js` remains disabled.
+- Cache bumped to `note-clip-v101-safe-color-picker`.
 
-## Scope
-Allowed:
-- Add one small safe category color picker script.
-- Patch category save once so `cat.color` is stored.
-- Service worker cache bump.
-- Tracker update.
+## Files changed
+- `js/category-color-safe-picker.js`
+- `sw.js`
+- `TEMPORARY_TRACKER.md`
 
-Not allowed:
-- MutationObserver loops.
-- Re-enable old risky `category-color-true-match.js`.
-- Scanner files.
-- Attachment files.
-- Firebase/cloud files.
-- Storage schema changes.
-- Broad layout redesign.
-
-## Required behavior
-- Category editor shows pastel color swatches.
-- User picks a color and saves.
-- Category record stores selected color.
-- Existing card color helper applies it to the whole card.
-- App must not freeze.
+## Commits
+- `7b4534a950173b253d1598be5f92f44e233a862b` — Authorize safe category color picker.
+- `8914a1a7120a71a2365f22be71cf24a993b240f6` — Add safe category color picker.
+- `c62afcfa9a1ca2c00c00dd9d1b17055593c5723a` — Bump cache for safe color picker.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
@@ -49,4 +42,4 @@ Not allowed:
 - [ ] Confirm scanner still opens.
 
 ## Stop condition
-Stop after Stage 16H only.
+Stop after Stage 16H live verification.
