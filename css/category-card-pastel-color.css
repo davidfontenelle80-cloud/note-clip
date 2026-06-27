@@ -1,0 +1,40 @@
+/* category-card-pastel-color.css — Stage 16C full-card pastel color */
+#pane-notes .category-card.category-polished{
+  background:
+    radial-gradient(circle at 22% 20%, rgba(255,255,255,.64), transparent 36%),
+    linear-gradient(145deg, var(--cat-card-bg,#fff4b8), var(--cat-card-bg-soft,#fff7d4)) !important;
+  border:1px solid rgba(94,68,24,.08);
+}
+
+#pane-notes .category-card.category-polished:after{
+  opacity:.12;
+  width:62px;
+  height:62px;
+}
+
+#pane-notes .category-card.category-polished .category-name,
+#pane-notes .category-card.category-polished .category-count{
+  color:#24180a;
+}
+
+#pane-notes .category-card.category-polished .category-icon-wrap,
+#pane-notes .category-card.category-polished .cat-more-btn,
+#pane-notes .category-card.category-polished .cat-create-btn{
+  background:rgba(255,255,255,.66);
+  border-color:rgba(94,68,24,.10);
+}
+
+#pane-notes .category-card.category-polished .cat-edit-btn{
+  font-size:25px;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-weight:900;
+}
+
+#pane-notes .category-card.category-polished .cat-edit-btn::after{
+  content:'';
+}
+
+#pane-notes .category-card.category-polished .cat-edit-btn:active,
+#pane-notes .category-card.category-polished .cat-create-btn:active{
+  transform:scale(.93);
+}
