@@ -11,17 +11,23 @@ Stage 16I is code implemented, not live approved.
 ## User-confirmed issue
 The pastel swatches appeared in the category editor, but choosing a color and saving did not apply the color to the card.
 
-## Root cause found
-The original `App.Notes._saveCat` source-of-truth save function saved only `name` and `icon`. It ignored the selected `color`, so the UI selection was being discarded on Save.
+## Audit findings
+- `js/storage.js` is not the problem: `updateCategory(id, patch)` merges arbitrary patch fields and saves them, so `color` is supported.
+- The original `js/notes.js` `_saveCat` source function saves only `name` and `icon`, not `color`.
+- The earlier direct `_saveCat` override still did not apply live, so the safest targeted repair is to intercept the category modal Save click in capture phase before the inline old handler can discard the color.
 
 ## Implemented
-- Patched `js/category-color-safe-picker.js` to override the actual `App.Notes._saveCat` trigger after `App.Notes` is ready.
-- Existing Save button can keep calling `App.Notes._saveCat(...)`.
-- Patched save now stores `name`, `icon`, and selected `color`.
-- Existing card color helper still applies the saved color after render.
+- Updated `js/category-color-safe-picker.js` with a capture-phase Save handler.
+- When the category modal Save button is tapped and `#cat-color` exists, the handler:
+  - prevents the old inline save handler from running,
+  - reads `cat-name`, `cat-icon`, and `cat-color`,
+  - writes all three fields through `App.Storage.updateCategory` / `addCategory`,
+  - closes the modal,
+  - re-renders Notes,
+  - triggers the existing color helper refresh.
 - No MutationObserver loop was added.
 - Old risky `category-color-true-match.js` remains disabled.
-- Cache bumped to `note-clip-v103-color-trigger-save`.
+- Cache bumped to `note-clip-v104-capture-color-save`.
 
 ## Files changed
 - `js/category-color-safe-picker.js`
@@ -29,8 +35,8 @@ The original `App.Notes._saveCat` source-of-truth save function saved only `name
 - `TEMPORARY_TRACKER.md`
 
 ## Commits
-- `7563909059decb01563af470badc81307d91d175` — Patch actual category save color trigger.
-- `c54d4393b7efda3a849f7a12863f80ddd1f9a3e5` — Bump cache for actual color save trigger.
+- `ab020fc791c8c0bfc0d7909682a70b89c8eefc9a` — Capture category color save click.
+- `8a96475d173de1d3c3ead56b7583c441151545d6` — Bump cache for capture color save.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
