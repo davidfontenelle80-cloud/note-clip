@@ -4,10 +4,10 @@
 
   let currentCategoryId='';
 
-  function applyCategory(catId){
+  function applyCategory(catId,force){
     if(!catId)return;
     const select=document.getElementById('note-cat');
-    if(select && !select.value){
+    if(select && (force || !select.value)){
       select.value=catId;
       select.dispatchEvent(new Event('change',{bubbles:true}));
     }
@@ -33,8 +33,8 @@
     App.Notes._openNoteModal=function(note){
       const result=originalOpenNoteModal.call(App.Notes,note);
       if(!note && currentCategoryId){
-        setTimeout(function(){applyCategory(currentCategoryId);},30);
-        setTimeout(function(){applyCategory(currentCategoryId);},120);
+        setTimeout(function(){applyCategory(currentCategoryId,true);},30);
+        setTimeout(function(){applyCategory(currentCategoryId,true);},120);
       }
       return result;
     };
@@ -43,8 +43,8 @@
     App.Notes.onFab=function(){
       const result=originalOnFab.call(App.Notes);
       if(currentCategoryId){
-        setTimeout(function(){applyCategory(currentCategoryId);},30);
-        setTimeout(function(){applyCategory(currentCategoryId);},120);
+        setTimeout(function(){applyCategory(currentCategoryId,true);},30);
+        setTimeout(function(){applyCategory(currentCategoryId,true);},120);
       }
       return result;
     };
