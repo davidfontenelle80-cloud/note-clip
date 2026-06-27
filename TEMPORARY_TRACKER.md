@@ -6,36 +6,38 @@ Repo: `davidfontenelle80-cloud/note-clip`
 Stage 16E — Category Editor Cleanup + Color Save Fix
 
 ## Current status
-Stage 16E is authorized.
+Stage 16E is code implemented, not live approved.
 
 ## User-confirmed bug
-The category editor shows mixed UI systems at once:
+The category editor showed mixed UI systems at once:
 - New Card color picker.
 - Old Card Accent Color / Preview corner area.
-- Icon picker overlaps below the old color area.
+- Icon picker overlap below the old color area.
 
 The selected color also did not update the card reliably after save.
 
-## Objective
-Clean up the category editor and make color selection save/apply correctly.
+## Implemented
+- Replaced the category color override with a cleaner version.
+- Hides old Card Accent Color / Preview corner UI.
+- Keeps the new Card color picker as the only color system.
+- Keeps the category icon picker visible below the color picker.
+- Intercepts the modal Save button directly so selected color is saved to the category.
+- Re-renders Notes after save so the full card color updates.
+- Preserves pencil/manage behavior.
+- Preserves plus/create behavior.
+- Preserves card body open behavior.
+- Preserves scanner, storage schema, cloud sync, attachments, and global FAB.
+- Cache bumped to `note-clip-v97-category-editor-cleanup`.
 
-## Required behavior
-- Show only one color system: Card color.
-- Hide/remove old Card Accent Color / Preview corner UI.
-- Keep category icon picker visible and usable.
-- Selected color must save into the category record.
-- Full card must update to the selected color after Save.
-- Preserve pencil/manage behavior.
-- Preserve plus/create behavior.
-- Preserve card body open behavior.
-- Preserve global FAB.
-- Do not touch scanner, cloud, storage schema, attachments, or broad layout.
-
-## Files allowed
+## Files changed
 - `js/category-color-true-match.js`
-- `js/cat-accent-apply.js`
 - `sw.js`
 - `TEMPORARY_TRACKER.md`
+
+## Commits
+- `8bcd72327f2b9f4a194394e585c833c98ee3babe` — Authorize category editor cleanup.
+- `aa24bd5dd9bf3b07435053588237aa4332e17717` — Clean category editor color picker.
+- `97da5b195e3cbb1ac04618a0a2b56ee7660b933c` — Bump cache for category editor cleanup.
 
 ## Live phone test checklist
 - [ ] Force refresh/update PWA cache.
@@ -52,4 +54,4 @@ Clean up the category editor and make color selection save/apply correctly.
 - [ ] Confirm scanner still opens.
 
 ## Stop condition
-Stop after Stage 16E only.
+Stop after Stage 16E live verification.
