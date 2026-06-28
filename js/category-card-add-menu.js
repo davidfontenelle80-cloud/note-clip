@@ -2,6 +2,42 @@
 (function(App){
   'use strict';
 
+  const LABELS={
+    en:{
+      createIn:'Create in {name}',
+      scan:'Scan PDF',
+      photo:'Add Photo',
+      image:'Add Image',
+      note:'New Note',
+      voice:'Voice Note',
+      later:'Later',
+      notReady:'{label} is not ready yet.',
+      ariaCreate:'Create in {name}'
+    },
+    es:{
+      createIn:'Crear en {name}',
+      scan:'Escanear PDF',
+      photo:'Agregar foto',
+      image:'Agregar imagen',
+      note:'Nueva nota',
+      voice:'Nota de voz',
+      later:'Próximamente',
+      notReady:'{label} aún no está listo.',
+      ariaCreate:'Crear en {name}'
+    }
+  };
+
+  function lang(){
+    return App.I18n?.current?.() || document.documentElement.getAttribute('data-lang') || document.documentElement.lang || 'en';
+  }
+
+  function label(key,vars){
+    const pack=LABELS[lang()]||LABELS.en;
+    let text=pack[key]||LABELS.en[key]||key;
+    Object.keys(vars||{}).forEach(function(k){ text=text.replace('{'+k+'}',vars[k]); });
+    return text;
+  }
+
   function closeMenu(){
     document.querySelector('.category-create-backdrop')?.remove();
     document.querySelector('.category-create-popover')?.remove();
@@ -29,9 +65,9 @@
     },80);
   }
 
-  function showUnavailable(label){
+  function showUnavailable(labelText){
     closeMenu();
-    App.showToast?.(label+' is not ready yet.', 'error');
+    App.showToast?.(label('notReady',{label:labelText}), 'error');
   }
 
   function showMenu(anchor,cat){
@@ -42,12 +78,12 @@
 
     const pop=document.createElement('div');
     pop.className='category-create-popover';
-    pop.innerHTML='<div class="category-create-title">Create in '+esc(cat.name)+'</div>'+
-      '<button type="button" data-action="scan"><span>📑</span><span>Scan PDF</span></button>'+
-      '<button type="button" data-action="photo"><span>📷</span><span>Add Photo</span></button>'+
-      '<button type="button" data-action="image"><span>🖼️</span><span>Add Image</span></button>'+
-      '<button type="button" data-action="note"><span>📝</span><span>New Note</span></button>'+
-      '<button type="button" data-action="voice"><span>🎙️</span><span>Voice Note</span><em>Later</em></button>';
+    pop.innerHTML='<div class="category-create-title">'+esc(label('createIn',{name:cat.name}))+'</div>'+ 
+      '<button type="button" data-action="note"><span>📝</span><span>'+esc(label('note'))+'</span></button>'+ 
+      '<button type="button" data-action="scan"><span>📑</span><span>'+esc(label('scan'))+'</span></button>'+ 
+      '<button type="button" data-action="photo"><span>📷</span><span>'+esc(label('photo'))+'</span></button>'+ 
+      '<button type="button" data-action="image"><span>🖼️</span><span>'+esc(label('image'))+'</span></button>'+ 
+      '<button type="button" data-action="voice"><span>🎙️</span><span>'+esc(label('voice'))+'</span><em>'+esc(label('later'))+'</em></button>';
     pop.addEventListener('click',function(e){
       const action=e.target.closest('button')?.dataset.action;
       if(!action)return;
@@ -55,7 +91,7 @@
       if(action==='photo') { closeMenu(); App.PhotoAttachments?.createPhotoNote?.(cat.id); }
       if(action==='image') { closeMenu(); App.PhotoAttachments?.createPhotoNote?.(cat.id); }
       if(action==='note') createNoteInCategory(cat.id);
-      if(action==='voice') showUnavailable('Voice Note');
+      if(action==='voice') showUnavailable(label('voice'));
     });
 
     document.body.appendChild(back);
@@ -77,7 +113,7 @@
       const btn=document.createElement('button');
       btn.type='button';
       btn.className='cat-create-btn';
-      btn.setAttribute('aria-label','Create in '+cat.name);
+      btn.setAttribute('aria-label',label('ariaCreate',{name:cat.name}));
       btn.textContent='+';
       btn.addEventListener('click',function(e){
         e.preventDefault();
@@ -90,13 +126,27 @@
     });
   }
 
+  function refreshButtonLabels(){
+    const state=App.Storage?.getState?.();
+    if(!state?.categories)return;
+    document.querySelectorAll('#pane-notes .category-card').forEach(function(card,index){
+      const btn=card.querySelector('.cat-create-btn');
+      if(!btn)return;
+      const id=idFromCard(card)||state.categories[index]?.id;
+      const cat=state.categories.find(function(c){return c.id===id;})||state.categories[index];
+      if(cat)btn.setAttribute('aria-label',label('ariaCreate',{name:cat.name}));
+    });
+  }
+
   function install(){
     if(window.__noteClipCategoryCreateReady)return;
     window.__noteClipCategoryCreateReady=true;
     installButtons();
+    refreshButtonLabels();
     const pane=document.getElementById('pane-notes')||document.body;
-    new MutationObserver(installButtons).observe(pane,{childList:true,subtree:true});
+    new MutationObserver(function(){installButtons();refreshButtonLabels();}).observe(pane,{childList:true,subtree:true});
     document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMenu();});
+    document.addEventListener('click',function(){setTimeout(refreshButtonLabels,80);});
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);
