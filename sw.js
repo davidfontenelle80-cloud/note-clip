@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v107-tight-category-context';
+const CACHE_VERSION = 'note-clip-v108-localized-create-menu';
 
 const PRECACHE_URLS = [
   './',
