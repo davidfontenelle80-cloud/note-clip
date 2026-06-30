@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v109-notification-route-fix';
+const CACHE_VERSION = 'note-clip-v110-notification-route-scope-fix';
 
 const PRECACHE_URLS = [
   './',
@@ -100,8 +100,29 @@ async function precache() {
   }));
 }
 
+function noteClipScopeUrl() {
+  return (self.registration && self.registration.scope) || new URL('./', self.location.href).href;
+}
+
+function isNoteClipClient(clientUrl) {
+  try {
+    const scope = new URL(noteClipScopeUrl());
+    const url = new URL(clientUrl);
+    return url.origin === scope.origin && url.pathname.indexOf(scope.pathname) === 0;
+  } catch (e) {
+    return false;
+  }
+}
+
 function notificationTargetUrl(data = {}) {
-  const base = new URL(data.url || './', self.location.origin);
+  const scopeUrl = noteClipScopeUrl();
+  let base;
+  try {
+    base = new URL(data.url || scopeUrl, scopeUrl);
+  } catch (e) {
+    base = new URL(scopeUrl);
+  }
+  if (base.origin !== self.location.origin) base = new URL(scopeUrl);
   const sourceType = data.sourceType || 'note';
   const sourceId = data.sourceId || data.noteId || '';
   base.searchParams.set('tab', 'notes');
@@ -117,6 +138,7 @@ function notificationRouteMessage(data = {}) {
     tab: 'notes',
     sourceType: data.sourceType || 'note',
     sourceId: data.sourceId || data.noteId || '',
+    url: notificationTargetUrl(data),
   };
 }
 
@@ -146,7 +168,7 @@ self.addEventListener('notificationclick', event => {
   const routeMessage = notificationRouteMessage(data);
   event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
     for (const client of clientList) {
-      if ('focus' in client) {
+      if ('focus' in client && isNoteClipClient(client.url)) {
         client.postMessage(routeMessage);
         return client.focus();
       }
