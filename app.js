@@ -400,6 +400,7 @@
                     </div>
                   </div>
                 </div>
+                <div id="note-delivery-hint" class="form-label" style="display:none;margin-top:var(--space-sm);color:var(--accent,#4caf50)"></div>
               </div>
             </div>
 
@@ -456,6 +457,45 @@
 
       document.body.insertAdjacentHTML('beforeend', html);
       enhanceModal('note-modal');
+      // Honest delivery time: worker cron only checks every
+      // App.REMINDER_CHECK_MINUTES minutes, so show when the push really lands.
+      function updateDeliveryHint() {
+        const hint = document.getElementById('note-delivery-hint');
+        if (!hint || typeof App.computeDeliveryTime !== 'function') return;
+        const dueDate = document.getElementById('note-due')?.value || '';
+        const dueTime = document.getElementById('note-due-time')?.value || '';
+        let reminder = document.getElementById('note-reminder')?.value || '';
+        let reminderAt = '';
+        if (reminder === 'custom') {
+          const cd = document.getElementById('note-reminder-custom-date')?.value || '';
+          const ct = document.getElementById('note-reminder-custom-time')?.value || '08:00';
+          if (cd) { reminderAt = `${cd}T${ct}:00`; }
+          reminder = '';
+        }
+        const fireMs = App.Notes._noteReminderTime?.({ dueDate, dueTime, reminder, reminderAt, completed: false, archived: false });
+        if (!fireMs) { hint.style.display = 'none'; hint.textContent = ''; return; }
+        const picked = new Date(fireMs);
+        const delivery = App.computeDeliveryTime(picked);
+        if (!delivery) { hint.style.display = 'none'; hint.textContent = ''; return; }
+        const loc = App.I18n?.current?.() === 'es' ? 'es-ES' : 'en-US';
+        const stamp = (d, withDate) => (withDate
+          ? d.toLocaleDateString(loc, { month: 'short', day: 'numeric' }) + ' '
+          : '') + d.toLocaleTimeString(loc, { hour: 'numeric', minute: '2-digit' });
+        const crossesDay = delivery.toDateString() !== picked.toDateString();
+        let text;
+        if (delivery.getTime() !== picked.getTime()) {
+          text = tx('note_set_delivers').replace('{picked}', stamp(picked, false)).replace('{time}', stamp(delivery, crossesDay));
+        } else {
+          text = tx('note_delivers_around').replace('{time}', stamp(delivery, crossesDay));
+        }
+        hint.textContent = text;
+        hint.style.display = '';
+      }
+      ['note-due', 'note-due-time', 'note-reminder', 'note-reminder-custom-date', 'note-reminder-custom-time'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', updateDeliveryHint);
+      });
+      updateDeliveryHint();
       const sheet = document.querySelector('#note-modal .modal-sheet');
       if (sheet) sheet.scrollTop = 0;
       requestAnimationFrame(() => setTimeout(() => {

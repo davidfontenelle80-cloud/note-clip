@@ -5,6 +5,30 @@
 (function (App) {
   'use strict';
 
+  /* Push reminders are delivered by a Cloudflare Worker cron that runs every
+     REMINDER_CHECK_MINUTES minutes. A reminder fires at the first cron tick
+     AT OR AFTER its scheduled time. If the cron schedule ever changes, this
+     constant is the only line to edit. */
+  const REMINDER_CHECK_MINUTES = 5;
+
+  // Round a reminder time up to the next cron grid mark, with a safety
+  // buffer: if that mark is less than one full interval away, use the next
+  // one (the worker may already be mid-run). Past/"now" times become now.
+  function computeDeliveryTime(reminderTime) {
+    const interval = REMINDER_CHECK_MINUTES * 60 * 1000;
+    const now = Date.now();
+    let t = (reminderTime instanceof Date) ? reminderTime.getTime() : new Date(reminderTime).getTime();
+    if (Number.isNaN(t)) return null;
+    if (t < now) t = now;
+    let fireTime = Math.ceil(t / interval) * interval;
+    if (fireTime - now < interval) {
+      fireTime += interval;
+    }
+    return new Date(fireTime);
+  }
+  App.REMINDER_CHECK_MINUTES = REMINDER_CHECK_MINUTES;
+  App.computeDeliveryTime = computeDeliveryTime;
+
   let _view = 'categories'; // 'categories' | 'notes' | 'note-list'
   let _filterCatId = null;
   let _filterStatus = 'active';
@@ -823,7 +847,7 @@
     render, onFab, filterByDate,
     _setView, _viewCat, _setStatus, _setSearch,
     _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
-    _openNoteModal, _closeModal, _saveNote, _pickColor, _toggleSection,
+    _openNoteModal, _closeModal, _saveNote, _pickColor, _toggleSection, _noteReminderTime,
     _editCat, _saveCat, _deleteCat, _confirmDeleteCat, _toggleCustomReminder,
     _setCatIcon, _filterCatIcons, _applyCustomCatEmoji,
     _openAppleMaps, _openGoogleMaps, _copyAddress,

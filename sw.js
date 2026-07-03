@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v110-notification-route-scope-fix';
+const CACHE_VERSION = 'note-clip-v111-delivery-hint';
 
 const PRECACHE_URLS = [
   './',
