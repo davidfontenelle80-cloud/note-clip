@@ -11,6 +11,10 @@
      constant is the only line to edit. */
   const REMINDER_CHECK_MINUTES = 5;
 
+  /* Minimum lead time for a reminder: anything closer than one cron interval
+     can be missed by the next worker check. One-line change if needed. */
+  const MIN_REMINDER_LEAD_MINUTES = 5;
+
   // Round a reminder time up to the next cron grid mark, with a safety
   // buffer: if that mark is less than one full interval away, use the next
   // one (the worker may already be mid-run). Past/"now" times become now.
@@ -624,6 +628,26 @@
         dueDate, dueTime, reminder, reminderAt, appointmentName: apptName,
         appointmentDatetime: apptDt, leaveBy, locationName: locName, address,
       };
+
+      // Minimum lead-time check: block only when the reminder time changed
+      // and lands closer than the worker's check window. Unrelated edits pass.
+      const fireMs = _noteReminderTime({ dueDate, dueTime, reminder, reminderAt });
+      if (fireMs) {
+        let reminderChanged = true;
+        if (id) {
+          const prev = (App.Storage.getState().notes || []).find(n => n.id === id);
+          if (prev) {
+            reminderChanged = (prev.dueDate || '') !== dueDate
+              || (prev.dueTime || '') !== dueTime
+              || (prev.reminder || '') !== reminder
+              || (prev.reminderAt || '') !== reminderAt;
+          }
+        }
+        if (reminderChanged && (fireMs - Date.now() < MIN_REMINDER_LEAD_MINUTES * 60000)) {
+          App.showToast(App.I18n.t('toast_reminder_lead').replace('{min}', String(MIN_REMINDER_LEAD_MINUTES)), 'error');
+          return; // form stays open, entered values intact (finally re-enables Save)
+        }
+      }
 
       let savedNote = null;
       if (id) {
