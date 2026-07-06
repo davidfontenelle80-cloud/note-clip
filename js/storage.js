@@ -173,6 +173,7 @@
       id:        generateId(),
       name:      '',
       type:      'reusable',
+      budget:    150,
       items:     [],
       createdAt: new Date().toISOString(),
     }, data);
@@ -198,7 +199,17 @@
   function addListItem(listId, text) {
     const idx = _state.lists.findIndex(l => l.id === listId);
     if (idx < 0) return;
-    const item = { id: generateId(), text, checked: false, createdAt: new Date().toISOString() };
+    const itemData = (text && typeof text === 'object') ? text : { text };
+    const item = Object.assign({
+      id: generateId(),
+      text: '',
+      checked: false,
+      price: 0,
+      qty: 1,
+      recurring: true,
+      createdAt: new Date().toISOString(),
+    }, itemData);
+    item.id = item.id || generateId();
     _state.lists[idx].items.push(item);
     save(_state);
     return item;
@@ -223,6 +234,15 @@
     const list = _state.lists.find(l => l.id === listId);
     if (!list) return;
     list.items.forEach(i => { i.checked = false; });
+    save(_state);
+  }
+
+  function resetGroceryList(listId) {
+    const list = _state.lists.find(l => l.id === listId);
+    if (!list) return;
+    list.items = list.items
+      .filter(i => i.recurring !== false)
+      .map(i => Object.assign({}, i, { checked: false }));
     save(_state);
   }
 
@@ -286,7 +306,11 @@
     if (!list) return null;
     const item = list.items.find(i => i.id === itemId);
     if (!item) return null;
-    item.text = text;
+    if (text && typeof text === 'object') {
+      Object.assign(item, text);
+    } else {
+      item.text = text;
+    }
     save(_state);
     return item;
   }
@@ -306,7 +330,7 @@
     generateId, getState, setState, updateSettings,
     addNote, updateNote, deleteNote,
     addCategory, updateCategory, deleteCategory,
-    addList, updateList, deleteList, addListItem, toggleListItem, deleteListItem, resetList,
+    addList, updateList, deleteList, addListItem, toggleListItem, deleteListItem, resetList, resetGroceryList,
     addDraft, deleteDraft,
     addShared, deleteShared,
     exportJSON,

@@ -234,6 +234,7 @@
             <option value="reusable"${s.defaultListBehavior==='reusable'?' selected':''}>${t('list_reusable')}</option>
             <option value="goal"${s.defaultListBehavior==='goal'?' selected':''}>${t('list_goal')}</option>
             <option value="template"${s.defaultListBehavior==='template'?' selected':''}>${t('list_template')}</option>
+            <option value="grocery"${s.defaultListBehavior==='grocery'?' selected':''}>${t('list_grocery')}</option>
           </select>
         </div>
       </div>
