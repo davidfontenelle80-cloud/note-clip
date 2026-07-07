@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v113-grocery-list';
+const CACHE_VERSION = 'note-clip-v114-bug-sweep';
 
 const PRECACHE_URLS = [
   './',
