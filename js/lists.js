@@ -9,6 +9,122 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
+  function _attr(s) {
+    return _esc(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  function _profileName() {
+    return (App.Storage.getState().settings.username || '').trim();
+  }
+
+  function _num(value, fallback) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function _money(value) {
+    return '$' + _num(value, 0).toFixed(2);
+  }
+
+  function _lineTotal(item) {
+    if (!item || !item.checked) return 0;
+    return _num(item.price, 0) * _num(item.qty, 1);
+  }
+
+  function _groceryTotals(list) {
+    const items = Array.isArray(list.items) ? list.items : [];
+    const selected = items.reduce((sum, item) => sum + _lineTotal(item), 0);
+    const budget = _num(list.budget, 150);
+    return { budget, selected, remaining: budget - selected };
+  }
+
+  function _buildGroceryItemRow(listId, item) {
+    const checked = item.checked ? ' checked' : '';
+    const recurring = item.recurring !== false;
+    const line = _lineTotal(item);
+    return `<div class="grocery-item${checked}">
+      <button type="button" class="list-item-check${checked}"
+        aria-label="${item.checked ? 'Remove from this trip' : 'Add to this trip'}"
+        onclick="App.Lists._toggleItem('${listId}','${item.id}')">${item.checked ? '&#10003;' : ''}</button>
+      <div class="grocery-item-main">
+        <div class="grocery-item-name">${_esc(item.text)}</div>
+        <div class="grocery-item-meta">${recurring ? App.I18n.t('grocery_recurring') : App.I18n.t('grocery_one_time')}</div>
+      </div>
+      <div class="grocery-price">${_money(item.price)}</div>
+      <div class="grocery-qty">x${_num(item.qty, 1)}</div>
+      <div class="grocery-total">${_money(line)}</div>
+      <button class="card-delete-btn" title="Edit" aria-label="Edit item"
+        onclick="App.Lists._editItem('${listId}','${item.id}')">&#9998;</button>
+      <button class="card-delete-btn" title="Delete" aria-label="Delete item"
+        onclick="App.Lists._deleteItem('${listId}','${item.id}')">&times;</button>
+    </div>`;
+  }
+
+  function _buildGrocerySection(list, title, items, emptyText) {
+    return `<div class="grocery-section">
+      <div class="grocery-section-title">${title}</div>
+      ${items.length ? items.map(item => _buildGroceryItemRow(list.id, item)).join('') :
+        `<div class="grocery-empty">${emptyText}</div>`}
+    </div>`;
+  }
+
+  function _buildGroceryCard(list) {
+    const t = App.I18n.t.bind(App.I18n);
+    const items = Array.isArray(list.items) ? list.items : [];
+    const recurring = items.filter(item => item.recurring !== false);
+    const oneTime = items.filter(item => item.recurring === false);
+    const totals = _groceryTotals(list);
+    const checked = items.filter(item => item.checked).length;
+    const resetBtn = (checked > 0 || oneTime.length > 0)
+      ? `<button class="card-delete-btn grocery-reset-btn" title="${t('grocery_reset_week')}"
+           onclick="App.Lists._reset('${list.id}')">${t('grocery_reset_week')}</button>`
+      : '';
+
+    return `<div class="list-card grocery-card">
+      <div class="list-card-header grocery-card-header">
+        <div>
+          <div class="list-title">${_esc(list.name)}</div>
+          <span class="list-type-chip">${t('list_grocery')}</span>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center">
+          ${resetBtn}
+          <button class="card-delete-btn" title="Edit"
+            onclick="App.Lists._editList('${list.id}')">&#9998;</button>
+          <button class="card-delete-btn" title="Delete"
+            onclick="App.Lists._deleteList('${list.id}')">&times;</button>
+        </div>
+      </div>
+      <div class="grocery-budget-grid">
+        <label class="grocery-budget-cell">
+          <span>${t('grocery_budget')}</span>
+          <input type="number" inputmode="decimal" min="0" step="0.01"
+            value="${totals.budget.toFixed(2)}"
+            onchange="App.Lists._setGroceryBudget('${list.id}',this.value)">
+        </label>
+        <div class="grocery-budget-cell">
+          <span>${t('grocery_selected')}</span>
+          <strong>${_money(totals.selected)}</strong>
+        </div>
+        <div class="grocery-budget-cell${totals.remaining < 0 ? ' over' : ''}">
+          <span>${t('grocery_remaining')}</span>
+          <strong>${_money(totals.remaining)}</strong>
+        </div>
+      </div>
+      ${_buildGrocerySection(list, t('grocery_recurring_items'), recurring, t('grocery_no_recurring'))}
+      ${_buildGrocerySection(list, t('grocery_one_time_items'), oneTime, t('grocery_no_one_time'))}
+      <div class="grocery-add-row">
+        <input class="list-add-input" id="add-grocery-name-${list.id}" placeholder="${t('grocery_item_name')}">
+        <input class="grocery-add-price" id="add-grocery-price-${list.id}" type="number" inputmode="decimal" min="0" step="0.01" placeholder="${t('grocery_price')}">
+        <input class="grocery-add-qty" id="add-grocery-qty-${list.id}" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="${t('grocery_qty')}">
+        <label class="grocery-recurring-toggle">
+          <input id="add-grocery-recurring-${list.id}" type="checkbox">
+          <span>${t('grocery_save_recurring')}</span>
+        </label>
+        <button class="btn btn-primary btn-sm" onclick="App.Lists._addGroceryItem('${list.id}')">+</button>
+      </div>
+    </div>`;
+  }
+
   // ── Item Row Builder ───────────────────────────────────────────────
   // opts: { checkable, restoreMode }
   // restoreMode = show restore button (↩) instead of check toggle label
@@ -47,9 +163,10 @@
   // ── List Card ─────────────────────────────────────────────────────
   function buildListCard(list) {
     const t = App.I18n.t.bind(App.I18n);
+    if (list.type === 'grocery') return _buildGroceryCard(list);
     const checked = list.items.filter(i => i.checked).length;
     const total   = list.items.length;
-    const typeLabel = t('list_' + list.type);
+    const typeLabel = t('list_' + list.type) || t('list_reusable');
 
     // ── Type-differentiated item areas ───────────────────────────────
     let itemsArea = '';
@@ -197,6 +314,10 @@
     const list  = state.lists.find(l => l.id === listId);
     const item  = list && list.items.find(i => i.id === itemId);
     if (!item) return;
+    if (list?.type === 'grocery') {
+      _editItemModal(listId, item);
+      return;
+    }
     const t = App.I18n.t.bind(App.I18n);
     const newText = prompt(t('list_edit_item') + ':', item.text);
     if (newText === null) return;           // user cancelled
@@ -218,8 +339,36 @@
       document.getElementById('add-item-' + listId).focus(), 50);
   }
 
+  function _addGroceryItem(listId) {
+    const nameInput = document.getElementById('add-grocery-name-' + listId);
+    const priceInput = document.getElementById('add-grocery-price-' + listId);
+    const qtyInput = document.getElementById('add-grocery-qty-' + listId);
+    const recurringInput = document.getElementById('add-grocery-recurring-' + listId);
+    const text = nameInput?.value.trim() || '';
+    if (!text) return;
+    App.Storage.addListItem(listId, {
+      text,
+      price: _num(priceInput?.value, 0),
+      qty: Math.max(1, _num(qtyInput?.value, 1)),
+      recurring: !!recurringInput?.checked,
+      checked: true,
+    });
+    nameInput.value = '';
+    if (priceInput) priceInput.value = '';
+    if (qtyInput) qtyInput.value = '1';
+    if (recurringInput) recurringInput.checked = false;
+    render();
+    setTimeout(() => document.getElementById('add-grocery-name-' + listId)?.focus(), 50);
+  }
+
   function _reset(listId) {
-    App.Storage.resetList(listId);
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === listId);
+    if (list?.type === 'grocery') {
+      App.Storage.resetGroceryList(listId);
+    } else {
+      App.Storage.resetList(listId);
+    }
     App.showToast(App.I18n.t('list_reset'), 'success');
     render();
   }
@@ -270,9 +419,10 @@
     const defaultType = App.Storage.getState().settings.defaultListBehavior || 'reusable';
     const l = list || { name: '', type: defaultType };
 
-    const typeOpts = ['reusable','goal','template'].map(tp =>
+    const typeOpts = ['reusable','goal','template','grocery'].map(tp =>
       `<option value="${tp}"${l.type===tp?' selected':''}>${t('list_'+tp)}</option>`
     ).join('');
+    const budgetValue = _num(l.budget, 150).toFixed(2);
 
     const html = `
       <div id="list-modal" class="modal-backdrop" onclick="if(event.target===this)App.Lists._closeModal()">
@@ -285,7 +435,11 @@
           </div>
           <div class="form-group">
             <label class="form-label">${t('list_type')}</label>
-            <select id="list-type" class="form-select">${typeOpts}</select>
+            <select id="list-type" class="form-select" onchange="App.Lists._syncListBudgetField()">${typeOpts}</select>
+          </div>
+          <div class="form-group grocery-list-budget-field" style="${l.type === 'grocery' ? '' : 'display:none'}">
+            <label class="form-label">${t('grocery_budget')}</label>
+            <input id="list-budget" class="form-input" type="number" inputmode="decimal" min="0" step="0.01" value="${budgetValue}">
           </div>
           <div class="modal-actions">
             ${isEdit ? `<button class="btn btn-danger btn-sm" onclick="App.Lists._deleteList('${l.id}',true)">${t('delete')}</button>` : ''}
@@ -307,12 +461,13 @@
   function _saveList(id) {
     const name = document.getElementById('list-name') && document.getElementById('list-name').value.trim();
     const type = document.getElementById('list-type') && document.getElementById('list-type').value || 'reusable';
+    const budget = Math.max(0, _num(document.getElementById('list-budget')?.value, 150));
     if (!name) { App.showToast(App.I18n.t('toast_list_name_req'), 'error'); return; }
     if (id) {
-      App.Storage.updateList(id, { name, type });
+      App.Storage.updateList(id, type === 'grocery' ? { name, type, budget } : { name, type });
       App.showToast(App.I18n.t('toast_list_updated'), 'success');
     } else {
-      App.Storage.addList({ name, type });
+      App.Storage.addList(type === 'grocery' ? { name, type, budget } : { name, type });
       App.showToast(App.I18n.t('toast_list_created'), 'success');
     }
     _closeModal();
@@ -334,14 +489,171 @@
 
   function _closeModal() {
     document.getElementById('list-modal') && document.getElementById('list-modal').remove();
+    App.restoreFocus?.();
+  }
+
+  function _openItemModal(listId, item) {
+    const t = App.I18n.t.bind(App.I18n);
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === listId);
+    const isGrocery = list?.type === 'grocery';
+    const groceryFields = isGrocery ? `
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="list-item-price">${t('grocery_price')}</label>
+              <input id="list-item-price" class="form-input" type="number" inputmode="decimal" min="0" step="0.01" value="${_attr(_num(item.price, 0).toFixed(2))}">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="list-item-qty">${t('grocery_qty')}</label>
+              <input id="list-item-qty" class="form-input" type="number" inputmode="numeric" min="1" step="1" value="${_attr(_num(item.qty, 1))}">
+            </div>
+          </div>
+          <label class="grocery-recurring-toggle grocery-modal-toggle">
+            <input id="list-item-recurring" type="checkbox"${item.recurring !== false ? ' checked' : ''}>
+            <span>${t('grocery_save_recurring')}</span>
+          </label>` : '';
+    const html = `
+      <div id="list-item-modal" class="modal-backdrop" onclick="if(event.target===this)App.Lists._closeItemModal()">
+        <div class="modal-sheet">
+          <div class="modal-handle"></div>
+          <div class="modal-title">${t('list_edit_item')}</div>
+          <div class="form-group">
+            <label class="form-label" for="list-item-text">${t('list_edit_item')}</label>
+            <input id="list-item-text" class="form-input" value="${_attr(item.text)}"
+              onkeydown="if(event.key==='Enter')App.Lists._saveItemEdit('${listId}','${item.id}')">
+          </div>
+          ${groceryFields}
+          <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="App.Lists._closeItemModal()">${t('cancel')}</button>
+            <button class="btn btn-primary" onclick="App.Lists._saveItemEdit('${listId}','${item.id}')">${t('save')}</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    App.enhanceModal?.('list-item-modal');
+    const input = document.getElementById('list-item-text');
+    input?.focus();
+    input?.select();
+  }
+
+  function _showUndo() {
+    const t = App.I18n.t.bind(App.I18n);
+    document.getElementById('list-undo-toast')?.remove();
+    clearTimeout(_undoTimer);
+    const html = `<div id="list-undo-toast" class="undo-toast" role="status">
+      <span>${t('toast_item_deleted')}</span>
+      <button type="button" onclick="App.Lists._undoDeleteItem()">${t('undo')}</button>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    _undoTimer = setTimeout(() => {
+      document.getElementById('list-undo-toast')?.remove();
+      _pendingDelete = null;
+    }, 5000);
+  }
+
+  function _buildItemRow(listId, item, opts) {
+    opts = opts || {};
+    const checkable = opts.checkable !== false;
+    const restoreMode = !!opts.restoreMode;
+    const checkCls = item.checked ? ' checked' : '';
+    const textCls = item.checked ? ' checked' : '';
+
+    const checkEl = checkable
+      ? `<button type="button" class="list-item-check${checkCls}"
+           aria-label="${item.checked ? 'Mark item incomplete' : 'Mark item complete'}"
+           onclick="App.Lists._toggleItem('${listId}','${item.id}')">
+           ${item.checked ? '&#10003;' : ''}</button>`
+      : `<span class="list-item-check" aria-hidden="true" style="opacity:0.3;cursor:default"></span>`;
+
+    const restoreBtn = restoreMode
+      ? `<button class="card-delete-btn" title="Restore" aria-label="Restore item"
+           onclick="App.Lists._toggleItem('${listId}','${item.id}')">&#8630;</button>`
+      : '';
+
+    return `<div class="list-item">
+      ${checkEl}
+      <span class="list-item-text${textCls}">${_esc(item.text)}</span>
+      ${restoreBtn}
+      <button class="card-delete-btn" title="Edit" aria-label="Edit item"
+        onclick="App.Lists._editItem('${listId}','${item.id}')">&#9998;</button>
+      <button class="card-delete-btn" title="Delete" aria-label="Delete item"
+        onclick="App.Lists._deleteItem('${listId}','${item.id}')">&times;</button>
+    </div>`;
+  }
+
+  function _deleteItemWithUndo(listId, itemId) {
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === listId);
+    const index = list ? list.items.findIndex(i => i.id === itemId) : -1;
+    const item = index >= 0 ? list.items[index] : null;
+    if (!item) return;
+    App.Storage.deleteListItem(listId, itemId);
+    _pendingDelete = { listId, item, index };
+    render();
+    _showUndo();
+  }
+
+  function _editItemModal(listId, item) {
+    if (item) _openItemModal(listId, item);
+  }
+
+  function _saveItemEdit(listId, itemId) {
+    const trimmed = document.getElementById('list-item-text')?.value.trim() || '';
+    if (!trimmed) return;
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === listId);
+    if (list?.type === 'grocery') {
+      App.Storage.updateListItem(listId, itemId, {
+        text: trimmed,
+        price: _num(document.getElementById('list-item-price')?.value, 0),
+        qty: Math.max(1, _num(document.getElementById('list-item-qty')?.value, 1)),
+        recurring: document.getElementById('list-item-recurring')?.checked !== false,
+      });
+    } else {
+      App.Storage.updateListItem(listId, itemId, trimmed);
+    }
+    _closeItemModal();
+    render();
+  }
+
+  function _setGroceryBudget(listId, value) {
+    App.Storage.updateList(listId, { budget: Math.max(0, _num(value, 150)) });
+    render();
+  }
+
+  function _syncListBudgetField() {
+    const type = document.getElementById('list-type')?.value || 'reusable';
+    const field = document.querySelector('#list-modal .grocery-list-budget-field');
+    if (field) field.style.display = type === 'grocery' ? '' : 'none';
+  }
+
+  function _closeItemModal() {
+    document.getElementById('list-item-modal')?.remove();
+    App.restoreFocus?.();
+  }
+
+  function _undoDeleteItem() {
+    if (!_pendingDelete) return;
+    const state = App.Storage.getState();
+    const list = state.lists.find(l => l.id === _pendingDelete.listId);
+    if (list) {
+      const insertAt = Math.min(Math.max(_pendingDelete.index, 0), list.items.length);
+      list.items.splice(insertAt, 0, _pendingDelete.item);
+      App.Storage.setState(state);
+    }
+    _pendingDelete = null;
+    clearTimeout(_undoTimer);
+    document.getElementById('list-undo-toast')?.remove();
+    render();
   }
 
   function onFab() { _openModal(null); }
 
   App.Lists = {
     render, onFab,
-    _toggleItem, _deleteItem, _editItem, _addItem, _reset, _copyList,
+    _toggleItem, _deleteItem, _editItem, _addItem, _addGroceryItem, _reset, _copyList,
     _openModal, _editList, _saveList, _deleteList, _closeModal, _shareList,
+    _saveItemEdit, _closeItemModal, _undoDeleteItem, _setGroceryBudget, _syncListBudgetField,
   };
 
 })(window.App = window.App || {});
