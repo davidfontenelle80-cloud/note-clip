@@ -26,9 +26,13 @@
     return '$' + _num(value, 0).toFixed(2);
   }
 
+  function _price(value) {
+    return Math.max(0, _num(value, 0));
+  }
+
   function _lineTotal(item) {
     if (!item || !item.checked) return 0;
-    return _num(item.price, 0) * _num(item.qty, 1);
+    return _price(item.price) * _num(item.qty, 1);
   }
 
   function _groceryTotals(list) {
@@ -50,7 +54,7 @@
         <div class="grocery-item-name">${_esc(item.text)}</div>
         <div class="grocery-item-meta">${recurring ? App.I18n.t('grocery_recurring') : App.I18n.t('grocery_one_time')}</div>
       </div>
-      <div class="grocery-price">${_money(item.price)}</div>
+      <div class="grocery-price">${_money(_price(item.price))}</div>
       <div class="grocery-qty">x${_num(item.qty, 1)}</div>
       <div class="grocery-total">${_money(line)}</div>
       <button class="card-delete-btn" title="Edit" aria-label="Edit item"
@@ -348,7 +352,7 @@
     if (!text) return;
     App.Storage.addListItem(listId, {
       text,
-      price: _num(priceInput?.value, 0),
+      price: _price(priceInput?.value),
       qty: Math.max(1, _num(qtyInput?.value, 1)),
       recurring: !!recurringInput?.checked,
       checked: true,
@@ -431,7 +435,7 @@
           <div class="modal-title">${isEdit ? t('edit_list') : t('add_list')}</div>
           <div class="form-group">
             <label class="form-label">${t('list_name')}</label>
-            <input id="list-name" class="form-input" placeholder="My list…" value="${_esc(l.name)}">
+            <input id="list-name" class="form-input" placeholder="My list…" value="${_attr(l.name)}">
           </div>
           <div class="form-group">
             <label class="form-label">${t('list_type')}</label>
@@ -501,7 +505,7 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="list-item-price">${t('grocery_price')}</label>
-              <input id="list-item-price" class="form-input" type="number" inputmode="decimal" min="0" step="0.01" value="${_attr(_num(item.price, 0).toFixed(2))}">
+              <input id="list-item-price" class="form-input" type="number" inputmode="decimal" min="0" step="0.01" value="${_attr(_price(item.price).toFixed(2))}">
             </div>
             <div class="form-group">
               <label class="form-label" for="list-item-qty">${t('grocery_qty')}</label>
@@ -536,63 +540,6 @@
     input?.select();
   }
 
-  function _showUndo() {
-    const t = App.I18n.t.bind(App.I18n);
-    document.getElementById('list-undo-toast')?.remove();
-    clearTimeout(_undoTimer);
-    const html = `<div id="list-undo-toast" class="undo-toast" role="status">
-      <span>${t('toast_item_deleted')}</span>
-      <button type="button" onclick="App.Lists._undoDeleteItem()">${t('undo')}</button>
-    </div>`;
-    document.body.insertAdjacentHTML('beforeend', html);
-    _undoTimer = setTimeout(() => {
-      document.getElementById('list-undo-toast')?.remove();
-      _pendingDelete = null;
-    }, 5000);
-  }
-
-  function _buildItemRow(listId, item, opts) {
-    opts = opts || {};
-    const checkable = opts.checkable !== false;
-    const restoreMode = !!opts.restoreMode;
-    const checkCls = item.checked ? ' checked' : '';
-    const textCls = item.checked ? ' checked' : '';
-
-    const checkEl = checkable
-      ? `<button type="button" class="list-item-check${checkCls}"
-           aria-label="${item.checked ? 'Mark item incomplete' : 'Mark item complete'}"
-           onclick="App.Lists._toggleItem('${listId}','${item.id}')">
-           ${item.checked ? '&#10003;' : ''}</button>`
-      : `<span class="list-item-check" aria-hidden="true" style="opacity:0.3;cursor:default"></span>`;
-
-    const restoreBtn = restoreMode
-      ? `<button class="card-delete-btn" title="Restore" aria-label="Restore item"
-           onclick="App.Lists._toggleItem('${listId}','${item.id}')">&#8630;</button>`
-      : '';
-
-    return `<div class="list-item">
-      ${checkEl}
-      <span class="list-item-text${textCls}">${_esc(item.text)}</span>
-      ${restoreBtn}
-      <button class="card-delete-btn" title="Edit" aria-label="Edit item"
-        onclick="App.Lists._editItem('${listId}','${item.id}')">&#9998;</button>
-      <button class="card-delete-btn" title="Delete" aria-label="Delete item"
-        onclick="App.Lists._deleteItem('${listId}','${item.id}')">&times;</button>
-    </div>`;
-  }
-
-  function _deleteItemWithUndo(listId, itemId) {
-    const state = App.Storage.getState();
-    const list = state.lists.find(l => l.id === listId);
-    const index = list ? list.items.findIndex(i => i.id === itemId) : -1;
-    const item = index >= 0 ? list.items[index] : null;
-    if (!item) return;
-    App.Storage.deleteListItem(listId, itemId);
-    _pendingDelete = { listId, item, index };
-    render();
-    _showUndo();
-  }
-
   function _editItemModal(listId, item) {
     if (item) _openItemModal(listId, item);
   }
@@ -605,7 +552,7 @@
     if (list?.type === 'grocery') {
       App.Storage.updateListItem(listId, itemId, {
         text: trimmed,
-        price: _num(document.getElementById('list-item-price')?.value, 0),
+        price: _price(document.getElementById('list-item-price')?.value),
         qty: Math.max(1, _num(document.getElementById('list-item-qty')?.value, 1)),
         recurring: document.getElementById('list-item-recurring')?.checked !== false,
       });
@@ -632,28 +579,13 @@
     App.restoreFocus?.();
   }
 
-  function _undoDeleteItem() {
-    if (!_pendingDelete) return;
-    const state = App.Storage.getState();
-    const list = state.lists.find(l => l.id === _pendingDelete.listId);
-    if (list) {
-      const insertAt = Math.min(Math.max(_pendingDelete.index, 0), list.items.length);
-      list.items.splice(insertAt, 0, _pendingDelete.item);
-      App.Storage.setState(state);
-    }
-    _pendingDelete = null;
-    clearTimeout(_undoTimer);
-    document.getElementById('list-undo-toast')?.remove();
-    render();
-  }
-
   function onFab() { _openModal(null); }
 
   App.Lists = {
     render, onFab,
     _toggleItem, _deleteItem, _editItem, _addItem, _addGroceryItem, _reset, _copyList,
     _openModal, _editList, _saveList, _deleteList, _closeModal, _shareList,
-    _saveItemEdit, _closeItemModal, _undoDeleteItem, _setGroceryBudget, _syncListBudgetField,
+    _saveItemEdit, _closeItemModal, _setGroceryBudget, _syncListBudgetField,
   };
 
 })(window.App = window.App || {});
