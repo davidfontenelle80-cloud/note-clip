@@ -1,5 +1,5 @@
 /**
- * notes.js — Note Clip PWA
+ * notes.js â Note Clip PWA
  * Notes + Categories tab. Full CRUD. Pastel cards. Delete visible on card.
  */
 (function (App) {
@@ -59,7 +59,7 @@
     return _esc(icon);
   }
 
-  // Flat emoji array — 80+ curated icons (ES6 \u{} syntax)
+  // Flat emoji array â 80+ curated icons (ES6 \u{} syntax)
   const CATEGORY_ICON_OPTIONS = [
     '\u{1F4BC}','\u{1F4CB}','\u{1F4CA}','\u{1F4C8}','\u{1F4C9}','\u{1F5A5}\u{FE0F}','\u{1F4BB}','\u{1F5A8}\u{FE0F}','\u{1F4CE}','\u{1F5C2}\u{FE0F}','\u{1F4C1}','\u{1F4C2}','\u{1F5C3}\u{FE0F}','\u{2705}','\u{2611}\u{FE0F}',
     '\u{1F4DD}','\u{1F4C4}','\u{1F4C3}','\u{1F4DC}','\u{1F5D2}\u{FE0F}','\u{1F5D3}\u{FE0F}','\u{1F4C5}','\u{1F4C6}','\u{1F516}','\u{1F3F7}\u{FE0F}',
@@ -82,7 +82,7 @@
   }
 
   function _catIconLabel(value) {
-    return ''; // Flat emoji array — no text labels needed
+    return ''; // Flat emoji array â no text labels needed
   }
 
   function _categoryIconPickerHtml(selected) {
@@ -136,7 +136,7 @@
   // No-op: custom emoji input removed
   function _applyCustomCatEmoji() {}
 
-  // ── Status Tabs ───────────────────────────────────────────────────
+  // ââ Status Tabs âââââââââââââââââââââââââââââââââââââââââââââââââââ
   function buildStatusTabs() {
     const statuses = ['active','awaiting','followup','hold','toread','completed','archived'];
     return `<div class="status-tabs">
@@ -148,7 +148,7 @@
     </div>`;
   }
 
-  // ── Category Grid ─────────────────────────────────────────────────
+  // ââ Category Grid âââââââââââââââââââââââââââââââââââââââââââââââââ
   function buildCategoryGrid(state) {
     if (!state.categories.length) {
       return `<div class="empty-state">
@@ -176,7 +176,7 @@
     return `<div class="category-grid">${cards}</div>`;
   }
 
-  // ── Note Card ─────────────────────────────────────────────────────
+  // ââ Note Card âââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function buildNoteCard(note, state) {
     const cat = state.categories.find(c => c.id === note.categoryId);
     const title = note.title || note.body.slice(0, 50);
@@ -196,7 +196,7 @@
         <button class="card-delete-btn"
           onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="Delete">&times;</button>
       </div>
-      ${body ? `<div class="note-card-body">${_esc(body.slice(0,120))}${body.length>120?'…':''}</div>` : ''}
+      ${body ? `<div class="note-card-body">${_esc(body.slice(0,120))}${body.length>120?'â¦':''}</div>` : ''}
       <div class="note-card-footer">
         <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
           ${note.priority !== 'medium' ? `<span class="priority-badge ${pClass}">${App.I18n.t('priority_'+note.priority)}</span>` : ''}
@@ -216,7 +216,7 @@
     </div>`;
   }
 
-  // ── Notes Grid View ───────────────────────────────────────────────
+  // ââ Notes Grid View âââââââââââââââââââââââââââââââââââââââââââââââ
   function buildNotesGrid(state) {
     let notes = state.notes;
     if (_filterCatId) notes = notes.filter(n => n.categoryId === _filterCatId);
@@ -266,13 +266,13 @@
       return searchBar + `<div class="empty-state">
         <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
         <div class="empty-state-text">${App.I18n.t('no_notes')}</div>
-        <div class="empty-state-sub">${_searchQuery ? 'No results — try a different search' : App.I18n.t('tap_plus')}</div>
+        <div class="empty-state-sub">${_searchQuery ? 'No results â try a different search' : App.I18n.t('tap_plus')}</div>
       </div>`;
     }
     return searchBar + `<div class="notes-grid">${notes.map(n => buildNoteCard(n, state)).join('')}</div>`;
   }
 
-  // ── Main Render ───────────────────────────────────────────────────
+  // ââ Main Render âââââââââââââââââââââââââââââââââââââââââââââââââââ
   function render() {
     const el = document.getElementById('pane-notes');
     if (!el) return;
@@ -298,7 +298,7 @@
     } else if (_view === 'note-list') {
       content = `
         <button class="btn btn-secondary btn-sm" onclick="App.Notes._setView('categories')" style="margin-bottom:var(--space-md)">
-          ← ${App.I18n.t('categories')}
+          â ${App.I18n.t('categories')}
         </button>
         <div class="section-header">
           <span class="section-title">${_esc(catName)}</span>
@@ -316,7 +316,7 @@
     `;
   }
 
-  // ── Navigation ────────────────────────────────────────────────────
+  // ââ Navigation ââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function _setView(v) {
     _view = v;
     if (v !== 'note-list') _filterCatId = null;
@@ -339,7 +339,7 @@
     render();
   }
 
-  // ── Note Modal ────────────────────────────────────────────────────
+  // ââ Note Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function _openNoteModal(note) {
     const state = App.Storage.getState();
     const isEdit = !!note;
@@ -407,7 +407,7 @@
           <div class="form-group">
             <label class="form-label">Category</label>
             <select id="note-cat" class="form-select">
-              <option value="">— none —</option>
+              <option value="">â none â</option>
               ${catOptions}
             </select>
           </div>
@@ -437,12 +437,12 @@
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_reminder')}</label>
                 <select id="note-reminder" class="form-select" onchange="App.Notes._toggleCustomReminder()">
-                  <option value="">— none —</option>
+                  <option value="">â none â</option>
                   <option value="same_day"${n.reminder==='same_day'?' selected':''}>Same day (8am)</option>
                   <option value="day_before"${n.reminder==='day_before'?' selected':''}>Day before</option>
                   <option value="1h_before"${n.reminder==='1h_before'?' selected':''}>1 hour before</option>
                   <option value="2h_before"${n.reminder==='2h_before'?' selected':''}>2 hours before</option>
-                  <option value="custom"${n.reminderAt && !n.reminder ? ' selected' : ''}>Custom…</option>
+                  <option value="custom"${n.reminderAt && !n.reminder ? ' selected' : ''}>Customâ¦</option>
                 </select>
               </div>
               <div id="note-reminder-custom" style="display:${n.reminderAt && !n.reminder ? '' : 'none'};padding-top:var(--space-sm)">
@@ -471,7 +471,7 @@
             <div id="section-content-appt" class="section-toggle-content" hidden style="padding-top:var(--space-sm)">
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_appt')}</label>
-                <input id="note-appt-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Appointment name…" value="${_esc(n.appointmentName)}">
+                <input id="note-appt-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Appointment nameâ¦" value="${_esc(n.appointmentName)}">
               </div>
               <div class="form-row">
                 <div class="form-group">
@@ -485,11 +485,11 @@
               </div>
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_location')}</label>
-                <input id="note-location" class="form-input" autocomplete="off" autocorrect="off" placeholder="Location name…" value="${_esc(n.locationName)}">
+                <input id="note-location" class="form-input" autocomplete="off" autocorrect="off" placeholder="Location nameâ¦" value="${_esc(n.locationName)}">
               </div>
               <div class="form-group">
                 <label class="form-label">${App.I18n.t('note_address')}</label>
-                <input id="note-address" class="form-input" autocomplete="off" autocorrect="off" placeholder="Full address…" value="${_esc(n.address)}">
+                <input id="note-address" class="form-input" autocomplete="off" autocorrect="off" placeholder="Full addressâ¦" value="${_esc(n.address)}">
               </div>
               ${mapsBlock}
             </div>
@@ -501,8 +501,8 @@
                 ${App.I18n.t('delete')}
               </button>
               ${n.completed
-                ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._reopenNote('${n.id}')">↩ Reopen</button>`
-                : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">✓</button>`}
+                ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._reopenNote('${n.id}')">â© Reopen</button>`
+                : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._completeNote('${n.id}')">â</button>`}
               ${n.archived
                 ? `<button class="btn btn-secondary btn-sm" onclick="App.Notes._restoreNote('${n.id}')">${App.I18n.t('restore')}</button>`
                 : `<button class="btn btn-secondary btn-sm" onclick="App.Notes._archiveNote('${n.id}')">${App.I18n.t('archive')}</button>`}
@@ -556,7 +556,7 @@
       }
       return new Date(y, m - 1, d, 8, 0, 0).getTime();
     }
-    // dueDate+dueTime only (no reminder or reminder === 'none') — fire at exact due time
+    // dueDate+dueTime only (no reminder or reminder === 'none') â fire at exact due time
     if (note.dueDate && note.dueTime && (!note.reminder || note.reminder === 'none' || note.reminder === '')) {
       const t = new Date(note.dueDate + 'T' + note.dueTime).getTime();
       return isNaN(t) ? null : t;
@@ -574,12 +574,14 @@
           (!note.reminder || note.reminder === 'none' || note.reminder === '')) {
         body = `Due now: ${note.title || 'Note'}`;
       }
+      const _fireDelivery = computeDeliveryTime(new Date(fireMs));
+      const _fireEpoch    = _fireDelivery ? Math.floor(_fireDelivery.getTime() / 1000) : Math.floor(fireMs / 1000);
       App.Push?.syncReminder?.(
         'note',
         note.id,
         note.title || 'Reminder',
         body,
-        Math.floor(fireMs / 1000)
+        _fireEpoch
       );
     } else {
       App.Push?.clearReminder?.('note', note.id);
@@ -643,9 +645,13 @@
               || (prev.reminderAt || '') !== reminderAt;
           }
         }
-        if (reminderChanged && (fireMs - Date.now() < MIN_REMINDER_LEAD_MINUTES * 60000)) {
-          App.showToast(App.I18n.t('toast_reminder_lead').replace('{min}', String(MIN_REMINDER_LEAD_MINUTES)), 'error');
-          return; // form stays open, entered values intact (finally re-enables Save)
+        if (reminderChanged) {
+          const _deliveryDate = computeDeliveryTime(new Date(fireMs));
+          const _deliveryMs   = _deliveryDate ? _deliveryDate.getTime() : fireMs;
+          if (_deliveryMs - Date.now() < MIN_REMINDER_LEAD_MINUTES * 60000) {
+            App.showToast(App.I18n.t('toast_reminder_lead').replace('{min}', String(MIN_REMINDER_LEAD_MINUTES)), 'error');
+            return; // form stays open, entered values intact (finally re-enables Save)
+          }
         }
       }
 
@@ -658,6 +664,14 @@
         App.showToast(App.I18n.t('toast_note_saved'), 'success');
       }
       _syncNotePushReminder(savedNote);
+      // Sweep-aware delivery hint
+      if (fireMs) {
+        const _hintDate = computeDeliveryTime(new Date(fireMs));
+        if (_hintDate) {
+          const _hintTime = _hintDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          App.showToast(`⏰ Delivers around ${_hintTime}`, 'success');
+        }
+      }
       _closeModal();
       render();
       if (document.getElementById('reminders-wrap')) App.Dashboard.render();
@@ -752,7 +766,7 @@
     _editingCatId  = null;
   }
 
-  // ── Category Modal ────────────────────────────────────────────────
+  // ââ Category Modal ââââââââââââââââââââââââââââââââââââââââââââââââ
   function _openCatModal(cat) {
     const isEdit = !!cat;
     const c = cat || { name: '', icon: CATEGORY_ICON_OPTIONS[2], color: '#F7F0B6' };
@@ -768,7 +782,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">${App.I18n.t('cat_name')}</label>
-            <input id="cat-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Category name…" value="${_esc(c.name)}">
+            <input id="cat-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Category nameâ¦" value="${_esc(c.name)}">
           </div>
           <div class="modal-actions">
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
@@ -777,7 +791,7 @@
         </div>
       </div>`;
     document.body.insertAdjacentHTML('beforeend', html);
-    // No autofocus on open — focus comes after icon selection
+    // No autofocus on open â focus comes after icon selection
   }
 
   function _editCat(id) {
@@ -845,7 +859,7 @@
     render();
   }
 
-  // ── FAB handler (called by app.js) ──────────────────────────────
+  // ââ FAB handler (called by app.js) ââââââââââââââââââââââââââââââ
   function onFab() {
     if (_view === 'categories') {
       _openCatModal(null);
@@ -854,7 +868,7 @@
     }
   }
 
-  // ── Date filter (called from calendar date tap) ──────────────────
+  // ââ Date filter (called from calendar date tap) ââââââââââââââââââ
   function filterByDate(dateStr) {
     _dateFilter = dateStr || null;
     _view = 'notes';

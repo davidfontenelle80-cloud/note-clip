@@ -1,5 +1,5 @@
 /**
- * settings.js — Note Clip PWA
+ * settings.js â Note Clip PWA
  * Settings tab: theme, language, username, reminders, export.
  */
 (function (App) {
@@ -105,47 +105,65 @@
 
   function _notifSection(s, t) {
     const hasNotifAPI = 'Notification' in window;
+    const hasPushMgr  = 'PushManager' in window;
     const standalone  = _isStandalone();
+    const isIOS       = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
-    // Embedded browser (no Notification API and not standalone)
-    if (!hasNotifAPI && !standalone) {
-      return `<div class="settings-row-sub" style="color:var(--color-text-muted)">${t('notif_embedded')}</div>`;
+    // ── 6-state detection ────────────────────────────────────────
+    let state6;
+    if (!hasNotifAPI && !hasPushMgr) {
+      state6 = 'unsupported';
+    } else if (isIOS && !standalone) {
+      state6 = 'needs-install';
+    } else if (!hasNotifAPI) {
+      state6 = 'unsupported';
+    } else {
+      const perm = Notification.permission;
+      if (perm === 'denied') {
+        state6 = 'denied';
+      } else if (perm === 'default') {
+        state6 = 'default';
+      } else {
+        state6 = App.Push?.getSubscriptionId?.() ? 'subscribed' : 'no-subscription';
+      }
     }
 
-    // Standalone but no Notification API (some browsers)
-    if (!hasNotifAPI) {
+    const sweep = App.REMINDER_CHECK_MINUTES || 5;
+
+    if (state6 === 'unsupported') {
       return `<div class="settings-row-sub" style="color:var(--color-text-muted)">${t('notif_not_supported')}</div>`;
     }
-
-    const permState = App.Reminders?.getPermissionState?.() || 'unsupported';
-
-    // Standalone-installed but not yet granted — give clear guidance
-    if (!standalone && permState !== 'granted') {
+    if (state6 === 'needs-install') {
       return `<div class="settings-row-sub" style="color:var(--color-text-muted)">${t('notif_embedded')}</div>`;
     }
-
-    const statusKey = permState === 'granted' ? 'notif_status_granted'
-                    : permState === 'denied'  ? 'notif_status_denied'
-                    : 'notif_status_default';
-    const statusColor = permState === 'granted' ? 'var(--color-success)'
-                      : permState === 'denied'  ? 'var(--color-error)' : '';
-    const pushConnected = permState === 'granted' && !!App.Push?.getSubscriptionId?.();
-    const pushStatus = permState === 'granted'
-      ? `<div class="settings-row-sub" style="color:${pushConnected ? 'var(--color-success)' : 'var(--color-warning)'}">${t(pushConnected ? 'notif_push_connected' : 'notif_push_not_connected')}</div>`
-      : '';
-    const reqBtn = permState !== 'granted'
-      ? `<button class="btn btn-primary btn-sm" onclick="App.Reminders.requestPermission()">${t('notif_request_perm')}</button>`
-      : '';
-    const reconnectBtn = permState === 'granted' && !pushConnected
-      ? `<button class="btn btn-primary btn-sm" onclick="App.Reminders.requestPermission()">${t('notif_reconnect_push')}</button>`
-      : '';
-    const testBtn = permState === 'granted'
-      ? `<button class="btn btn-secondary btn-sm" onclick="App.Reminders.sendTest()">${t('notif_test')}</button>`
-      : '';
+    if (state6 === 'denied') {
+      return `<div class="settings-row-sub" style="color:var(--color-error)">${t('notif_status_denied')}</div>`;
+    }
+    if (state6 === 'default') {
+      return (
+        `<div class="settings-row-sub">${t('notif_status_default')}</div>` +
+        `<div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">` +
+          `<button class="btn btn-primary btn-sm" onclick="App.Reminders.requestPermission()">${t('notif_request_perm')}</button>` +
+        `</div>`
+      );
+    }
+    if (state6 === 'subscribed') {
+      return (
+        `<div class="settings-row-sub" style="color:var(--color-success)">${t('notif_status_granted')}</div>` +
+        `<div class="settings-row-sub" style="color:var(--color-success)">${t('notif_push_connected')}</div>` +
+        `<div class="settings-row-sub" style="color:var(--color-text-muted)">⏰ Reminders check every ${sweep} min.</div>` +
+        `<div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">` +
+          `<button class="btn btn-secondary btn-sm" onclick="App.Reminders.sendTest()">${t('notif_test')}</button>` +
+        `</div>`
+      );
+    }
+    // no-subscription: permission granted but push not wired up
     return (
-      `<div class="settings-row-sub" style="color:${statusColor}">${t(statusKey)}</div>` +
-      pushStatus +
-      `<div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">${reqBtn}${reconnectBtn}${testBtn}</div>`
+      `<div class="settings-row-sub" style="color:var(--color-warning)">${t('notif_push_not_connected')}</div>` +
+      `<div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">` +
+        `<button class="btn btn-primary btn-sm" onclick="App.Reminders.requestPermission()">${t('notif_reconnect_push')}</button>` +
+        `<button class="btn btn-secondary btn-sm" onclick="App.Reminders.sendTest()">${t('notif_test')}</button>` +
+      `</div>`
     );
   }
 
@@ -372,6 +390,7 @@
   }
 
   function _cloudSignOut() {
+    if (!window.confirm('Sign out of cloud sync?')) return;
     App.Cloud.signOut()
       .then(() => App.showToast(App.I18n.t('toast_cloud_signed_out'), 'success'))
       .catch(() => {})
