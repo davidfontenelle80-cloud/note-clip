@@ -8,12 +8,15 @@
 
   const WORKER_URL    = 'https://note-clip-push.davidfontenelle80.workers.dev';
   const VAPID_PUB_KEY = 'BGA5XrD1QxrqjItGmiEmDCaOlv38nc8PJo9pumvk5xVHfuVIwVBoEJEbGTWoE4POoazNKgRicX2Dfs-Ppb9uzKA';
-  const PUSH_SECRET   = '743eebae9b13fa7cbb54c446beba1c0750ee37e73ea6213d1b235ab7ee4c2341';
 
   const STORAGE_KEY = 'noteClip_pushSubscriptionId';
+  const TOKEN_KEY = 'noteClip_pushCapability';
 
-  function _headers() {
-    return { 'Content-Type': 'application/json', 'X-Push-Secret': PUSH_SECRET };
+  function _headers(token) {
+    const headers = { 'Content-Type': 'application/json' };
+    token = token || getCapability();
+    if (token) headers.Authorization = 'Bearer ' + token;
+    return headers;
   }
 
   function getSubscriptionId() {
@@ -24,8 +27,19 @@
     try { localStorage.setItem(STORAGE_KEY, id); } catch(e) {}
   }
 
+  function getCapability() {
+    try { return localStorage.getItem(TOKEN_KEY) || ''; } catch(e) { return ''; }
+  }
+
+  function _setCapability(token) {
+    try { if (token) localStorage.setItem(TOKEN_KEY, token); } catch(e) {}
+  }
+
   function _clearSubscriptionId() {
-    try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(TOKEN_KEY);
+    } catch(e) {}
   }
 
   function _urlB64ToUint8Array(base64String) {
@@ -52,7 +66,7 @@
       const json = sub.toJSON();
       const resp = await fetch(`${WORKER_URL}/api/subscribe`, {
         method: 'POST',
-        headers: _headers(),
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
       });
       if (!resp.ok) {
@@ -60,12 +74,13 @@
         throw new Error('Background notification server rejected the subscription.');
       }
 
-      const { subscriptionId } = await resp.json();
-      if (!subscriptionId) {
+      const { subscriptionId, authToken } = await resp.json();
+      if (!subscriptionId || !authToken) {
         _clearSubscriptionId();
         throw new Error('Background notification server did not return a subscription id.');
       }
       _setSubscriptionId(subscriptionId);
+      _setCapability(authToken);
       return subscriptionId;
     } catch (e) {
       _clearSubscriptionId();
@@ -102,15 +117,17 @@
     try {
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
-      return { supported: true, connected: !!sub && !!getSubscriptionId() };
+      return { supported: true, connected: !!sub && !!getSubscriptionId() && !!getCapability() };
     } catch(e) {
       return { supported: true, connected: false };
     }
   }
 
   async function syncReminder(sourceType, sourceId, title, body, fireAt) {
-    const subscriptionId = getSubscriptionId();
-    if (!subscriptionId) return false;
+    let subscriptionId = getSubscriptionId();
+    if (!subscriptionId || !getCapability()) {
+      try { subscriptionId = await subscribe(); } catch (e) { return false; }
+    }
     try {
       const resp = await fetch(`${WORKER_URL}/api/reminders`, {
         method: 'POST',
@@ -126,7 +143,8 @@
 
   async function clearReminder(sourceType, sourceId) {
     try {
-      const subscriptionId = getSubscriptionId();
+      let subscriptionId = getSubscriptionId();
+      if (!subscriptionId || !getCapability()) subscriptionId = await subscribe();
       const url = new URL(`${WORKER_URL}/api/reminders/${sourceType}/${encodeURIComponent(sourceId)}`);
       if (subscriptionId) url.searchParams.set('subscriptionId', subscriptionId);
       await fetch(url.toString(), {

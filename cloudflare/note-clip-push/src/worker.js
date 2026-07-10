@@ -22,24 +22,21 @@ async function handleRequest(request, env) {
 
   try {
     if (url.pathname === '/api/subscribe' && request.method === 'POST') {
-      requireSecret(request, env);
       const result = await subscribe(request, env);
       return json(result, cors);
     }
 
     if (url.pathname === '/api/reminders' && request.method === 'POST') {
-      requireSecret(request, env);
       const result = await upsertReminder(request, env);
       return json(result, cors);
     }
 
     const match = url.pathname.match(/^\/api\/reminders\/([^/]+)\/([^/]+)$/);
     if (match && request.method === 'DELETE') {
-      requireSecret(request, env);
       const sourceType = decodeURIComponent(match[1]);
       const sourceId = decodeURIComponent(match[2]);
       const subscriptionId = url.searchParams.get('subscriptionId') || '';
-      const result = await deleteReminder(env, sourceType, sourceId, subscriptionId);
+      const result = await deleteReminder(request, env, sourceType, sourceId, subscriptionId);
       return json(result, cors);
     }
 
@@ -56,7 +53,7 @@ function corsHeaders(request, env) {
   return {
     'Access-Control-Allow-Origin': origin === allowedOrigin ? allowedOrigin : allowedOrigin,
     'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,X-Push-Secret',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Push-Secret',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
   };
@@ -72,10 +69,31 @@ function json(body, headers, status = 200) {
   });
 }
 
-function requireSecret(request, env) {
-  const expected = env.PUSH_SECRET;
-  const actual = request.headers.get('X-Push-Secret') || '';
-  if (!expected || actual !== expected) {
+async function capabilityToken(subscriptionId, env) {
+  const secret = String(env.PUSH_SECRET || '').trim();
+  if (!secret) throw new Error('PUSH_SECRET is not configured');
+  const key = await hmacKey(new TextEncoder().encode(secret));
+  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode('note-clip:' + subscriptionId));
+  return b64url(new Uint8Array(signature));
+}
+
+function bearerToken(request) {
+  const match = String(request.headers.get('Authorization') || '').trim().match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : '';
+}
+
+function safeEqual(actual, expected) {
+  actual = String(actual || '');
+  expected = String(expected || '');
+  if (!actual || !expected || actual.length !== expected.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < actual.length; i += 1) mismatch |= actual.charCodeAt(i) ^ expected.charCodeAt(i);
+  return mismatch === 0;
+}
+
+async function requireCapability(request, subscriptionId, env) {
+  const expected = await capabilityToken(subscriptionId, env);
+  if (!safeEqual(bearerToken(request), expected)) {
     const err = new Error('Unauthorized');
     err.status = 401;
     throw err;
@@ -108,7 +126,7 @@ async function subscribe(request, env) {
       auth = excluded.auth
   `).bind(id, endpoint, p256dh, auth, now).run();
 
-  return { subscriptionId: id };
+  return { subscriptionId: id, authToken: await capabilityToken(id, env) };
 }
 
 async function upsertReminder(request, env) {
@@ -125,6 +143,8 @@ async function upsertReminder(request, env) {
     err.status = 400;
     throw err;
   }
+
+  await requireCapability(request, subscriptionId, env);
 
   const subscription = await env.DB.prepare('SELECT id FROM subscriptions WHERE id = ?')
     .bind(subscriptionId)
@@ -151,14 +171,16 @@ async function upsertReminder(request, env) {
   return { ok: true };
 }
 
-async function deleteReminder(env, sourceType, sourceId, subscriptionId) {
+async function deleteReminder(request, env, sourceType, sourceId, subscriptionId) {
+  if (!subscriptionId) {
+    const err = new Error('subscriptionId is required');
+    err.status = 400;
+    throw err;
+  }
+  await requireCapability(request, subscriptionId, env);
   if (subscriptionId) {
     await env.DB.prepare('DELETE FROM reminders WHERE subscription_id = ? AND source_type = ? AND source_id = ?')
       .bind(subscriptionId, sourceType, sourceId)
-      .run();
-  } else {
-    await env.DB.prepare('DELETE FROM reminders WHERE source_type = ? AND source_id = ?')
-      .bind(sourceType, sourceId)
       .run();
   }
   return { ok: true };
