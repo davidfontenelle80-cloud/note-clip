@@ -1215,10 +1215,10 @@ input, textarea, select {
 }
 .grocery-add-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 82px 58px auto 38px;
+  grid-template-columns: minmax(0, 1fr) 82px 58px 40px;
   gap: 8px;
   align-items: center;
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-md) var(--space-sm);
 }
 .grocery-add-price,
 .grocery-add-qty {
@@ -1242,6 +1242,26 @@ input, textarea, select {
 .grocery-modal-toggle {
   margin-bottom: var(--space-md);
 }
+.grocery-add-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-md) var(--space-md);
+  gap: 8px;
+}
+.grocery-remaining-pill {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+.grocery-remaining-pill.over {
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+}
 
 @media (max-width: 520px) {
   .grocery-budget-grid {
@@ -1255,14 +1275,7 @@ input, textarea, select {
     display: none;
   }
   .grocery-add-row {
-    grid-template-columns: minmax(0, 1fr) 82px 54px 38px;
-  }
-  .grocery-add-row .btn {
-    grid-column: 4;
-    grid-row: 1;
-  }
-  .grocery-recurring-toggle {
-    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) 78px 54px 40px;
   }
 }
 
