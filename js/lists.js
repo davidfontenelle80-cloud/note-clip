@@ -117,14 +117,25 @@
       ${_buildGrocerySection(list, t('grocery_recurring_items'), recurring, t('grocery_no_recurring'))}
       ${_buildGrocerySection(list, t('grocery_one_time_items'), oneTime, t('grocery_no_one_time'))}
       <div class="grocery-add-row">
-        <input class="list-add-input" id="add-grocery-name-${list.id}" placeholder="${t('grocery_item_name')}">
+        <input class="list-add-input" id="add-grocery-name-${list.id}" placeholder="${t('grocery_item_name')}"
+          onkeydown="if(event.key==='Enter')App.Lists._addGroceryItem('${list.id}')">
         <input class="grocery-add-price" id="add-grocery-price-${list.id}" type="number" inputmode="decimal" min="0" step="0.01" placeholder="${t('grocery_price')}">
-        <input class="grocery-add-qty" id="add-grocery-qty-${list.id}" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="${t('grocery_qty')}">
+        <input class="grocery-add-qty" id="add-grocery-qty-${list.id}"
+          type="text" inputmode="numeric" pattern="[0-9]*"
+          value="1" onfocus="this.select()"
+          aria-label="${t('grocery_qty')}">
+        <button class="btn btn-primary btn-sm" onclick="App.Lists._addGroceryItem('${list.id}')">+</button>
+      </div>
+      <div class="grocery-add-footer">
         <label class="grocery-recurring-toggle">
           <input id="add-grocery-recurring-${list.id}" type="checkbox">
           <span>${t('grocery_save_recurring')}</span>
         </label>
-        <button class="btn btn-primary btn-sm" onclick="App.Lists._addGroceryItem('${list.id}')">+</button>
+        <div class="grocery-remaining-pill${totals.remaining < 0 ? ' over' : ''}">
+          ${totals.remaining >= 0
+            ? _money(totals.remaining) + ' left'
+            : _money(Math.abs(totals.remaining)) + ' over'}
+        </div>
       </div>
     </div>`;
   }
