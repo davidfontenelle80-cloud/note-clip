@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v115-notif-ux';
+const CACHE_VERSION = 'note-clip-v116-encoding-fix';
 
 const PRECACHE_URLS = [
   './',
