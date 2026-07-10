@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v116-encoding-fix';
+const CACHE_VERSION = 'note-clip-v117-grocery-ux';
 
 const PRECACHE_URLS = [
   './',
