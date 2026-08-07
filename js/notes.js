@@ -159,18 +159,14 @@
     }
     const cards = state.categories.map(cat => {
       const count = state.notes.filter(n => n.categoryId === cat.id).length;
-      return `<div class="category-card" onclick="App.Notes._viewCat('${cat.id}')">
-        <div class="category-card-top">
-          <div class="category-icon-wrap">${_iconHtml(cat.icon)}</div>
-          <div style="display:flex;gap:4px;flex-shrink:0">
-            <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')" title="Edit">&#x270E;</button>
-            <button class="card-delete-btn"
-              onclick="event.stopPropagation();App.Notes._deleteCat('${cat.id}')" title="Delete">&times;</button>
-          </div>
-        </div>
+      return `<div class="category-card" style="--paper:${_esc(cat.color||'#F6E67C')}" onclick="App.Notes._viewCat('${cat.id}')">
+        <button class="cat-edit-btn" title="Edit"
+          onclick="event.stopPropagation();App.Notes._editCat('${cat.id}')">&#x270E;</button>
+        <div class="category-icon-wrap">${_iconHtml(cat.icon)}</div>
         <div class="category-name">${_esc(cat.name)}</div>
         <div class="category-count">${count} ${App.I18n.t('notes')}</div>
+        <button class="cat-add-btn" title="Add note"
+          onclick="event.stopPropagation();App.Notes._openNoteModal(null,'${cat.id}')">+</button>
       </div>`;
     }).join('');
     return `<div class="category-grid">${cards}</div>`;
@@ -196,7 +192,7 @@
         <button class="card-delete-btn"
           onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="Delete">&times;</button>
       </div>
-      ${body ? `<div class="note-card-body">${_esc(body.slice(0,120))}${body.length>120?'â¦':''}</div>` : ''}
+      ${body ? `<div class="note-card-body">${_esc(body.slice(0,300))}</div>` : ''}
       <div class="note-card-footer">
         <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
           ${note.priority !== 'medium' ? `<span class="priority-badge ${pClass}">${App.I18n.t('priority_'+note.priority)}</span>` : ''}
@@ -339,12 +335,12 @@
     render();
   }
 
-  // ââ Note Modal ââââââââââââââââââââââââââââââââââââââââââââââââââââ
-  function _openNoteModal(note) {
+  // ── Note Modal ────────────────────────────────────────────────────
+  function _openNoteModal(note, presetCat) {
     const state = App.Storage.getState();
     const isEdit = !!note;
     const n = note || {
-      title: '', body: '', color: 'yellow', categoryId: null,
+      title: '', body: '', color: 'yellow', categoryId: presetCat || null,
       priority: 'medium', status: 'active',
       dueDate: '', dueTime: '', reminder: '',
       appointmentName: '', appointmentDatetime: '', leaveBy: '',
@@ -784,6 +780,8 @@
             <label class="form-label">${App.I18n.t('cat_name')}</label>
             <input id="cat-name" class="form-input" autocomplete="off" autocorrect="off" placeholder="Category nameâ¦" value="${_esc(c.name)}">
           </div>
+          ${isEdit ? `<button class="btn btn-danger w-full" style="margin-top:var(--space-sm)"
+            onclick="App.Notes._closeModal();App.Notes._deleteCat('${c.id}')">${App.I18n.t('delete_category')}</button>` : ''}
           <div class="modal-actions">
             <button class="btn btn-secondary" onclick="App.Notes._closeModal()">${App.I18n.t('cancel')}</button>
             <button class="btn btn-primary" onclick="App.Notes._saveCat('${isEdit?c.id:''}')">${App.I18n.t('save')}</button>

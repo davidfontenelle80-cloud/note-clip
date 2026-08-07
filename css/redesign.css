@@ -1,0 +1,121 @@
+/* =====================================================================
+   Note Clip — sticky-note redesign (override sheet)
+   Load AFTER css/styles.css. Restyles category + note cards as paper
+   stickies. No JS behavior lives here. Each card tints its own paper
+   from a single --paper hex (category: inline; note: --card-bg).
+   ===================================================================== */
+
+/* paper shading derived from one --paper hex, + a shadow that hugs the fold */
+.category-card,
+.note-card{
+  --p-hi:   color-mix(in srgb, var(--paper), #ffffff 26%);
+  --p-lo:   color-mix(in srgb, var(--paper), #6b4e12 12%);
+  --p-fold: color-mix(in srgb, var(--paper), #6b4e12 22%);
+  /* drop-shadow (not box-shadow) so it follows the clipped folded corner */
+  filter: drop-shadow(0 5px 9px rgba(90,70,25,.20))
+          drop-shadow(0 2px 3px rgba(60,45,15,.14));
+  box-shadow: none;
+}
+
+/* ── Category cards as stickies ──────────────────────────────────── */
+.category-card{
+  --paper: #F6E67C;                    /* overridden inline per category */
+  position: relative;
+  min-height: 156px;
+  padding: 15px;
+  border: none;
+  border-radius: 3px 3px 4px 4px;
+  background: var(--paper);            /* fallback if color-mix unsupported */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.30) 0 26px, transparent 26px),
+    linear-gradient(158deg, var(--p-hi) 0%, var(--paper) 44%, var(--p-lo) 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+  display: flex; flex-direction: column;
+}
+.category-card:hover{ transform: translateY(-3px) rotate(-.5deg); }
+.category-card:active{ transform: scale(.98); }
+.category-card::after{               /* lifted bottom-left corner */
+  content:""; position:absolute; left:0; bottom:0; width:24px; height:24px;
+  background: linear-gradient(45deg, var(--p-lo) 0%, var(--p-fold) 55%, var(--p-hi) 100%);
+  box-shadow: 3px -3px 6px rgba(70,52,18,.22);
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+}
+.category-icon-wrap{
+  width:44px; height:44px; border-radius:12px;
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 2px 5px rgba(80,60,20,.14);
+}
+.category-name{ font-weight:800; font-size:1.12rem; letter-spacing:-.02em; margin-top:auto; color:#3a3016; }
+.category-count{ font-size:.78rem; font-weight:600; color:rgba(58,48,22,.6); margin-top:2px; padding-right:42px; }
+
+.cat-edit-btn{
+  position:absolute; top:12px; right:12px; width:28px; height:28px;
+  border:none; border-radius:50%; background:rgba(255,255,255,.35);
+  color:rgba(60,46,18,.55); font-size:.8rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:.15s;
+}
+.cat-edit-btn:hover{ background:rgba(255,255,255,.72); color:#3a3016; }
+.cat-edit-btn:active{ transform:scale(.9); }
+
+.cat-add-btn{
+  position:absolute; bottom:13px; right:13px; width:36px; height:36px;
+  border:none; border-radius:50%; background:rgba(58,44,16,.82); color:#fff;
+  font-size:1.35rem; line-height:1; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 10px rgba(50,36,10,.35); transition:.15s;
+}
+.cat-add-btn:active{ transform:scale(.9); }
+
+.category-grid{ gap: 20px; }
+
+/* ── Note cards as stickies ──────────────────────────────────────── */
+.note-card{
+  --paper: var(--card-bg, var(--note-yellow));
+  position: relative;
+  border: none;
+  border-radius: 3px 3px 4px 4px;
+  padding: 16px 18px 15px;
+  background: var(--paper);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.32) 0 28px, transparent 28px),
+    linear-gradient(160deg, var(--p-hi) 0%, var(--paper) 42%, var(--p-lo) 100%);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 26px), calc(100% - 26px) 100%, 0 100%);
+}
+.note-card:hover{ transform: translateY(-3px) rotate(-.4deg); }
+.note-card:active{ transform: scale(.99); }
+.note-card::after{                   /* lifted bottom-right corner */
+  content:""; position:absolute; right:0; bottom:0; width:26px; height:26px;
+  background: linear-gradient(135deg, var(--p-lo) 0%, var(--p-fold) 55%, var(--p-hi) 100%);
+  box-shadow:-3px -3px 6px rgba(70,52,18,.22);
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+}
+.note-card-title{ font-weight:750; font-size:1.02rem; letter-spacing:-.01em; color:#3a3016; }
+
+/* the real clip fix: clamp to 4 lines + fade (pairs with the notes.js edit) */
+.note-card-body{
+  color: rgba(52,40,16,.78); line-height:1.55;
+  display:-webkit-box; -webkit-line-clamp:4; line-clamp:4; -webkit-box-orient:vertical; overflow:hidden;
+  -webkit-mask-image:linear-gradient(180deg,#000 72%,transparent);
+          mask-image:linear-gradient(180deg,#000 72%,transparent);
+}
+.note-card-footer{ margin-top:13px; padding-top:11px; border-top:1px solid rgba(90,68,20,.16); padding-right:22px; }
+.note-card .chip{ background:rgba(255,255,255,.42); color:rgba(52,40,16,.8); border-radius:20px; font-weight:600; }
+.note-card-date{ color:rgba(52,40,16,.55); }
+.note-card .bell-btn{ opacity:.4; }
+.note-card .bell-btn.has-reminder{ opacity:1; }
+.note-card .card-delete-btn{
+  width:26px; height:26px; min-width:26px; min-height:26px;
+  background:transparent; color:rgba(60,46,18,.42); font-size:.85rem;
+}
+.note-card .card-delete-btn:hover{ background:rgba(255,255,255,.4); color:#3a3016; }
+
+/* ── Filter tabs (Active / Awaiting / Follow-Up …) — warm, on-theme ── */
+.status-tab{
+  background: var(--color-surface); border:1px solid var(--color-border);
+  border-radius:14px; font-weight:700; padding:9px 16px; box-shadow: var(--shadow-sm);
+}
+.status-tab.active{
+  background: var(--color-primary);
+  color: var(--color-on-primary, #fff);
+  border-color: var(--color-primary);
+}
