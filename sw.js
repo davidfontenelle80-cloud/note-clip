@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v119-password-reset';
+const CACHE_VERSION = 'note-clip-v120-icon-visibility';
 
 const PRECACHE_URLS = [
   './',

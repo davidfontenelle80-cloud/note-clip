@@ -45,6 +45,31 @@
   background: rgba(255,255,255,.72);
   box-shadow: 0 2px 5px rgba(80,60,20,.14);
 }
+
+/* ── Icon legibility fix ──────────────────────────────────────────────
+   The runtime "polish" sheet paints a full-card dotted veil
+   (#pane-notes .category-card::before, opacity .34) and a diagonal accent
+   triangle (::after) OVER the card, and lifts the name/count to z-index:2 —
+   but the icon clip was left un-elevated, so the veil washed the icons out.
+   Lift the clip onto the same layer as the text and give it a brighter,
+   near-opaque backing so the art reads clearly on every pastel colour.
+   Scoped under #pane-notes to outrank the polish sheet. */
+#pane-notes .category-card .category-icon-wrap{
+  position: relative;
+  z-index: 2;                                  /* above the ::before veil */
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 2px 6px rgba(80,60,20,.18), inset 0 1px 0 rgba(255,255,255,.9);
+}
+#pane-notes .category-card .category-icon-wrap .cat-icon-img,
+#pane-notes .category-card .category-icon-wrap img{
+  position: relative;
+  z-index: 2;
+  opacity: 1;
+  width: 48px; height: 48px;                   /* slight bump for legibility */
+  filter:
+    drop-shadow(0 1px 1px rgba(0,0,0,.30))
+    drop-shadow(0 2px 4px rgba(0,0,0,.18));
+}
 .category-name{ font-weight:800; font-size:1.12rem; letter-spacing:-.02em; margin-top:auto; color:#3a3016; }
 .category-count{ font-size:.78rem; font-weight:600; color:rgba(58,48,22,.6); margin-top:2px; padding-right:42px; }
 
