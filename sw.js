@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v120-icon-visibility';
+const CACHE_VERSION = 'note-clip-v121-icon-no-tile';
 
 const PRECACHE_URLS = [
   './',

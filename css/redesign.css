@@ -46,29 +46,33 @@
   box-shadow: 0 2px 5px rgba(80,60,20,.14);
 }
 
-/* ── Icon legibility fix ──────────────────────────────────────────────
-   The runtime "polish" sheet paints a full-card dotted veil
-   (#pane-notes .category-card::before, opacity .34) and a diagonal accent
-   triangle (::after) OVER the card, and lifts the name/count to z-index:2 —
-   but the icon clip was left un-elevated, so the veil washed the icons out.
-   Lift the clip onto the same layer as the text and give it a brighter,
-   near-opaque backing so the art reads clearly on every pastel colour.
-   Scoped under #pane-notes to outrank the polish sheet. */
+/* ── Icons sit directly on the pastel paper (no white tile/trim) ──────
+   Remove the light rounded-square icon tile entirely. That frame came from
+   .category-icon-wrap's white background above PLUS the runtime polish sheet
+   (#pane-notes .category-icon-wrap: white bg + border + inset highlight),
+   which together read as a little white "clip" with a shine behind the icon.
+   Strip the background/border/shadow so the art sits straight on the card
+   colour; keep it on z-index:2 (above the polish ::before dotted veil) and
+   give it full opacity, a larger size, and a soft dark shadow so it reads on
+   every pastel. Scoped under #pane-notes to outrank the polish sheet. */
 #pane-notes .category-card .category-icon-wrap{
   position: relative;
-  z-index: 2;                                  /* above the ::before veil */
-  background: rgba(255,255,255,.94);
-  box-shadow: 0 2px 6px rgba(80,60,20,.18), inset 0 1px 0 rgba(255,255,255,.9);
+  z-index: 2;                 /* stay above the polish ::before veil */
+  width: 56px; height: 56px;
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 #pane-notes .category-card .category-icon-wrap .cat-icon-img,
 #pane-notes .category-card .category-icon-wrap img{
   position: relative;
   z-index: 2;
   opacity: 1;
-  width: 48px; height: 48px;                   /* slight bump for legibility */
+  width: 52px; height: 52px;
   filter:
-    drop-shadow(0 1px 1px rgba(0,0,0,.30))
-    drop-shadow(0 2px 4px rgba(0,0,0,.18));
+    drop-shadow(0 1px 2px rgba(60,45,15,.45))
+    drop-shadow(0 2px 5px rgba(60,45,15,.28));
 }
 .category-name{ font-weight:800; font-size:1.12rem; letter-spacing:-.02em; margin-top:auto; color:#3a3016; }
 .category-count{ font-size:.78rem; font-weight:600; color:rgba(58,48,22,.6); margin-top:2px; padding-right:42px; }
