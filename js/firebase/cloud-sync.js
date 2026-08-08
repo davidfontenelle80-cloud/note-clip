@@ -45,6 +45,8 @@
       'auth/invalid-email': 'Enter a valid email address.',
       'auth/invalid-credential': 'Email or password is incorrect.',
       'auth/missing-password': 'Enter a password.',
+      'auth/missing-email': 'Enter your email first.',
+      'auth/user-not-found': 'No account found for that email.',
       'auth/weak-password': 'Use at least 6 characters for the password.',
       'auth/network-request-failed': 'Cloud is unavailable. Check your connection.',
       'permission-denied': 'Cloud permission denied. Check Firestore rules.',
@@ -191,6 +193,18 @@
       .finally(() => _setLoading(false));
   }
 
+  function sendPasswordReset(email) {
+    _setLoading(true);
+    _clearError();
+    return _ensureAuth()
+      .then(() => _authMod.sendPasswordResetEmail(_auth, email))
+      .catch(err => {
+        _setError(err);
+        throw err;
+      })
+      .finally(() => _setLoading(false));
+  }
+
   function backupNow() {
     _setLoading(true);
     _clearError();
@@ -268,6 +282,7 @@
     signIn,
     createAccount,
     signOut,
+    sendPasswordReset,
     backupNow,
     restoreFromCloud,
     getStatus,

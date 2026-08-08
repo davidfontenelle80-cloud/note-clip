@@ -53,7 +53,10 @@
           <div class="settings-row-sub">${_esc(accountText)}</div>
           ${errorHtml}
         </div>
-        <button class="btn btn-secondary btn-sm" onclick="App.Settings._cloudSignOut()"${disabled}>${t('cloud_sign_out')}</button>
+        <div style="display:flex;gap:var(--space-sm);flex-wrap:wrap">
+          <button class="btn btn-secondary btn-sm" style="flex:1 1 130px" onclick="App.Settings._cloudResetPassword()"${disabled}>${t('cloud_reset_password')}</button>
+          <button class="btn btn-secondary btn-sm" style="flex:1 1 130px" onclick="App.Settings._cloudSignOut()"${disabled}>${t('cloud_sign_out')}</button>
+        </div>
       </div>
       <div class="settings-row" style="flex-direction:column;align-items:stretch;gap:var(--space-sm)">
         <div>
@@ -84,6 +87,7 @@
           <button class="btn btn-primary btn-sm" style="flex:1 1 130px" onclick="App.Settings._cloudSignIn()"${disabled}>${t('cloud_sign_in')}</button>
           <button class="btn btn-secondary btn-sm" style="flex:1 1 130px" onclick="App.Settings._cloudCreateAccount()"${disabled}>${t('cloud_create_account')}</button>
         </div>
+        <button class="btn btn-ghost btn-sm" style="align-self:flex-start;padding-left:0" onclick="App.Settings._cloudResetPassword()"${disabled}>${t('cloud_forgot_password')}</button>
       </div>`;
 
     return `
@@ -389,6 +393,22 @@
       .finally(() => render());
   }
 
+  function _cloudResetPassword() {
+    const status = App.Cloud ? App.Cloud.getStatus() : null;
+    const email = (status && status.email)
+      ? status.email
+      : (document.getElementById('cloud-email')?.value.trim() || '');
+    if (!email) {
+      App.showToast(App.I18n.t('cloud_reset_need_email'), 'error');
+      return;
+    }
+    if (!window.confirm(App.I18n.t('cloud_reset_confirm', { email }))) return;
+    App.Cloud.sendPasswordReset(email)
+      .then(() => App.showToast(App.I18n.t('toast_cloud_reset_sent'), 'success'))
+      .catch(() => {})
+      .finally(() => render());
+  }
+
   function _cloudSignOut() {
     if (!window.confirm('Sign out of cloud sync?')) return;
     App.Cloud.signOut()
@@ -421,7 +441,7 @@
 
   App.Settings = {
     render, _setTheme, _setLanguage, _saveUsername, _saveReminder, _saveListDefault,
-    _cloudSignIn, _cloudCreateAccount, _cloudSignOut, _cloudBackup, _cloudRestore,
+    _cloudSignIn, _cloudCreateAccount, _cloudResetPassword, _cloudSignOut, _cloudBackup, _cloudRestore,
     _refreshCloudStatus, _openComms, _saveWeather,
   };
 
