@@ -1,5 +1,5 @@
 /**
- * settings.js â Note Clip PWA
+ * settings.js — Note Clip PWA
  * Settings tab: theme, language, username, reminders, export.
  */
 (function (App) {

@@ -1,5 +1,5 @@
 /**
- * theme.js â Note Clip / KHub pattern
+ * theme.js — Note Clip / KHub pattern
  * Supports: 'dark' | 'light' | 'system'
  * Stored in localStorage under 'qn_theme'.
  */
