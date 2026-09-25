@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'note-clip-v122-ministry-notes';
+const CACHE_VERSION = 'note-clip-v123-firebase-key';
 
 const PRECACHE_URLS = [
   './',

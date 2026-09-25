@@ -17,7 +17,7 @@
   const APP_URL = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 
   const firebaseConfig = {
-    apiKey:            "AIzaSyAUiVMxG1JbtpaW3KKmYSsTheMP473uTbQ",
+    apiKey:            "AIzaSyBG6H6T147vMUeRtWdLcU_WtXZIR_ltrS4",
     authDomain:        "khub-apps.firebaseapp.com",
     projectId:         "khub-apps",
     storageBucket:     "khub-apps.firebasestorage.app",
