@@ -1,9 +1,10 @@
-const CACHE_VERSION = 'note-clip-v121-icon-no-tile';
+const CACHE_VERSION = 'note-clip-v122-ministry-notes';
 
 const PRECACHE_URLS = [
   './',
   './index.html',
   './css/styles.css',
+  './css/redesign.css',
   './css/category-modal-source.css',
   './css/bottom-nav-source.css',
   './css/category-card-polish.css',
