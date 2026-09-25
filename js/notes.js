@@ -33,9 +33,9 @@
   App.REMINDER_CHECK_MINUTES = REMINDER_CHECK_MINUTES;
   App.computeDeliveryTime = computeDeliveryTime;
 
-  let _view = 'categories'; // 'categories' | 'notes' | 'note-list'
+  let _view = 'notes'; // Ministry-style note list is the primary Notes experience
   let _filterCatId = null;
-  let _filterStatus = 'active';
+  let _filterStatus = 'today';
   let _searchQuery = '';
   let _dateFilter = null;
   let _editingNoteId = null;
@@ -136,14 +136,41 @@
   // No-op: custom emoji input removed
   function _applyCustomCatEmoji() {}
 
-  // ── Status Tabs ───────────────────────────────────────────────────
-  function buildStatusTabs() {
-    const statuses = ['active','awaiting','followup','hold','toread','completed','archived'];
-    return `<div class="status-tabs">
-      ${statuses.map(s => `
-        <button class="status-tab${_filterStatus === s ? ' active' : ''}"
-          onclick="App.Notes._setStatus('${s}')">
-          ${App.I18n.t('status_'+s)}
+  // ── Ministry-style schedule tabs ─────────────────────────────────
+  function _L(en, es) {
+    return App.I18n.current() === 'es' ? es : en;
+  }
+
+  function _scheduleBucket(note) {
+    if (note.completed || note.status === 'completed') return 'completed';
+    const due = (note.dueDate || '').slice(0, 10);
+    if (!due) return 'nodate';
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    const todayKey = `${y}-${m}-${d}`;
+    if (due < todayKey) return 'overdue';
+    if (due === todayKey) return 'today';
+    return 'upcoming';
+  }
+
+  function buildStatusTabs(state) {
+    const notes = (state?.notes || []).filter(n => !n.archived);
+    const overdueCount = notes.filter(n => _scheduleBucket(n) === 'overdue').length;
+    const tabs = [
+      ['today', 'fa-calendar-day', _L('Today','Hoy')],
+      ['upcoming', 'fa-clock', _L('Upcoming','Próximos')],
+      ['overdue', 'fa-triangle-exclamation', _L('Overdue','Atrasados')],
+      ['all', 'fa-layer-group', _L('All','Todos')],
+    ];
+    return `<div class="ministry-filter-tabs" role="tablist">
+      ${tabs.map(([key, icon, label]) => `
+        <button class="ministry-filter-tab${_filterStatus === key ? ' active' : ''}"
+          type="button" onclick="App.Notes._setStatus('${key}')">
+          <i class="fa-solid ${icon}"></i>
+          <span>${label}</span>
+          ${key === 'overdue' && overdueCount ? `<b>${overdueCount}</b>` : ''}
         </button>`).join('')}
     </div>`;
   }
@@ -172,100 +199,131 @@
     return `<div class="category-grid">${cards}</div>`;
   }
 
-  // ── Note Card ─────────────────────────────────────────────────────
-  function buildNoteCard(note, state) {
-    const cat = state.categories.find(c => c.id === note.categoryId);
-    const title = note.title || note.body.slice(0, 50);
-    const body  = note.body && note.title ? note.body : '';
-    const date  = note.dueDate
-      ? new Date(note.dueDate).toLocaleDateString(App.I18n.current() === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric' })
-      : new Date(note.createdAt).toLocaleDateString(App.I18n.current() === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric' });
-    const pClass = {
-      critical:'priority-urgent', urgent:'priority-urgent',
-      high:'priority-high', medium:'priority-medium',
-      low:'priority-low', optional:'priority-low'
-    }[note.priority] || 'priority-medium';
-
-    return `<div class="note-card" data-color="${_esc(note.color || 'yellow')}" onclick="App.Notes._editNote('${note.id}')">
-      <div class="note-card-header">
-        <div class="note-card-title">${_esc(title)}</div>
-        <button class="card-delete-btn"
-          onclick="event.stopPropagation();App.Notes._deleteNote('${note.id}')" title="Delete">&times;</button>
-      </div>
-      ${body ? `<div class="note-card-body">${_esc(body.slice(0,300))}</div>` : ''}
-      <div class="note-card-footer">
-        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-          ${note.priority !== 'medium' ? `<span class="priority-badge ${pClass}">${App.I18n.t('priority_'+note.priority)}</span>` : ''}
-          ${cat ? `<span class="chip">${_iconHtml(cat.icon,'chip-icon-img')} ${_esc(cat.name)}</span>` : ''}
-        </div>
-        <div style="display:flex;gap:4px;align-items:center">
-          <span class="note-card-date">${date}</span>
-          ${note.status !== 'active'
-            ? `<span class="chip" style="font-size:0.65rem">${App.I18n.t('status_'+note.status)}</span>`
-            : ''}
-          <button class="bell-btn${note.reminderAt ? ' has-reminder' : ''}"
-            title="Set reminder"
-            onclick="event.stopPropagation();App.Reminders.openPickerForNote('${note.id}')">&#x23F0;</button>
-        </div>
-      </div>
-      ${note.address ? `<div style="font-size:var(--text-xs);color:rgba(0,0,0,.5);margin-top:4px">${_esc(note.locationName || note.address)}</div>` : ''}
-    </div>`;
+  // ── Ministry-style Note Cards ─────────────────────────────────────
+  function _formatNoteDate(dateStr, short = false) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr + 'T12:00:00');
+    if (Number.isNaN(date.getTime())) return dateStr;
+    return new Intl.DateTimeFormat(App.I18n.current() === 'es' ? 'es-US' : 'en-US',
+      short ? { month:'short', day:'numeric' } : { month:'short', day:'numeric', year:'numeric' }
+    ).format(date);
   }
 
-  // ── Notes Grid View ───────────────────────────────────────────────
-  function buildNotesGrid(state) {
-    let notes = state.notes;
-    if (_filterCatId) notes = notes.filter(n => n.categoryId === _filterCatId);
+  function _formatNoteTime(timeStr) {
+    if (!/^\d{2}:\d{2}$/.test(timeStr || '')) return '';
+    const [h,m] = timeStr.split(':').map(Number);
+    const d = new Date();
+    d.setHours(h,m,0,0);
+    return new Intl.DateTimeFormat(App.I18n.current() === 'es' ? 'es-US' : 'en-US',
+      { hour:'numeric', minute:'2-digit' }).format(d);
+  }
 
-    if (_filterStatus === 'archived') {
-      notes = notes.filter(n => n.archived);
-    } else if (_filterStatus === 'completed') {
-      notes = notes.filter(n => n.completed && !n.archived);
-    } else {
-      notes = notes.filter(n => !n.archived && !n.completed && n.status === _filterStatus);
+  function _noteBadge(note) {
+    const bucket = _scheduleBucket(note);
+    if (bucket === 'today') return `<span class="ministry-note-badge today">${_L('Today','Hoy')}</span>`;
+    if (bucket === 'overdue') return `<span class="ministry-note-badge overdue">${_L('Overdue','Atrasado')}</span>`;
+    if (bucket === 'upcoming') return `<span class="ministry-note-badge">${_esc(_formatNoteDate(note.dueDate, true))}</span>`;
+    if (bucket === 'completed') return `<span class="ministry-note-badge completed">${_L('Done','Hecho')}</span>`;
+    return `<span class="ministry-note-badge">${_L('No date','Sin fecha')}</span>`;
+  }
+
+  function _hasExplicitReminder(note) {
+    return !!(note.reminderAt || (note.reminder && note.reminder !== 'none'));
+  }
+
+  function buildNoteCard(note) {
+    const bucket = _scheduleBucket(note);
+    let when = '';
+    if (bucket === 'overdue' && note.dueDate) {
+      when = `<span class="ministry-note-overdue-when"><i class="fa-regular fa-calendar"></i> ${_esc(_L('Due ','Venció ') + _formatNoteDate(note.dueDate, true) + (note.dueTime ? ' · ' + _formatNoteTime(note.dueTime) : ''))}</span>`;
+    } else if (note.dueTime) {
+      when = `<span><i class="fa-regular fa-clock"></i> ${_esc(_formatNoteTime(note.dueTime))}</span>`;
     }
+    const title = note.title || (note.body || '').slice(0, 60) || _L('Untitled note','Nota sin título');
+    return `<button class="ministry-note-card${bucket === 'overdue' ? ' overdue' : ''}" data-color="${_esc(note.color || 'yellow')}"
+      type="button" onclick="App.Notes._openNoteDetail('${note.id}')">
+      <div class="ministry-note-main">
+        <div class="ministry-note-title">${_esc(title)}</div>
+        <div class="ministry-note-meta">
+          ${_noteBadge(note)}
+          ${when}
+          ${_hasExplicitReminder(note) ? '<span title="Reminder"><i class="fa-solid fa-bell"></i></span>' : ''}
+        </div>
+      </div>
+      <i class="fa-solid fa-chevron-right ministry-note-chevron"></i>
+    </button>`;
+  }
+
+  function _sortNotes(notes) {
+    const order = { overdue:0, today:1, upcoming:2, nodate:3, completed:4 };
+    return [...notes].sort((a,b) => {
+      const ao = order[_scheduleBucket(a)] ?? 3;
+      const bo = order[_scheduleBucket(b)] ?? 3;
+      if (ao !== bo) return ao - bo;
+      if ((a.dueDate || '') !== (b.dueDate || '')) return (a.dueDate || '9999').localeCompare(b.dueDate || '9999');
+      if ((a.dueTime || '') !== (b.dueTime || '')) return (a.dueTime || '99:99').localeCompare(b.dueTime || '99:99');
+      return (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || '');
+    });
+  }
+
+  function buildNotesGrid(state) {
+    let notes = (state.notes || []).filter(n => !n.archived);
 
     if (_dateFilter) {
-      notes = notes.filter(n => n.dueDate && n.dueDate.slice(0,10) === _dateFilter);
+      notes = notes.filter(n => (n.dueDate || '').slice(0,10) === _dateFilter);
     }
 
     if (_searchQuery) {
       const q = _searchQuery.toLowerCase();
       notes = notes.filter(n =>
         (n.title || '').toLowerCase().includes(q) ||
-        (n.body  || '').toLowerCase().includes(q)
+        (n.body || '').toLowerCase().includes(q)
       );
     }
 
-    const today = new Date().toISOString().slice(0, 10);
-    const _priOrder = { critical:0, urgent:0, high:1, medium:2, low:3, optional:4 };
-    notes = [...notes].sort((a, b) => {
-      const ad = a.dueDate || null, bd = b.dueDate || null;
-      const aScore = !ad ? 3 : ad < today ? 0 : ad === today ? 1 : 2;
-      const bScore = !bd ? 3 : bd < today ? 0 : bd === today ? 1 : 2;
-      if (aScore !== bScore) return aScore - bScore;
-      if (ad && bd && ad !== bd) return ad.localeCompare(bd);
-      const ap = _priOrder[a.priority] ?? 2, bp = _priOrder[b.priority] ?? 2;
-      if (ap !== bp) return ap - bp;
-      return (b.createdAt || '').localeCompare(a.createdAt || '');
-    });
+    notes = _sortNotes(notes);
 
     const searchBar = `
-      <div class="search-bar-wrap" style="margin-bottom:var(--space-md)">
+      <div class="search-bar-wrap ministry-note-search">
         <input id="notes-search" class="form-input" type="search"
           placeholder="${App.I18n.t('notes_search')}"
           value="${_esc(_searchQuery)}"
           oninput="App.Notes._setSearch(this.value)">
       </div>`;
 
-    if (!notes.length) {
-      return searchBar + `<div class="empty-state">
-        <div class="empty-state-icon"><span class="icon-wrap icon-wrap-lg"><img src="./icons/ic_nav_notes.png" class="icon-img-lg" alt=""></span></div>
-        <div class="empty-state-text">${App.I18n.t('no_notes')}</div>
-        <div class="empty-state-sub">${_searchQuery ? 'No results — try a different search' : App.I18n.t('tap_plus')}</div>
-      </div>`;
+    if (_dateFilter) {
+      const filtered = notes.map(buildNoteCard).join('');
+      return searchBar + (filtered
+        ? `<div class="ministry-note-list">${filtered}</div>`
+        : `<div class="ministry-note-empty">${_L('Nothing scheduled for this date.','No hay nada programado para esta fecha.')}</div>`);
     }
-    return searchBar + `<div class="notes-grid">${notes.map(n => buildNoteCard(n, state)).join('')}</div>`;
+
+    if (_filterStatus === 'today') {
+      const todayNotes = notes.filter(n => _scheduleBucket(n) === 'today');
+      const overdueNotes = notes.filter(n => _scheduleBucket(n) === 'overdue');
+      let html = todayNotes.length
+        ? todayNotes.map(buildNoteCard).join('')
+        : `<div class="ministry-note-empty today"><i class="fa-regular fa-circle-check"></i> ${_L('Nothing else scheduled for today.','No hay nada más programado para hoy.')}</div>`;
+      if (overdueNotes.length) {
+        html += `<div class="ministry-needs-attention">
+          <div class="ministry-needs-attention-head">
+            <span><i class="fa-solid fa-triangle-exclamation"></i> ${_L('Needs Attention','Necesita atención')}</span>
+            <small>${_L('Overdue notes stay here until you handle them.','Las notas atrasadas permanecen aquí hasta que las atiendas.')}</small>
+          </div>
+          ${overdueNotes.map(buildNoteCard).join('')}
+        </div>`;
+      }
+      return searchBar + `<div class="ministry-note-list">${html}</div>`;
+    }
+
+    const visible = _filterStatus === 'all'
+      ? notes
+      : notes.filter(n => _scheduleBucket(n) === _filterStatus);
+
+    if (!visible.length) {
+      return searchBar + `<div class="ministry-note-empty">${_L('Nothing here yet.','Todavía no hay nada aquí.')}</div>`;
+    }
+    return searchBar + `<div class="ministry-note-list">${visible.map(buildNoteCard).join('')}</div>`;
   }
 
   // ── Main Render ───────────────────────────────────────────────────
@@ -273,43 +331,22 @@
     const el = document.getElementById('pane-notes');
     if (!el) return;
     const state = App.Storage.getState();
-
-    const catName = _filterCatId
-      ? (state.categories.find(c => c.id === _filterCatId)?.name || '')
-      : '';
-
-    const viewTabs = `
-      <div class="status-tabs" style="margin-bottom:var(--space-md)">
-        <button class="status-tab${_view==='categories'?' active':''}"
-          onclick="App.Notes._setView('categories')">${App.I18n.t('by_category')}</button>
-        <button class="status-tab${_view!=='categories'?' active':''}"
-          onclick="App.Notes._setView('notes')">${App.I18n.t('all_notes')}</button>
-      </div>`;
-
-    let content = '';
-    if (_view === 'categories') {
-      content = buildCategoryGrid(state);
-    } else if (_view === 'notes') {
-      content = buildStatusTabs() + buildNotesGrid(state);
-    } else if (_view === 'note-list') {
-      content = `
-        <button class="btn btn-secondary btn-sm" onclick="App.Notes._setView('categories')" style="margin-bottom:var(--space-md)">
-          ← ${App.I18n.t('categories')}
-        </button>
-        <div class="section-header">
-          <span class="section-title">${_esc(catName)}</span>
-        </div>
-        ${buildStatusTabs()}
-        ${buildNotesGrid(state)}`;
-    }
+    _view = 'notes';
 
     el.innerHTML = `
-      <div class="section-header">
-        <span class="section-title">${_view === 'note-list' ? '' : App.I18n.t(_view==='categories'?'categories':'all_notes')}</span>
-      </div>
-      ${_view !== 'note-list' ? viewTabs : ''}
-      ${content}
-    `;
+      <div class="ministry-notes-shell">
+        <div class="ministry-notes-heading">
+          <div>
+            <div class="section-title">${_L('Notes','Notas')}</div>
+            <p>${_L('Simple notes and reminders. The note body stays hidden until you open the card.','Notas y recordatorios simples. El contenido queda oculto hasta que abras la tarjeta.')}</p>
+          </div>
+          <button class="btn btn-primary ministry-add-note" type="button" onclick="App.Notes._openNoteModal(null)">
+            <i class="fa-solid fa-plus"></i> ${_L('Add Note','Añadir nota')}
+          </button>
+        </div>
+        ${buildStatusTabs(state)}
+        ${buildNotesGrid(state)}
+      </div>`;
   }
 
   // ── Navigation ────────────────────────────────────────────────────
@@ -692,10 +729,99 @@
     content.hidden = expanded;
   }
 
+  function _openNoteDetail(id) {
+    const state = App.Storage.getState();
+    const note = (state.notes || []).find(n => n.id === id);
+    if (!note) return;
+    _closeModal();
+
+    const title = note.title || (note.body || '').slice(0,60) || _L('Untitled note','Nota sin título');
+    const schedule = note.dueDate
+      ? [_formatNoteDate(note.dueDate), note.dueTime ? _formatNoteTime(note.dueTime) : ''].filter(Boolean).join(' · ')
+      : _L('No reminder date','Sin fecha de recordatorio');
+    const reminderLabel = _hasExplicitReminder(note) ? _L('Reminder on','Aviso activo') : _L('Set Reminder','Poner aviso');
+    const completedLabel = note.completed || note.status === 'completed' ? _L('Reopen','Reabrir') : _L('Complete','Completar');
+    const location = note.locationName || note.address || '';
+
+    const html = `
+      <div id="note-detail-modal" class="modal-backdrop" onclick="if(event.target===this)App.Notes._closeModal()">
+        <div class="modal-sheet ministry-note-detail-sheet">
+          <div class="modal-handle"></div>
+          <div class="ministry-note-detail-head">
+            <div>
+              <div class="modal-title">${_esc(title)}</div>
+              <div class="ministry-note-detail-schedule">${_esc(schedule)}</div>
+            </div>
+            <button class="ministry-note-close" type="button" onclick="App.Notes._closeModal()" aria-label="Close">&times;</button>
+          </div>
+          ${location ? `<div class="ministry-note-detail-location"><i class="fa-solid fa-location-dot"></i> ${_esc(location)}</div>` : ''}
+          <div class="ministry-note-detail-body">${_esc(note.body || _L('No details.','Sin detalles.'))}</div>
+          <div class="ministry-note-detail-actions">
+            <button class="btn btn-secondary" onclick="App.Notes._addNoteToCalendar('${note.id}')"><i class="fa-solid fa-calendar-plus"></i><span>${_L('Calendar','Calendario')}</span></button>
+            <button class="btn btn-secondary" onclick="App.Notes._setNoteReminder('${note.id}')"><i class="fa-solid fa-bell"></i><span>${reminderLabel}</span></button>
+            <button class="btn btn-secondary" onclick="App.Notes.${note.completed || note.status === 'completed' ? '_reopenNote' : '_completeNote'}('${note.id}')"><i class="fa-solid fa-check"></i><span>${completedLabel}</span></button>
+            <button class="btn btn-secondary" onclick="App.Notes._editNote('${note.id}')"><i class="fa-solid fa-pen"></i><span>${_L('Edit','Editar')}</span></button>
+            <button class="btn btn-secondary ministry-note-danger" onclick="App.Notes._deleteNote('${note.id}',true)"><i class="fa-solid fa-trash"></i><span>${_L('Delete','Eliminar')}</span></button>
+          </div>
+        </div>
+      </div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  function _setNoteReminder(id) {
+    if (App.Reminders?.openPickerForNote) {
+      App.Reminders.openPickerForNote(id);
+      return;
+    }
+    _editNote(id);
+  }
+
+  function _icsEscape(value) {
+    return String(value || '').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
+  }
+
+  function _addNoteToCalendar(id) {
+    const note = (App.Storage.getState().notes || []).find(n => n.id === id);
+    if (!note || !note.dueDate) {
+      App.showToast(_L('Set a date first.','Primero fija una fecha.'), 'error');
+      return;
+    }
+    const compactDate = note.dueDate.replace(/-/g,'');
+    let dtStart = `DTSTART;VALUE=DATE:${compactDate}`;
+    let dtEnd = '';
+    if (note.dueTime) {
+      dtStart = `DTSTART:${compactDate}T${note.dueTime.replace(':','')}00`;
+    } else {
+      const d = new Date(note.dueDate + 'T12:00:00');
+      d.setDate(d.getDate() + 1);
+      const end = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+      dtEnd = `\r\nDTEND;VALUE=DATE:${end}`;
+    }
+    const stamp = new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+    const ics = [
+      'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Note Clip//EN','BEGIN:VEVENT',
+      `UID:noteclip-${note.id}@local`, `DTSTAMP:${stamp}`, dtStart + dtEnd,
+      `SUMMARY:${_icsEscape(note.title || _L('Note','Nota'))}`,
+      `DESCRIPTION:${_icsEscape(note.body || '')}`,
+      note.address ? `LOCATION:${_icsEscape(note.address)}` : '',
+      'END:VEVENT','END:VCALENDAR'
+    ].filter(Boolean).join('\r\n');
+    const blob = new Blob([ics], { type:'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'note-clip-event.ics';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
   function _editNote(id) {
     const state = App.Storage.getState();
     const note = state.notes.find(n => n.id === id);
     if (!note) return;
+    _closeModal();
     _editingNoteId = id;
     _openNoteModal(note);
   }
@@ -756,6 +882,7 @@
 
   function _closeModal() {
     document.getElementById('note-modal')?.remove();
+    document.getElementById('note-detail-modal')?.remove();
     document.getElementById('cat-modal')?.remove();
     document.getElementById('cat-delete-modal')?.remove();
     _editingNoteId = null;
@@ -859,11 +986,7 @@
 
   // ── FAB handler (called by app.js) ──────────────────────────────
   function onFab() {
-    if (_view === 'categories') {
-      _openCatModal(null);
-    } else {
-      _openNoteModal(null);
-    }
+    _openNoteModal(null);
   }
 
   // ── Date filter (called from calendar date tap) ──────────────────
@@ -882,8 +1005,9 @@
   App.Notes = {
     render, onFab, filterByDate,
     _setView, _viewCat, _setStatus, _setSearch,
-    _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
+    _openNoteDetail, _editNote, _deleteNote, _completeNote, _archiveNote, _restoreNote, _reopenNote,
     _openNoteModal, _closeModal, _saveNote, _pickColor, _toggleSection, _noteReminderTime,
+    _setNoteReminder, _addNoteToCalendar,
     _editCat, _saveCat, _deleteCat, _confirmDeleteCat, _toggleCustomReminder,
     _setCatIcon, _filterCatIcons, _applyCustomCatEmoji,
     _openAppleMaps, _openGoogleMaps, _copyAddress,
