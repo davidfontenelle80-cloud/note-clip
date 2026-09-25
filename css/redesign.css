@@ -148,3 +148,64 @@
   color: var(--color-on-primary, #fff);
   border-color: var(--color-primary);
 }
+
+
+/* =====================================================================
+   Ministry-style Notes workflow
+   Compact stacked cards + detail-first interaction, while keeping the
+   Note Clip warm-paper palette and existing data model.
+   ===================================================================== */
+.ministry-notes-shell{display:flex;flex-direction:column;gap:14px}
+.ministry-notes-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ministry-notes-heading .section-title{font-size:1.35rem;font-weight:800}
+.ministry-notes-heading p{margin:4px 0 0;color:var(--color-text-muted);font-size:var(--text-sm);line-height:1.45;max-width:36rem}
+.ministry-add-note{white-space:nowrap;min-height:42px}
+.ministry-filter-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:4px;border-radius:15px;background:var(--color-surface-2)}
+.ministry-filter-tab{position:relative;min-height:48px;border:0;border-radius:12px;background:transparent;color:var(--color-text-muted);display:flex;align-items:center;justify-content:center;gap:6px;font-weight:750;font-size:var(--text-xs);padding:7px 5px}
+.ministry-filter-tab.active{background:var(--color-surface);color:var(--color-primary);box-shadow:var(--shadow-sm)}
+.ministry-filter-tab b{position:absolute;top:3px;right:5px;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:var(--color-danger,#b84a46);color:#fff;font-size:10px;line-height:17px;text-align:center}
+.ministry-note-search{margin-bottom:0}
+.ministry-note-list{display:flex;flex-direction:column;gap:10px}
+.ministry-note-card{--note-edge:#e5c95d;width:100%;border:1px solid var(--color-border);border-left:5px solid var(--note-edge);border-radius:16px;background:var(--color-surface);color:var(--color-text);padding:14px 13px;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform var(--transition),box-shadow var(--transition)}
+.ministry-note-card[data-color="lavender"]{--note-edge:#b9a4cf}
+.ministry-note-card[data-color="sky"]{--note-edge:#91b9d7}
+.ministry-note-card[data-color="mint"]{--note-edge:#93c19a}
+.ministry-note-card[data-color="yellow"]{--note-edge:#dfc558}
+.ministry-note-card[data-color="coral"]{--note-edge:#dca08a}
+.ministry-note-card[data-color="peach"]{--note-edge:#e7b97a}
+.ministry-note-card:active{transform:scale(.99)}
+.ministry-note-card.overdue{border-color:color-mix(in srgb,var(--color-warning,#bd7d2e) 45%,var(--color-border));border-left-color:var(--color-warning,#bd7d2e)}
+.ministry-note-main{min-width:0;flex:1}
+.ministry-note-title{font-weight:800;font-size:15px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ministry-note-meta{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:8px;color:var(--color-text-muted);font-size:11px}
+.ministry-note-badge{display:inline-flex;align-items:center;min-height:24px;padding:3px 8px;border-radius:999px;background:var(--color-surface-2);border:1px solid var(--color-border);font-weight:800;color:var(--color-text-muted)}
+.ministry-note-badge.today{background:color-mix(in srgb,var(--color-primary) 13%,var(--color-surface));color:var(--color-primary);border-color:color-mix(in srgb,var(--color-primary) 32%,var(--color-border))}
+.ministry-note-badge.overdue{background:color-mix(in srgb,var(--color-warning,#bd7d2e) 14%,var(--color-surface));color:var(--color-warning,#9a641f);border-color:color-mix(in srgb,var(--color-warning,#bd7d2e) 38%,var(--color-border))}
+.ministry-note-badge.completed{opacity:.68}
+.ministry-note-overdue-when{color:var(--color-warning,#9a641f);font-weight:700}
+.ministry-note-chevron{color:var(--color-text-3);font-size:12px;flex:0 0 auto}
+.ministry-note-empty{padding:28px 16px;text-align:center;border:1px dashed var(--color-border);border-radius:16px;color:var(--color-text-muted);background:color-mix(in srgb,var(--color-surface) 70%,transparent)}
+.ministry-note-empty.today{padding:20px 14px}
+.ministry-needs-attention{display:flex;flex-direction:column;gap:10px;margin-top:4px;padding:12px;border-radius:16px;background:color-mix(in srgb,var(--color-warning,#bd7d2e) 8%,var(--color-surface))}
+.ministry-needs-attention-head{display:flex;flex-direction:column;gap:3px;color:var(--color-warning,#9a641f)}
+.ministry-needs-attention-head span{font-weight:850}
+.ministry-needs-attention-head small{color:var(--color-text-muted);font-size:11px;line-height:1.35}
+.ministry-note-detail-sheet{max-height:min(88vh,760px)}
+.ministry-note-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ministry-note-detail-head .modal-title{padding-right:0;text-align:left}
+.ministry-note-detail-schedule{margin-top:3px;color:var(--color-text-muted);font-size:var(--text-sm)}
+.ministry-note-close{width:38px;height:38px;min-width:38px;border-radius:50%;border:1px solid var(--color-border);background:var(--color-surface-2);color:var(--color-text);font-size:24px;line-height:1;display:grid;place-items:center}
+.ministry-note-detail-location{margin-top:12px;padding:10px 12px;border-radius:12px;background:var(--color-surface-2);color:var(--color-text-muted);font-size:var(--text-sm)}
+.ministry-note-detail-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.58;padding:15px;margin-top:12px;border:1px solid var(--color-border);border-radius:14px;background:var(--color-surface-2);min-height:130px;color:var(--color-text)}
+.ministry-note-detail-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
+.ministry-note-detail-actions .btn{min-height:46px;display:flex;align-items:center;justify-content:center;gap:7px}
+.ministry-note-detail-actions .ministry-note-danger{color:var(--color-danger,#b84a46);border-color:color-mix(in srgb,var(--color-danger,#b84a46) 35%,var(--color-border))}
+.ministry-note-detail-actions .btn:last-child:nth-child(odd){grid-column:1/-1}
+
+@media(max-width:560px){
+  .ministry-notes-heading{flex-direction:column;align-items:stretch}
+  .ministry-add-note{align-self:flex-start}
+  .ministry-filter-tab{min-height:54px;flex-direction:column;gap:3px;padding:5px 2px}
+  .ministry-filter-tab span{font-size:9px;line-height:1.05}
+  .ministry-note-detail-actions{grid-template-columns:1fr 1fr}
+}
