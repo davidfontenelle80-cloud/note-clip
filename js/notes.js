@@ -770,6 +770,7 @@
 
   function _setNoteReminder(id) {
     if (App.Reminders?.openPickerForNote) {
+      _closeModal();
       App.Reminders.openPickerForNote(id);
       return;
     }
